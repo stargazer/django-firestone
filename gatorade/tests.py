@@ -6,7 +6,7 @@ class BaseTest(TestCase):
     Very flexible testing class for testing API handlers.
     """
     def setUp(self):
-        self.client = Client()
+        self.client = Client(HTTP_CONTENT_TYPE='application/json')
         self.login()
 
     def login(self):
