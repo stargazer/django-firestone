@@ -4,6 +4,8 @@ from django.test import Client
 class BaseTest(TestCase):
     """
     Very flexible testing class for testing API handlers.
+
+    https://docs.djangoproject.com/en/1.5/topics/testing/overview/
     """
     def setUp(self):
         self.client = Client(HTTP_CONTENT_TYPE='application/json')
