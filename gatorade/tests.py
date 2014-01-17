@@ -20,26 +20,23 @@ class BaseTest(TestCase):
         Runs through the response object, and verifies that it matches the
         expected response.
         """
-        if kwargs.get('content_type'):
-            self.assertEqual(
-                type(response.content, 
-                kwargs.get['content_type']
-            )
-        if kwargs.get('content_num'):
-            self.assertEqual(
-                len(response.content,
-                kwargs.get('content_num'),
-            )
-        if kwargs.get('headers'):
-            for header, value in kwargs.get('headers').items():
-                assertEqual(
-                    response.headers[header],
-                    value,
-                )
-        if kwargs.get('num_queries'):
+        response_content = response.content
+        response_headers = response.headers
+
+        expected_content=kwargs.get('content')
+        expected_headers=kwargs.get('headers')
+        expected_num_queries=kwargs.get('num_queries')
+
+        if expected_content:
+            self.assertEqual(type(response_content), type(expected_content))
+            self.assertEqual(len(response_content), len(expected_content))
+        if expected_headers:
+            for header, value in expected_headers.items():
+                self.assertTrue(response_headers[header], value)
+        if expected_num_queries:
             # TODO: Check if there's a way to obtain the DB query number
             pass
-
+                                    
 
 # Example of an application-level test class.
 class HandlerTest(BaseTest):
