@@ -59,7 +59,7 @@ class HandlerTest(BaseTest):
             # another request
             response = self.client.post(
                 'v1/handler/',
-                dict(key=value),
+                json.dumps(dict(key=value)),
                 content_type='application/json',
             )
             self.verify(response,
