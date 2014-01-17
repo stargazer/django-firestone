@@ -1,4 +1,4 @@
-# django-gatorate
+# django-gatorade
 
 ``Gatorade me bitch http://www.youtube.com/watch?v=wNvk4DD1fCU``
 
