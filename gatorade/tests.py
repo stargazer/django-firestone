@@ -12,10 +12,10 @@ class BaseTest(TestCase):
     def setUp(self):
         self.client = Client(HTTP_CONTENT_TYPE='application/json')
         self.method_mapper = {
-            'get': self.client.get,
-            'post': self.client.post,
-            'put': self.client.put,
-            'delete': self.client.delete,
+            'GET': self.client.get,
+            'POST': self.client.post,
+            'PUT': self.client.put,
+            'DELETE': self.client.delete,
         }                
 
         self.login()
@@ -58,7 +58,7 @@ class BaseTest(TestCase):
 
         # Execute request and retrieve response
         response = self.method_mapper[
-            request['method']](path=request['path'], data=request['data'], **request['headers']
+            request['method'.upper()]](path=request['path'], data=request['data'], **request['headers']
         )
         
         # Extract the response details we need
@@ -91,7 +91,7 @@ class HandlerTest(BaseTest):
                 status_code=200, data=list, len= 14,
                 headers={'content-disposition': 'attachment'},
                 num_queries=10,
-            }
+            )
             self.execute(request, response)
 
             # another request
