@@ -25,7 +25,8 @@ class BaseTest(TestCase):
         """
         expected_status_code=kwargs.get('status_code')
         expected_headers=kwargs.get('headers')
-        expected_content=kwargs.get('content')
+        expected_content_type=kwargs.get('content_type')
+        expected_content_num=kwargs.get('content_num')
         expected_num_queries=kwargs.get('num_queries')
         
         response_status_code = response.status_code
@@ -34,9 +35,10 @@ class BaseTest(TestCase):
 
         if expected_status_code:
             self.assertEqual(response_status_code, expected_status_code)
-        if expected_content:
-            self.assertEqual(type(response_content), type(expected_content))
-            self.assertEqual(len(response_content), len(expected_content))
+        if expected_content_type:
+            self.assertEqual(type(response_content), expected_content_type)
+        if expected_content_num
+            self.assertEqual(len(response_content), expected_content_num)
         if expected_headers:
             for header, value in expected_headers.items():
                 self.assertTrue(response_headers[header], value)
