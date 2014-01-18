@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.test import Client 
+import json
 
 class BaseTest(TestCase):
     """
@@ -12,7 +13,7 @@ class BaseTest(TestCase):
         self.login()
 
     def login(self):
-        self.browser.login(
+        self.client.login(
             username=self.USERNAME,
             password=self.PASSWORD,
         )
