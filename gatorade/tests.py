@@ -23,29 +23,31 @@ class BaseTest(TestCase):
         Runs through the response object, and verifies that it matches the
         expected response.
         """
-        expected_status_code=kwargs.get('status_code')
-        expected_headers=kwargs.get('headers')
-        expected_content_type=kwargs.get('content_type')
-        expected_content_len=kwargs.get('content_len')
-        expected_num_queries=kwargs.get('num_queries')
-        
-        response_status_code = response.status_code
-        response_content = json.loads(response.content)
-        response_headers = {header: response.get(header) for header in expected_headers}
+        # TODO: Be able to count num queries
+        # TODO: Be able to compare the exact response with the expected
+        # response
+        expected_response_data = {
+            'status_code': kwargs.get('status_code'),
+            'headers': kwargs.get('headers'),
+            'content_data_structure': kwargs.get('content_data_structure'),
+            'content_num': kwargs.get('content_num')
+            #'num_queries': kwargs.get('num_queries'),
+        }
 
-        if expected_status_code:
-            self.assertEqual(response_status_code, expected_status_code)
-        if expected_content_type:
-            self.assertEqual(type(response_content), expected_content_type)
-        if expected_content_len
-            self.assertEqual(len(response_content), expected_content_len)
-        if expected_headers:
-            for header, value in expected_headers.items():
-                self.assertTrue(response_headers[header], value)
-        if expected_num_queries:
-            # TODO: Check if there's a way to obtain the DB query number
-            pass
-                                    
+        actual_response_data = {
+            'status_code': response.status_code,
+            'headers': {header: response.get(header) for header in expected_response_data[headers]},
+            'content_data_structure': type(response.content),
+            'content_num': len(response.content),
+            #'num_queries':
+        }                
+        
+        for param in ('status_code', 'content_data_structure', 'content_num'):
+            self.assertEqual(actual_response_data(param), expected_response_data[param])
+        if expected_response_data.get('headers'):
+            for header, value in expected_response_data['headers'].items():
+                self.assertEqual(actual_response_data[header], value)
+
 
 # Example of an application-level test class.
 class HandlerTest(BaseTest):
@@ -60,7 +62,7 @@ class HandlerTest(BaseTest):
             response = self.client.get('/api/handler/')
             self.verify(response,
                 status_code=200,
-                content_type=list,
+                content_data_structure=list,
                 content_len=14,
                 headers={'content-disposition': 'attachment'},
                 num_queries=10,
@@ -74,7 +76,7 @@ class HandlerTest(BaseTest):
             )
             self.verify(response,
                 status_code=200,
-                content_type=dict,
+                content_data_structure=dict,
                 content_len=10,
                 headers={'content-type': 'application/json'},
                 num_queries=2,
