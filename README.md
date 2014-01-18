@@ -5,3 +5,7 @@
 Accepts ``content-type: application/json``, and returns ``application/json``
 
 
+## Requirements
+
+* Python 2.7
+* Django 1.5.4

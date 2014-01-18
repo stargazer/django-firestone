@@ -39,11 +39,9 @@ class BaseTest(TestCase):
         }
         expected_response = {
             'status_code': 200,
-            'content_data_structure': list,
-            'content_num': 15,
+            'data': list,
+            'len': 15,
             'headers': {'content-disposition': 'attachment'},
-            ...
-            ...
         }
         """
         # TODO: Be able to count num queries
@@ -67,12 +65,12 @@ class BaseTest(TestCase):
         response_data = {
             'status_code': response.status_code,
             'headers': {header: response.get(header) for header in expected_response[headers]},
-            'content_data_structure': type(response.content),
-            'content_num': len(response.content),
+            'data': type(response.content),
+            'len': len(response.content),
         }                
 
         # Compare to expected
-        for param in ('status_code', 'content_data_structure', 'content_num'):
+        for param in ('status_code', 'data', 'len'):
             self.assertEqual(response_data(param), expected_response[param])
         if expected_response.get('headers'):
             for header, value in expected_response['headers'].items():
@@ -86,33 +84,25 @@ class HandlerTest(BaseTest):
 
         fixtures = []
 
-        # This is an application level test method            
         def test_method_name(self):         
             # one request
-            request = {
-                'method': get,
-                'path': '/api/handler/'
-            }
-            response = {
-                'status_code': 200,
-                'content_data_structure': list,
-                'content_num': 14,
-                'headers': {'content-disposition': 'attachment'},
-                'num_queries': 10,
+            request = dict(method='get', path='/api/handler/')
+            response = dict(
+                status_code=200, data=list, len= 14,
+                headers={'content-disposition': 'attachment'},
+                num_queries=10,
             }
             self.execute(request, response)
 
             # another request
             request = {
-                'method': 'post',
-                'path': '/api/handler/',
+                'data': {'key': 'value'},
+                'method': 'post', 'path': '/api/handler/',
                 'data': {'key': 'value'},
                 'headers': {'content_type': 'application/json'},
             }
             response = {
-                'status_code': 200,
-                'content_data_structure': dict,
-                'content_num': 14,
+                'status_code': 200, 'data': dict, 'len': 14,
                 'headers': {'content-type': 'application/json'},
                 'num_queries':2,
             }
