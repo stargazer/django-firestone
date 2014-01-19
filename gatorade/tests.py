@@ -19,6 +19,34 @@ class BaseTest(TestCase):
             password=self.PASSWORD,
         )
 
+    def execute(self, request_dict, expected_response_dict):
+        """
+        @param request_dict: Dictionary with request specs
+        @param expected_response_dict: Dictionary with expected response specs
+
+        request_dict = {
+            'method': 'get',
+            'path'  : '/api/handler/,
+            'data'  : {},
+            'headers': {},
+        }
+        expected_response_dict = {
+            'status_code': 200,
+            'data': list,
+            'len': 15,
+            'headers': {'content-disposition': 'attachment'},
+        }
+        """
+        # TODO: Be able to count num queries
+        # TODO: Be able to compare the exact response with the expected
+        # response
+        
+        # Execute request and retrieve response
+        response = self.request(request_dict)
+
+        # Compare expected response to actual response
+        self.compare(response, expected_response_dict)
+
     def request(self, request_dict):
         """
         @param request_dict: Dictionary with request specs
@@ -50,54 +78,28 @@ class BaseTest(TestCase):
         # Execute request and return response object
         return method_mapper[method](path=path, data=data, **headers)
 
-    def response(self, response, expected_response_dict):
+    def compare(self, response, expected_response_dict):
         """
         @param response: HTTPResponse object
         @param expected_response_dict: Dictionary with expected response specs
 
-        Takes the ``response`` object and returns a dictionary with its values
-        we are interested in
+        Takes the HTTPResponse ``response`` object and deserializes it into a
+        dictionary. Then compares it with the expected response dictionary
         """
-        return {
+        actual_response_dict = {
             'status_code': response.status_code,
             'headers': {header: response.get(header) for header in expected_response_dict['headers']},
             'data': type(response.content),
             'len': len(response.content),
         }
 
-    def execute(self, request_dict, expected_response_dict):
-        """
-        @param request_dict: Dictionary with request specs
-        @param expected_response_dict: Dictionary with expected response specs
-
-        request_dict = {
-            'method': 'get',
-            'path'  : '/api/handler/,
-            'data'  : {},
-            'headers': {},
-        }
-        expected_response_dict = {
-            'status_code': 200,
-            'data': list,
-            'len': 15,
-            'headers': {'content-disposition': 'attachment'},
-        }
-        """
-        # TODO: Be able to count num queries
-        # TODO: Be able to compare the exact response with the expected
-        # response
-        
-        # Execute request and retrieve response
-        response = self.request(request_dict)
-        # Extract the response details we need
-        actual_response_dict = self.response(response, expected_response_dict)
-        
         # Compare to expected
         for param in ('status_code', 'data', 'len'):
             self.assertEqual(actual_response_dict(param), expected_response_dict[param])
         if expected_response.get('headers'):
             for header, value in expected_response_dict['headers'].items():
                 self.assertEqual(actual_response_dict[header], value)
+ 
 
 # Example of an application-level test class.
 class HandlerTest(BaseTest):
