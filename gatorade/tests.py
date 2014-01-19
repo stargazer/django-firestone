@@ -58,8 +58,8 @@ class BaseTest(TestCase):
         """
         @param request_dict: Dictionary with request specs
 
-        Deserializes the ``request_dict``, translate it to an HTTP request
-        on the ``self.client`` client, executres the request, and returns the
+        Deserializes the ``request_dict``, translates it to an HTTP request
+        applied on ``self.client`` , executes the request, and returns the
         HttpResponse object.
         """
         method_mapper = {
