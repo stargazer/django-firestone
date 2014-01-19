@@ -14,6 +14,9 @@ class BaseTest(TestCase):
         self.login()
 
     def login(self):
+        # TODO: Based on API handler's authentication type, we should be able to
+        # login using other methods as well.
+        # eg, sign request
         self.client.login(
             username=self.USERNAME,
             password=self.PASSWORD,
@@ -23,6 +26,9 @@ class BaseTest(TestCase):
         """
         @param request_dict: Dictionary with request specs
         @param expected_response_dict: Dictionary with expected response specs
+
+        This is the only method that the application-level test needs to know
+        and invoke.
 
         request_dict = {
             'method': 'get',
@@ -37,10 +43,6 @@ class BaseTest(TestCase):
             'headers': {'content-disposition': 'attachment'},
         }
         """
-        # TODO: Be able to count num queries
-        # TODO: Be able to compare the exact response with the expected
-        # response
-        
         # Execute request and retrieve response
         response = self.request(request_dict)
 
@@ -69,10 +71,7 @@ class BaseTest(TestCase):
 
         # Print request details
         print 'Path:%s\tMethod:%s\tData:%s\tHeaders:%s\n' % (
-            path,
-            method,
-            data,
-            headers,
+            path, method, data, headers,
         )
 
         # Execute request and return response object
@@ -86,6 +85,10 @@ class BaseTest(TestCase):
         Takes the HTTPResponse ``response`` object and deserializes it into a
         dictionary. Then compares it with the expected response dictionary
         """
+        # TODO: Be able to count num queries
+        # TODO: Be able to compare query types
+        # TODO: Be able to compare the exact response with the expected
+        # response
         actual_response_dict = {
             'status_code': response.status_code,
             'headers': {header: response.get(header) for header in expected_response_dict['headers']},
