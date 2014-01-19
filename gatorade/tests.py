@@ -92,6 +92,9 @@ class BaseTest(TestCase):
         """
         # TODO: Be able to count num queries
         # TODO: Be able to compare query types
+        # TODO: Be able to compare the response fields, with what I expect.
+        # It's challending, given that I need to account for dictionaries and
+        # also lists.
         # TODO: Be able to compare the exact response with the expected
         # response
         actual_response_dict = {
