@@ -11,7 +11,6 @@ class BaseTest(TestCase):
     """
     def setUp(self):
         self.client = Client(HTTP_CONTENT_TYPE='application/json')
-        self.login()
 
     def login(self):
         # TODO: Based on API handler's authentication type, we should be able to
@@ -43,6 +42,12 @@ class BaseTest(TestCase):
             'headers': {'content-disposition': 'attachment'},
         }
         """
+        # TODO: Maybe ``self.login`` should be invoked here. This way it will:
+        # - have the same effect
+        # - fascilitate the use of other auth mechanisms that require access to
+        # request data, in order to add header or querystring parameter in the request.
+        self.login()
+
         # Execute request and retrieve response
         response = self.request(request_dict)
 
