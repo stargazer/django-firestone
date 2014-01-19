@@ -51,11 +51,15 @@ def json_deserializer(request):
 
 Deserializer.register(json_deserializer, 'application/json')
 
-###### Example usage
-## Get serializer callable
-# deserializer = Deserializer.get_deserializer()
-## Deserialize request body and assign it to ``request.data``
-#request.data = deserializer(request)
+""" Example usage
+    #Get serializer callable
+    try:
+        deserializer = Deserializer.get_deserializer()
+    except ValueError:
+        respond(415, 'Unsupported Media Type')
+    else:
+        request.data = deserializer(request)
+"""
 
 
 
