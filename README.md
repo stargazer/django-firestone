@@ -18,15 +18,20 @@ handlers.
 
 First iteration
 * Create Base and Model handler
-* Handlers should be able to output fields, request body
-  fields, and crud operations they support
+* Handlers should be able to serialize their output to a pure python data
+  structure and then to json. 
+* Request-level field selection
+* Deserialize request body
+* CRUD operations
 * Handlers should declare everything cleanly and with little code
 * Easily testable
 * Accepts and returns only json data
+* Examine the use of class based views (see exactly what ``dispatch`` does). 
+  Can they indeed minimize the code I need to write?
 
 Second iteration
+* Each handler defines strictly what http methods it supports
 * Be able to define multiple authentication methods per handler
-* Per request field selection
 
 ## Requirements
 
