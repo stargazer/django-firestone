@@ -21,7 +21,10 @@ class ModelHandler(object):
 
 
 
-### Example of BaseHandler
+
+
+"""
+Example of BaseHandler
 class RandomHandler(BaseHandler):
     user_template = {
         'fields': ['id', 'domain', 'email'],
@@ -47,8 +50,9 @@ class RandomHandler(BaseHandler):
             'nouncy': nouncy_template,
         }
     }            
-
-### Example of ModelHandler
+"""
+"""
+Example of ModelHandler
 class ContactHandler(ModelHandler):
     model = Contact
 
@@ -58,7 +62,7 @@ class ContactHandler(ModelHandler):
     template = {
         'exclude': ['user',],
         'related': {
-            'media': media_template'
+            'media': media_template,
         },
     }
-
+"""
