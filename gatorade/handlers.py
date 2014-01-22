@@ -1,4 +1,7 @@
-class BaseHandler(object):
+from django.views.generic.base import View
+
+
+class BaseHandler(View):
     # Override to define the handler's output representation. It should follow
     # the syntax of ``django-preserialize`` templates.
     # See <https://github.com/bruth/django-preserialize#conventions>
@@ -15,6 +18,8 @@ class BaseHandler(object):
 class ModelHandler(object):
     # Override to define the handler's model
     model = None
+
+
 
 ### Example of BaseHandler
 class RandomHandler(BaseHandler):
@@ -38,7 +43,7 @@ class RandomHandler(BaseHandler):
     # {'a': <value>, 'b': <value>, 'c': <Nouncy>}
     template = {
         'fields': ['a', 'b', 'nouncy'],
-        'related' = {
+        'related': {
             'nouncy': nouncy_template,
         }
     }            
@@ -48,11 +53,11 @@ class ContactHandler(ModelHandler):
     model = Contact
 
     media_template = {
-        'exclude' = ['user',],
+        'exclude': ['user',],
     }
     template = {
-        'exclude' = ['user',],
-        'related' = {
+        'exclude': ['user',],
+        'related': {
             'media': media_template'
         },
     }
