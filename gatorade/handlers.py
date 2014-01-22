@@ -1,4 +1,5 @@
 from django.views.generic.base import View
+from preserialize.serialize import serialize
 
 
 class BaseHandler(View):
@@ -15,7 +16,7 @@ class BaseHandler(View):
         """
         return serialize(data, **self.template)
 
-class ModelHandler(object):
+class ModelHandler(BaseHandler):
     # Override to define the handler's model
     model = None
 
