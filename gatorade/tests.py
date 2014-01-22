@@ -121,7 +121,7 @@ class HandlerTest(BaseTest):
 
         def test_method_name(self):         
             # one request
-            request = dict(method='get', path='/api/handler/')
+            request = dict(method='GET', path='/api/handler/')
             response = dict(
                 status_code=200, data=list, len= 14,
                 headers={'content-disposition': 'attachment'},
@@ -131,15 +131,14 @@ class HandlerTest(BaseTest):
 
             # another request
             request = {
-                'data': {'key': 'value'},
-                'method': 'post', 'path': '/api/handler/',
-                'data': {'key': 'value'},
-                'headers': {'content_type': 'application/json'},
+                    'method': 'POST', 'path': '/api/handler/',
+                    'data': {'key': 'value'},
+                    'headers': {'content_type': 'application/json'},
             }
             response = {
-                'status_code': 200, 'data': dict, 'len': 14,
-                'headers': {'content-type': 'application/json'},
-                'num_queries':2,
+                    'status_code': 200, 'data': dict, 'len': 14,
+                    'headers': {'content-type': 'application/json'},
+                    'num_queries':2,
             }
             self.execute(request, response)
 
