@@ -38,6 +38,18 @@ Second iteration
 * Python 2.7
 * Django 1.5.4
 
+## Running tests
+
+The ``tests`` package contains a Django application that tests many of django-gatorade's features. 
+In order to build the application:
+
+	python bootstrap.py -v 2.1.1
+	bin/buildout
+
+In order to run the tests:
+
+	bin/test
+
 ## Useful packages to look into
 * django-preserialize: https://github.com/bruth/django-preserialize
 Especially section ``conventions`` might be a very good idea about how to
@@ -46,5 +58,6 @@ Every model handler should define it's output template. For any nested fields
 which would be included in its response, the handler should define their
 profiles.
 So, every handler will exactly select how its representation is going to be.
+
 
 
