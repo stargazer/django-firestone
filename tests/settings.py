@@ -6,7 +6,7 @@ DEBUG = True
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.sqlite3',
-        'NAME':     '/tmp/playground.db',
+        'NAME':     '/tmp/gatorade.db',
     }
 }
 
@@ -18,7 +18,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles', 
     'django_extensions',
 
-    #'project.api.accounts',
+    'tests.users',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -27,7 +27,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 STATIC_URL = '/static/'
-ROOT_URLCONF = 'tests.api.urls'
+ROOT_URLCONF = 'tests.urls'
 
 SECRET_KEY = 'asd6asdf7b1esdfasd0fasdfbf0690dsdfas0df9sdf2sd9f16254fgjdf47ed1741c'
 
