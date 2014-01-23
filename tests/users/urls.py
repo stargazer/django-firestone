@@ -1,6 +1,6 @@
 from django.conf.urls import *
-from handlers import AccountHandler
+from handlers import UserHandler
 
 urlpatterns = patterns('',
-    url(r'^users/$', AccountHandler.as_view()),
+    url(r'^users/$', UserHandler.as_view()),
 )

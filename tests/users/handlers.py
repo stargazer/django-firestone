@@ -10,7 +10,7 @@ from django.http import HttpResponse
 # Then, examine dispatch() and how I can decoraete it to do stuff before and
 # after the request action is executed.
 
-class AccountHandler(ModelHandler):
+class UserHandler(ModelHandler):
     model = User
 
     # TODO: IF I only expose 1 field of content_type, instead of getting it as
