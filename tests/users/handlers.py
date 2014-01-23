@@ -1,4 +1,4 @@
-from gatorade.handlers import ModelHandler
+from gatorade.handlers import ModelHandler, BaseHandler
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
@@ -9,6 +9,9 @@ from django.http import HttpResponse
 # Then, use JSON serializer.
 # Then, examine dispatch() and how I can decoraete it to do stuff before and
 # after the request action is executed.
+
+class DataHandler(BaseHandler):
+    pass
 
 class UserHandler(ModelHandler):
     model = User
@@ -29,11 +32,13 @@ class UserHandler(ModelHandler):
         }
     }
     template = {
-        'fields': [':all'], 
+        'fields': ['id', 'username', 'first_name', 'last_name',
+                   'logentry_set', 'email', 'last_login'], 
         'related': {
             'logentry_set': logentry_template,
         }, 
-        'exclude': ['password', 'date_joined',]
+        'exclude': ['password', 'date_joined',],
+        'allow_missing': True,
     }            
 
     def get(self, request, *args, **kwargs):
