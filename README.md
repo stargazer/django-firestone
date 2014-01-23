@@ -11,7 +11,11 @@ http://www.restapitutorial.com/httpstatuscodes.html
 
 ## Goal
 
-Write a very simple and well documented Rest API framework. On the first
+Write a very simple and well documented Rest API framework. API handlers are
+based on Django's class based view, and therefore inherit their flexibility and
+power.
+
+On the first
 iteration, I simply want to make it plain and clear. No fancy stuff, just very
 clear abstractions that enables the construction of very neatly written API
 handlers.
