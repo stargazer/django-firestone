@@ -10,8 +10,8 @@ class BaseHandler(View):
 
     def serialize_to_python(self, data):
         """
-        Serializes the output of a handler's operation (which is always a model
-        or queryset) to python data structures, according to the definition of
+        Serializes the output of a handler's action to python data structures, 
+        according to the definition of
         the handler's ``template`` variable.
         """
         return serialize(data, **self.template)
