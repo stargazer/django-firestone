@@ -18,7 +18,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles', 
     'django_extensions',
 
-    'tests.users',
+    'testproject.users',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
