@@ -4,14 +4,14 @@ except ImportError:
     from distutils.core import setup
 
 setup(
-    name='django-gatorade',
-    packages=('gatorade', ),
+    name='django-firestone',
+    packages=('firestone', ),
     version='0.1',
     description='REST API Framework',
     author='C. Paschalides',
     author_email='already.late@gmail.com',
     license='WTFPL',
-    url='http://github.com/stargazer/django-gatorade',
+    url='http://github.com/stargazer/django-firestone',
     keywords=('rest', 'restful', 'api', 'crud'),
     install_requires=(
         'Django==1.5.4',

@@ -1,6 +1,6 @@
 *.swp
 *.pyc
-django_gatorade.egg-info
+django_firestone.egg-info
 bin/
 parts/
 eggs/

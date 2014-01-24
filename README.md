@@ -1,4 +1,4 @@
-# django-gatorade
+# django-firestone
 
 [Gatorade me bitch](http://www.youtube.com/watch?v=wNvk4DD1fCU)
 
@@ -44,7 +44,7 @@ Second iteration
 
 ## Running tests
 
-The ``tests`` package contains a Django application that tests many of django-gatorade's features. 
+The ``tests`` package contains a Django application that tests many of django-firestone's features. 
 In order to build the application:
 
 	python bootstrap.py -v 2.1.1

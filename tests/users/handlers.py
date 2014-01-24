@@ -1,4 +1,4 @@
-from gatorade.handlers import ModelHandler, BaseHandler
+from firestone.handlers import ModelHandler, BaseHandler
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
