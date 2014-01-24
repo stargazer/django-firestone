@@ -11,7 +11,16 @@ from django.http import HttpResponse
 # after the request action is executed.
 
 class DataHandler(BaseHandler):
-    pass
+
+    user_template = {
+        'fields': ['id', 'username',]
+    }        
+    template = {
+        'fields': ['dic', 'list', 'user'],
+        'related': {
+            'user': user_template    
+        }
+    }
 
 class UserHandler(ModelHandler):
     model = User
