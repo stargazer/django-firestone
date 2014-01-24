@@ -1,4 +1,4 @@
-from handlers import UserHandler, DataHandler
+from testproject.users.handlers import UserHandler, DataHandler
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
