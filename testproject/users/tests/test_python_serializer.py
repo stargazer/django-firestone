@@ -4,14 +4,17 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from django.contrib.admin.models import LogEntry
 from django.contrib.admin.models import ContentType
+from django.http import QueryDict
 from model_mommy import mommy
 from random import randrange
 
 def setup_view(view, request, *args, **kwargs):
+    request.GET = QueryDict('')
     view.request = request
     view.args = args
     view.kwargs = kwargs
     return view
+
 
 class SerializeToPython(TestCase):
     def setUp(self):
