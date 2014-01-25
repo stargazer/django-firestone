@@ -33,10 +33,11 @@ class SerializeToPython(TestCase):
         Testing a model handler's ``serialize_to_python`` method, when
         sending a queryset to the serializer.
         """
-        # Initialize the class based view instance
+        request = RequestFactory()
+        request.get('whateverpath/')
         view = setup_view(
             UserHandler(), 
-            RequestFactory().get('whateverpath/'),
+            request,
         )
 
         # Queryset
@@ -73,10 +74,12 @@ class SerializeToPython(TestCase):
         Testing a model handler's ``serialize_to_python`` method, when
         sending a model to the serializer.
         """
+        request = RequestFactory()
+        request.get('whateverpath/'),
         # Initialize the class based view instance
         view = setup_view(
             UserHandler(), 
-            RequestFactory().get('whateverpath/'),
+            request
         )
         # Retrieve the model
         user = User.objects.get(id=1)
@@ -104,10 +107,12 @@ class SerializeToPython(TestCase):
         Testing a base handler's ``serialize_to_python`` method, when
         giving it a dictionary (it will follow the ``template``s directions.
         """
+        request = RequestFactory()
+        request.get('whateverpath/'),
         # Initialize the class based view instance
         view = setup_view(
             DataHandler(), 
-            RequestFactory().get('whateverpath/'),
+            request,
         )
         
         data = {
@@ -139,10 +144,12 @@ class SerializeToPython(TestCase):
         structure, it will follow the template's rules. For other data types,
         it will jusat output them as they are.
         """
+        request = RequestFactory()
+        request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
             DataHandler(), 
-            RequestFactory().get('whateverpath/'),
+            request
         )
         
         data = [
