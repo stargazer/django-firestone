@@ -27,7 +27,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 STATIC_URL = '/static/'
-ROOT_URLCONF = 'tests.urls'
+ROOT_URLCONF = 'testproject.urls'
 
 SECRET_KEY = 'asd6asdf7b1esdfasd0fasdfbf0690dsdfas0df9sdf2sd9f16254fgjdf47ed1741c'
 

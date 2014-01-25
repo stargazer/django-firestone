@@ -52,5 +52,5 @@ class UserHandler(ModelHandler):
 
     def get(self, request, *args, **kwargs):
         u = User.objects.filter(id=1)
-        return HttpResponse(self.serialize_to_python(u))
+        return HttpResponse(self.serialize_to_python(request, u))
 
