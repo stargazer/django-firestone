@@ -8,12 +8,27 @@ class BaseHandler(View):
     # See <https://github.com/bruth/django-preserialize#conventions>
     template = {}           
 
-    def serialize_to_python(self, data):
+    def serialize_to_python(self, request, data):
         """
+        @param request: Incominh HTTPRequest object
+        @param data   : Result of the handler's action
+
         Serializes the output of a handler's action to python data structures, 
-        according to the definition of
-        the handler's ``template`` variable.
+        according to the definition of the handler's ``template`` variable, or
+        to reqeust level field selection, by querystring parameter ``field``.
         """
+        # NOTE: The request level field selection doesn not work if the
+        # handler's ``template`` attribute uses ``django-preserialize``'s
+        # pseudo selectors
+        # See <https://github.com/bruth/django-preserialize#my-model-has-a-ton-of-fields-and-i-dont-want-to-type-them-all-out-what-do-i-do>
+        # It only works when the ``fields`` are defined one by one in a list.
+        field_selection = set(request.GET.getlist('field'))
+        if field_selection:
+            intersection = field_selection.intersection(set(self.template['fields']))
+            template = {key: value for key, value in self.template.items()}
+            template['fields'] = intersection
+            return serialize(data, **template)
+
         return serialize(data, **self.template)
 
 class ModelHandler(BaseHandler):
