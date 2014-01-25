@@ -43,7 +43,7 @@ class SerializeToPython(TestCase):
         # Queryset
         users = User.objects.all()
         # Serialize the queryset 
-        ser = view.serialize_to_python(users)
+        ser = view.serialize_to_python(request, users)
         
         # ** Assertions **
         # Is ``ser`` a list?
@@ -84,7 +84,7 @@ class SerializeToPython(TestCase):
         # Retrieve the model
         user = User.objects.get(id=1)
         # Serialize the model
-        ser = view.serialize_to_python(user)
+        ser = view.serialize_to_python(request, user)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -120,7 +120,7 @@ class SerializeToPython(TestCase):
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = view.serialize_to_python(data)
+        ser = view.serialize_to_python(request, data)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -171,7 +171,7 @@ class SerializeToPython(TestCase):
             3
         ]
 
-        ser = view.serialize_to_python(data)
+        ser = view.serialize_to_python(request, data)
         
         # ** Assertions **
         # Is ``ser`` a list?
