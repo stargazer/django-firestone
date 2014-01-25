@@ -29,8 +29,6 @@ class SerializeToPython(TestCase):
         """
         Testing a model handler's ``serialize_to_python`` method, when
         sending a queryset to the serializer.
-        The handler's template defines only valid keys (keys that actually
-        exist in the data that we sent it)
         """
         # Initialize the class based view instance
         view = setup_view(
@@ -56,9 +54,7 @@ class SerializeToPython(TestCase):
         
         # Does every dict in ``ser`` have all the fields that the template
         # requires?
-        self.assertEquals(
-            len(ser[0].keys()), 
-            len(view.template['fields']))
+        self.assertItemsEqual(ser[0].keys(), view.template['fields'])
         
         # Does every ``logentry_set`` key in each dict in ``ser``, contain all
         # the fields that the ``logentry_template`` requires?
@@ -73,8 +69,6 @@ class SerializeToPython(TestCase):
         """
         Testing a model handler's ``serialize_to_python`` method, when
         sending a model to the serializer.
-        The handler's template defines only valid keys (keys that actually
-        exist in the data that we sent it)
         """
         # Initialize the class based view instance
         view = setup_view(
@@ -92,7 +86,7 @@ class SerializeToPython(TestCase):
         
         # Does the dict have all the fields that the template
         # requires?
-        self.assertEquals(len(ser.keys()), len(view.template['fields']))
+        self.assertItemsEqual(ser.keys(), view.template['fields'])
         
         # Does every ``logentry_set`` key in the dict in ``ser``, contain all
         # the fields that the ``logentry_template`` requires?
@@ -104,8 +98,8 @@ class SerializeToPython(TestCase):
 
     def test_basehandler_dict(self):
         """
-        When the handler's output is a dictionary, it will follow the
-        ``template``'s directions.
+        Testing a base handler's ``serialize_to_python`` method, when
+        giving it a dictionary (it will follow the ``template``s directions.
         """
         # Initialize the class based view instance
         view = setup_view(
@@ -135,11 +129,12 @@ class SerializeToPython(TestCase):
             view.user_template['fields']
         )
 
-            
-    def test_basehandler_list(self):
+    def test_basehandler_other(self):
         """
-        When the handler's output is a list, it will follow the
-        ``template``'s directions, only for dictionaries in the list
+        Testing a base handler's ``serialize_to_python`` method, when
+        giving it some other data structure. For dicts within the data
+        structure, it will follow the template's rules. For other data types,
+        it will jusat output them as they are.
         """
         # Initialize the class based view instance
         view = setup_view(
@@ -181,8 +176,17 @@ class SerializeToPython(TestCase):
             if isinstance(item, dict):
                 self.assertItemsEqual(item.keys(), view.template['fields'])
 
-        
+        # Do the ``user`` items in the dicts only have the fields that the
+        # template requires?
+        for item in ser:
+            if isinstance(item, dict):
+                if 'user' in item:
+                    self.assertItemsEqual(
+                        item['user'].keys(),
+                        view.user_template['fields']
+                    )
 
+        
             
 
 

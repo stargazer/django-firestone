@@ -13,7 +13,7 @@ from django.http import HttpResponse
 class DataHandler(BaseHandler):
 
     user_template = {
-        'fields': ['id', 'username',]
+        'fields': ['id', 'username', 'email']
     }        
     template = {
         'fields': ['dic', 'list', 'user'],
