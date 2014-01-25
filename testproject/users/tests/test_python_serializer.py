@@ -58,7 +58,53 @@ class SerializeToPython(TestCase):
         
         # Does every dict in ``ser`` have all the fields that the template
         # requires?
-        self.assertItemsEqual(ser[0].keys(), view.template['fields'])
+        for item in ser:
+            self.assertItemsEqual(item.keys(), view.template['fields'])
+        
+        # Does every ``logentry_set`` key in each dict in ``ser``, contain all
+        # the fields that the ``logentry_template`` requires?
+        for user in ser:
+            for logentry in user['logentry_set']:
+                self.assertItemsEqual(
+                    logentry.keys(), 
+                    view.logentry_template['fields']
+                )
+
+    def test_modelhandler_queryset_field_selection(self):                
+        """
+        Testing a model handler's ``serialize_to_python`` method, when
+        sending a queryset to the serializer, and request level field selection
+        is used.
+        """
+        request = RequestFactory()
+        request.get('whateverpath/'),
+        # Initialize the class based view instance
+        view = setup_view(
+            UserHandler(),
+            request
+        )
+        request.GET = QueryDict('field=id&field=username&field=logentry_set')
+
+        # Queryset
+        users = User.objects.all()
+        # Serialize to python
+        ser = view.serialize_to_python(request, users)
+
+        # ** Assertions **
+        # Is ``ser`` a list?
+        self.assertEquals(type(ser), list)
+        
+        # Is every item in ``ser``, a dict?
+        for user in ser:
+            self.assertEqual(type(user), dict)
+        
+        # Have all the models in the queryset been serialized?     
+        self.assertEquals(len(ser), users.count())
+        
+        # Does every dict in ``ser`` have all the fields that the field
+        # selection defined?
+        for item in ser:
+            self.assertItemsEqual(item.keys(), ('id', 'username', 'logentry_set'))
         
         # Does every ``logentry_set`` key in each dict in ``ser``, contain all
         # the fields that the ``logentry_template`` requires?
@@ -102,6 +148,42 @@ class SerializeToPython(TestCase):
                 view.logentry_template['fields']
             ) 
 
+    def test_modelhandler_model_field_selection(self):                
+        """
+        Testing a model handler's ``serialize_to_python`` method, when
+        sending a queryset to the serializer, and request level field selection
+        is used.
+        """
+        request = RequestFactory()
+        request.get('whateverpath/'),
+        # Initialize the class based view instance
+        view = setup_view(
+            UserHandler(),
+            request
+        )
+        request.GET = QueryDict('field=id&field=username&field=logentry_set')
+
+        # Queryset
+        users = User.objects.get(id=1)
+        # Serialize to python
+        ser = view.serialize_to_python(request, users)
+
+        # ** Assertions **
+        # Is ``ser`` a dict?
+        self.assertEquals(type(ser), dict)
+        
+        # Does the dict in ``ser`` have all the fields that the field
+        # selection defined?
+        self.assertItemsEqual(ser.keys(), ('id', 'username', 'logentry_set'))
+        
+        # Does every ``logentry_set`` key in the dict in ``ser``, contain all
+        # the fields that the ``logentry_template`` requires?
+        for logentry in ser['logentry_set']:
+            self.assertItemsEqual(
+                logentry.keys(), 
+                view.logentry_template['fields']
+            ) 
+
     def test_basehandler_dict(self):
         """
         Testing a base handler's ``serialize_to_python`` method, when
@@ -136,7 +218,35 @@ class SerializeToPython(TestCase):
             ser['user'].keys(),
             view.user_template['fields']
         )
-
+                    
+    def test_basehandler_dict_field_selection(self):
+        """
+        Testing a base handler's ``serialize_to_python`` method, when
+        giving it a dictionary, and request level field selection is used
+        """
+        request = RequestFactory()
+        request.get('whateverpath/'),
+        # Initialize the class based view instance
+        view = setup_view(
+            DataHandler(), 
+            request,
+        )
+        request.GET = QueryDict('field=dic&field=list')
+        
+        data = {
+            'dic': {'a': 1, 'b': 2, 'c': 3},
+            'list': [1, 2, 3],
+            'user': User.objects.get(id=1)
+        }
+        ser = view.serialize_to_python(request, data)
+        
+        # ** Assertions **
+        # Is ``ser`` a dict?
+        self.assertEquals(type(ser), dict)
+        
+        # Does the dict have all the fields that the field selectiond defines?
+        self.assertItemsEqual(ser.keys(), ('dic', 'list'))
+        
     def test_basehandler_other(self):
         """
         Testing a base handler's ``serialize_to_python`` method, when
