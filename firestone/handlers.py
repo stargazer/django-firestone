@@ -1,4 +1,5 @@
 from django.views.generic.base import View
+from django.http import HttpResponse
 from preserialize.serialize import serialize
 
 
@@ -8,9 +9,36 @@ class BaseHandler(View):
     # See <https://github.com/bruth/django-preserialize#conventions>
     template = {}           
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Entry point. Coordinates pre and post processing actions, as well as
+        selects and calls the main action method.
+        """
+        self.preprocess(self, request, *args, **kwargs)
+
+        data = super(BaseHandler, self).dispatch(request, *args, **kwargs)
+
+        final_data = self.postprocess(request, data, *args, **kwargs)
+
+        # create response and return it
+        return HttpResponse(final_data)
+
+    def preprocess(self, request, *args, **kwargs):
+        """
+        Preprocess the request.
+        """
+        pass
+
+    def postprocess(self, request, data, *args, **kwargs):
+        """
+        Postprocess the data result
+        """
+        data = self.serialize_to_python(request, data)   
+        return data
+
     def serialize_to_python(self, request, data):
         """
-        @param request: Incominh HTTPRequest object
+        @param request: Incoming HTTPRequest object
         @param data   : Result of the handler's action
 
         Serializes the output of a handler's action to python data structures, 
