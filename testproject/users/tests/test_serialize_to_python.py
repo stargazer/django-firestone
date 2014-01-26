@@ -1,3 +1,7 @@
+"""
+This module tests the BaseHandler.serialize_to_python method
+"""
+
 from testproject.users.handlers import UserHandler, DataHandler
 from django.test import TestCase
 from django.test import RequestFactory
@@ -9,7 +13,6 @@ from model_mommy import mommy
 from random import randrange
 
 def setup_view(view, request, *args, **kwargs):
-    request.GET = QueryDict('')
     view.request = request
     view.args = args
     view.kwargs = kwargs
@@ -34,7 +37,7 @@ class SerializeToPython(TestCase):
         sending a queryset to the serializer.
         """
         request = RequestFactory()
-        request.get('whateverpath/')
+        request = request.get('whateverpath/')
         view = setup_view(
             UserHandler(), 
             request,
@@ -77,13 +80,12 @@ class SerializeToPython(TestCase):
         is used.
         """
         request = RequestFactory()
-        request.get('whateverpath/'),
+        request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the class based view instance
         view = setup_view(
             UserHandler(),
             request
         )
-        request.GET = QueryDict('field=id&field=username&field=logentry_set')
 
         # Queryset
         users = User.objects.all()
@@ -121,7 +123,7 @@ class SerializeToPython(TestCase):
         sending a model to the serializer.
         """
         request = RequestFactory()
-        request.get('whateverpath/'),
+        request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
             UserHandler(), 
@@ -155,19 +157,17 @@ class SerializeToPython(TestCase):
         is used.
         """
         request = RequestFactory()
-        request.get('whateverpath/'),
+        request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the class based view instance
         view = setup_view(
             UserHandler(),
             request
         )
-        request.GET = QueryDict('field=id&field=username&field=logentry_set')
 
         # Queryset
         users = User.objects.get(id=1)
         # Serialize to python
         ser = view.serialize_to_python(request, users)
-
         # ** Assertions **
         # Is ``ser`` a dict?
         self.assertEquals(type(ser), dict)
@@ -190,7 +190,7 @@ class SerializeToPython(TestCase):
         giving it a dictionary (it will follow the ``template``s directions.
         """
         request = RequestFactory()
-        request.get('whateverpath/'),
+        request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
             DataHandler(), 
@@ -225,13 +225,12 @@ class SerializeToPython(TestCase):
         giving it a dictionary, and request level field selection is used
         """
         request = RequestFactory()
-        request.get('whateverpath/'),
+        request = request.get('whateverpath/?field=dic&field=list')
         # Initialize the class based view instance
         view = setup_view(
             DataHandler(), 
             request,
         )
-        request.GET = QueryDict('field=dic&field=list')
         
         data = {
             'dic': {'a': 1, 'b': 2, 'c': 3},
@@ -255,7 +254,7 @@ class SerializeToPython(TestCase):
         it will jusat output them as they are.
         """
         request = RequestFactory()
-        request.get('whateverpath/')
+        request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
             DataHandler(), 
