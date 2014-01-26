@@ -9,9 +9,7 @@ class BaseHandlerMeta(type):
         paramaters.
         """
         cls = type.__new__(meta, name, bases, attrs)
-
         cls.http_method_names = [method.lower() for method in cls.http_method_names]
-
         return cls
 
 
@@ -23,7 +21,7 @@ class BaseHandler(View):
     # See <https://github.com/bruth/django-preserialize#conventions>
     template = {}     
 
-    # List of allowed HTTP methods
+    # List of allowed HTTP methods.
     http_method_names = []
 
     def dispatch(self, request, *args, **kwargs):
@@ -40,7 +38,7 @@ class BaseHandler(View):
         All these are performed in the ``preprocess``.
         Once this is done, I then call ``dispatch``.
         """
-        error = self.preprocess(request, *args, **kwargs)
+        error = self.is_method_allowed(request, *args, **kwargs)
         if isinstance(error, HttpResponse):
             return error
 
@@ -51,14 +49,20 @@ class BaseHandler(View):
         # create response and return it
         return HttpResponse(final_data)
 
-    def preprocess(self, request, *args, **kwargs):
+    def is_method_allowed(self, request, *args, **kwargs):
         """
-        Preprocess the request. If anything goes wrong, it returns an
+        Is the request method allowed? If not, returns an
         HTTPResponse object, which ``dispatch`` will let bubble up.
         """
         # Is this type of request allowed?
         if request.method.lower() not in self.http_method_names:
             return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def preprocess(self, request, *args, **kwargs):
+        """
+        Preprocess the request
+        """
+        pass
 
     def postprocess(self, request, data, *args, **kwargs):
         """
