@@ -30,8 +30,19 @@ class BaseHandler(View):
         """
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
+        Don't override this method.
+
+        Normally the ``View.dispatch`` method, simply checks whether the
+        request's HTTP method is allowed, and if yes, invokes the corresponding
+        view method that carries out the operation. 
+        In this case though, they are many more checks and validations that I'd
+        like to perform before actually invoking the corresponding view method.
+        All these are performed in the ``preprocess``.
+        Once this is done, I then call ``dispatch``.
         """
-        self.preprocess(self, request, *args, **kwargs)
+        error = self.preprocess(request, *args, **kwargs)
+        if isinstance(error, HttpResponse):
+            return error
 
         data = super(BaseHandler, self).dispatch(request, *args, **kwargs)
 
@@ -42,9 +53,12 @@ class BaseHandler(View):
 
     def preprocess(self, request, *args, **kwargs):
         """
-        Preprocess the request.
+        Preprocess the request. If anything goes wrong, it returns an
+        HTTPResponse object, which ``dispatch`` will let bubble up.
         """
-        pass
+        # Is this type of request allowed?
+        if request.method.lower() not in self.http_method_names:
+            return self.http_method_not_allowed(request, *args, **kwargs)
 
     def postprocess(self, request, data, *args, **kwargs):
         """
