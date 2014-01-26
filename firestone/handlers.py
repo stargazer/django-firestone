@@ -2,12 +2,29 @@ from django.views.generic.base import View
 from django.http import HttpResponse
 from preserialize.serialize import serialize
 
+class BaseHandlerMeta(type):
+    def __new__(meta, name, bases, attrs):
+        """
+        Metaclass magic for preprocessing some of the handler class's
+        paramaters.
+        """
+        cls = type.__new__(meta, name, bases, attrs)
+
+        cls.http_method_names = [method.lower() for method in cls.http_method_names]
+
+        return cls
+
 
 class BaseHandler(View):
+    __metaclass__ = BaseHandlerMeta
+
     # Override to define the handler's output representation. It should follow
     # the syntax of ``django-preserialize`` templates.
     # See <https://github.com/bruth/django-preserialize#conventions>
-    template = {}           
+    template = {}     
+
+    # List of allowed HTTP methods
+    http_method_names = []
 
     def dispatch(self, request, *args, **kwargs):
         """
