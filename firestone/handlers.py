@@ -104,13 +104,72 @@ class HandlerDataFlow(View):
             return serialize(data, **template)
 
         return serialize(data, **self.template)
+ 
+class BaseHandler(HandlerDataFlow):
+    """
+    This class describes a handler's real operation.
+    """
+    def get_data(self, request, *args, **kwargs):
+        """
+        Returns the data of the current operation. To do so, it uses methods
+        ``get_data_item`` and ``get_data_set``.
+        
+        Applies for both BaseHandler and ModelHandler.
+        """
+        data = self.get_data_item(request, *args, **kwargs)
+        if data is None:
+            data = self.get_data_set(request, *args, **kwargs)
+        return data
+
+    def get_data_item(self, request, *args, **kwargs):
+        """
+        Returns the data item for singular operations. Returns None if not
+        applicable.
+        
+        Applies for both BaseHandler and ModelHandler.
+        """
+        return None
+
+    def get_data_set(self, request, *args, **kwargs):
+        """
+        Returns the dataset for plural operations. To do so, it uses method
+        ``get_working_set``.
+        
+        Applies for both BaseHandler and ModelHandler.
+        """
+        return self.get_working_set(request, *args, **kwargs)
+
+    def get_working_set(self, request, *args, **kwargs):
+        """
+        Returns the operation's base dataset.
+        """
+        return None
+
 
 class ModelHandler(BaseHandler):
+    """
+    This class describes a Model handler's operation.
+
+    Returns the model instance if indicated correctly by kwargs, or raises
+    self.ObjectDoesNotExist
+    """
+    
     # Override to define the handler's model
     model = None
 
+    def get_data_item(self, request, *args, **kwargs):
+        for field in kwargs.keys():
+            if self.model._meta.get_field(field).unique:
+                value = kwargs.get(field)
+                if value is not None:
+                    return self.get_working_set(self, request, *args, **kwargs).get(**{field: value})
 
-
+    def get_working_set(self, request, *args, **kwargs):
+        """
+        Returns the default queryset for the ModelHandler, on top of which other filters
+        should be chained, in order to limit the data view.
+        """
+        return self.model.objects.all()
 
 
 """
