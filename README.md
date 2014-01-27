@@ -8,8 +8,8 @@ REST API framework
 
 * The handlers/views that ``django-firestone`` exposes, make use of ``Django``'s *class-based views*. Why?
  * Handlers are more modular and very easily testable
- * They can be built upon the abstractions that the ``django.views.generic`` collection offers
- * They can inherit from each other, and therefore reduce boilerplace code
+ * They can be built upon the abstractions that the ``django.views.generic`` collection offers and therefore reduce boilerplate code
+ * They can inherit from each other
  * Every step in the request data flow, from start to finish, can be easily overridden.
 
 * For now, only accepts ``content-type: application/json``, and returns ``application/json``. 
@@ -38,6 +38,7 @@ test my design ideas.
  * Multiple authentication methods per handler
  * Does it make more sense to define authentication method per HTTP method, for each handler? For example, 
    have a decorator for each action method view that defines whether this requires an authentication, and if yes, which one.
+* Ordering, slicing, filtering   
 
 ## Requirements
 
