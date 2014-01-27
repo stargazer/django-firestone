@@ -2,7 +2,7 @@ from django.views.generic.base import View
 from django.http import HttpResponse
 from preserialize.serialize import serialize
 
-class BaseHandlerMeta(type):
+class HandlerMeta(type):
     def __new__(meta, name, bases, attrs):
         """
         Metaclass magic for preprocessing some of the handler class's
@@ -10,11 +10,19 @@ class BaseHandlerMeta(type):
         """
         cls = type.__new__(meta, name, bases, attrs)
         cls.http_method_names = [method.lower() for method in cls.http_method_names]
+
         return cls
 
 
-class BaseHandler(View):
-    __metaclass__ = BaseHandlerMeta
+class HandlerDataFlow(View):
+    """
+    This class describes the basic data flow and outer shell operations of any handler. 
+    Basically the generic behavior is set here, whereas more specific behavior is described in
+    its child classes.
+    
+    Don't inherit directly from this class.
+    """
+    __metaclass__ = HandlerMeta
 
     # Override to define the handler's output representation. It should follow
     # the syntax of ``django-preserialize`` templates.
@@ -42,7 +50,7 @@ class BaseHandler(View):
         if isinstance(error, HttpResponse):
             return error
 
-        data = super(BaseHandler, self).dispatch(request, *args, **kwargs)
+        data = super(HandlerDataFlow, self).dispatch(request, *args, **kwargs)
 
         final_data = self.postprocess(request, data, *args, **kwargs)
 
@@ -69,6 +77,9 @@ class BaseHandler(View):
         Postprocess the data result
         """
         data = self.serialize_to_python(request, data)   
+
+        # serialize to JSON
+
         return data
 
     def serialize_to_python(self, request, data):
