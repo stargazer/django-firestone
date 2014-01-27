@@ -19,7 +19,7 @@ def setup_view(view, request, *args, **kwargs):
     view.kwargs = kwargs
     return view
 
-class TestBaseHandler(TestCase):
+class TestBaseHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
         self.handler = setup_view(BaseHandler(), self.request)
@@ -64,7 +64,7 @@ class TestBaseHandler(TestCase):
             None,
         )
 
-class testModelHandler(TestCase):
+class testModelHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
         self.handler = setup_view(ModelHandler(), self.request)

@@ -1,3 +1,7 @@
+"""
+This module tests the handler's ``is_method_allowed`` method.
+"""
+
 from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
 from django.test import TestCase
@@ -15,11 +19,8 @@ def setup_view(view, request, *args, **kwargs):
     view.kwargs = kwargs
     return view
 
-class IsMethodAllowed(TestCase):
-    def test_basehandler(self):
-        """
-        Testing a base handler's ``http_method_names`` parameter bahavior.
-        """
+class TestBaseHandlerIsMethodAllowed(TestCase):
+    def test_is_method_allowed(self):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler
@@ -61,10 +62,8 @@ class IsMethodAllowed(TestCase):
             HttpResponseNotAllowed
         ))
     
-    def test_modelhandler(self):
-        """
-        Testing a model handler's ``http_method_names`` parameter bahavior.
-        """
+class TestModelHandlerIsMethodAllowed(TestCase):        
+    def test_is_method_allowed(self):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler

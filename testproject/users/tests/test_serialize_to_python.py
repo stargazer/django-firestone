@@ -1,7 +1,6 @@
 """
-This module tests the BaseHandler.serialize_to_python method
+This module tests the ``BaseHandler.serialize_to_python`` method
 """
-
 from testproject.users.handlers import UserHandler, DataHandler
 from django.test import TestCase
 from django.test import RequestFactory
@@ -19,7 +18,7 @@ def setup_view(view, request, *args, **kwargs):
     return view
 
 
-class SerializeToPython(TestCase):
+class TestModelHandlerSerializeToPython(TestCase):
     def setUp(self):
         # Create some persistent records we need for the tests
         # ContentType
@@ -183,6 +182,10 @@ class SerializeToPython(TestCase):
                 logentry.keys(), 
                 view.logentry_template['fields']
             ) 
+
+class TestBaseHandlerSerializeToPython(TestCase): 
+    def setUp(self):
+        mommy.make(User, 10)
 
     def test_basehandler_dict(self):
         """
