@@ -1,7 +1,8 @@
 """
 This module tests the ``BaseHandler.serialize_to_python`` method
 """
-from testproject.users.handlers import UserHandler, DataHandler
+from firestone.handlers import ModelHandler
+from firestone.handlers import BaseHandler
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
@@ -20,15 +21,41 @@ def setup_view(view, request, *args, **kwargs):
 
 class TestModelHandlerSerializeToPython(TestCase):
     def setUp(self):
-        # Create some persistent records we need for the tests
-        # ContentType
+        # Create some persistent records
+        # ``ContentType``
         contenttypes = mommy.make(ContentType, 10)
-        # LogEntry, and assign one ContentType to each (along with the LogEntry
+        # ``LogEntry``, and assign one ContentType to each (along with the LogEntry
         # records, User records were created)
         logentries = mommy.make(LogEntry, 10)
         for logentry in logentries:
             logentry.content_type = ContentType.objects.get(id=randrange(1, 11))
             logentry.save()
+
+        # Initialize a Model Handler
+        modelhandler = ModelHandler()
+        modelhandler.model = User
+
+        modelhandler.content_type_template = {
+            'fields': ['id', ],
+            'flat': False,
+        }            
+        modelhandler.logentry_template = {
+            'fields': ['action_flag', 'content_type'],     
+            'related': {
+                'content_type': modelhandler.content_type_template,
+            }
+        }
+        modelhandler.template = {
+            'fields': ['id', 'username', 'first_name', 'last_name',
+                       'logentry_set', 'email', 'last_login'], 
+            'related': {
+                'logentry_set': modelhandler.logentry_template,
+            }, 
+            'exclude': ['password', 'date_joined',],
+            'allow_missing': True,
+        }            
+
+        self.modelhandler = modelhandler
 
     def test_modelhandler_queryset(self):
         """
@@ -38,7 +65,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/')
         view = setup_view(
-            UserHandler(), 
+            self.modelhandler, 
             request,
         )
 
@@ -82,7 +109,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the class based view instance
         view = setup_view(
-            UserHandler(),
+            self.modelhandler,
             request
         )
 
@@ -125,7 +152,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
-            UserHandler(), 
+            self.modelhandler,
             request
         )
         # Retrieve the model
@@ -159,7 +186,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the class based view instance
         view = setup_view(
-            UserHandler(),
+            self.modelhandler,
             request
         )
 
@@ -187,6 +214,22 @@ class TestBaseHandlerSerializeToPython(TestCase):
     def setUp(self):
         mommy.make(User, 10)
 
+        # Initialize a basehandler
+        basehandler = BaseHandler()
+
+        basehandler.user_template = {
+            'fields': ['id', 'username', 'email']
+        }        
+        basehandler.template = {
+            'fields': ['dic', 'list', 'user'],
+            'related': {
+                'user': basehandler.user_template    
+            }
+        }
+
+        self.basehandler = basehandler
+
+
     def test_basehandler_dict(self):
         """
         Testing a base handler's ``serialize_to_python`` method, when
@@ -196,7 +239,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
-            DataHandler(), 
+            self.basehandler, 
             request,
         )
         
@@ -231,7 +274,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/?field=dic&field=list')
         # Initialize the class based view instance
         view = setup_view(
-            DataHandler(), 
+            self.basehandler, 
             request,
         )
         
@@ -260,7 +303,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = request.get('whateverpath/')
         # Initialize the class based view instance
         view = setup_view(
-            DataHandler(), 
+            self.basehandler, 
             request
         )
         
