@@ -212,6 +212,7 @@ class TestModelHandlerSerializeToPython(TestCase):
 
 class TestBaseHandlerSerializeToPython(TestCase): 
     def setUp(self):
+        # Create some User instances
         mommy.make(User, 10)
 
         # Initialize a basehandler
