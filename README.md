@@ -6,12 +6,13 @@ REST API framework
 
 ## Design decisions
 
-* The handlers/views that django-firestone exposes, make use of Django's class based views. Why?
- * Makes the handlers/views more modular and very easily testable
- * Can be built upon the abstractions that the ``django.views.generic`` collection offers
+* The handlers/views that ``django-firestone`` exposes, make use of ``Django``'s *class-based views*. Why?
+ * Handlers are more modular and very easily testable
+ * They can be built upon the abstractions that the ``django.views.generic`` collection offers
  * They can inherit from each other, and therefore reduce boilerplace code
- * There is no separation of the concepts of resource and handler, like . A handler is responsible for the resource.
-   This has the benefit that the whole behavior can be overridden with no monkey patching.
+ * There is no separation of the concepts of resource and handler, like many REST Api frameworks make.
+   A handler is responsible for everything around the resource it exposes. This gives us the possibility
+   to override any of the handler's default behavior with no monkey patching.
 
 * For now, only accepts ``content-type: application/json``, and returns ``application/json``. 
   It is however very easy to extend to other serialization format. It's on my near-future todo list.
@@ -59,8 +60,8 @@ In order to run the tests:
 
 ## Resources
 
-[django-preserialize](https://github.com/bruth/django-preserialize)
-[Classy Class Based Views](http://ccbv.co.uk/)
-[HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html)
+* [django-preserialize](https://github.com/bruth/django-preserialize)
+* [Classy Class Based Views](http://ccbv.co.uk/)
+* [HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html)
 
 
