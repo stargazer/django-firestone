@@ -1,3 +1,4 @@
+from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
 from django import http
@@ -10,10 +11,18 @@ class HandlerMeta(type):
         paramaters.
         """
         cls = type.__new__(meta, name, bases, attrs)
+
+        # Uppercase all HTTP methods
         cls.http_methods = [method.upper() for method in cls.http_methods]
 
+        # Making sure that the handler's ``authentication`` parameter is
+        # initialized correctly
         if not cls.authentication:
             cls.authentication = NoAuthentication()
+        elif isinstance(cls.authentication, Authentication):
+            pass
+        else:
+            cls.authentication = cls.authentication()
 
         return cls
 
