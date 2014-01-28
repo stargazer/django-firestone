@@ -9,22 +9,23 @@ from django.test import RequestFactory
 from django.http.response import HttpResponseNotAllowed
 
 
-def setup_view(view, request, *args, **kwargs):
+def setup_handler(handler, request, *args, **kwargs):
     """
-    Mimics the behavior of django.views.generics.base.View.as_view()
+    Mimics the behavior of ``firestone.views.View.__call__``, without of course
+    invoking the handler.
     """
-    view.http_method_names = ['get', 'post']
-    view.request = request
-    view.args = args
-    view.kwargs = kwargs
-    return view
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    handler.http_method_names = ['GET', 'POST']
+    return handler
 
 class TestBaseHandlerIsMethodAllowed(TestCase):
     def test_is_method_allowed(self):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler
-        handler = setup_view(BaseHandler(), request, ) 
+        handler = setup_handler(BaseHandler(), request, ) 
 
         # Call handler method ``is_method_allowed``
         self.assertEquals(
@@ -35,7 +36,7 @@ class TestBaseHandlerIsMethodAllowed(TestCase):
         # Create POST request
         request = RequestFactory().post('whateverpath/')
         # Initialize the handler
-        handler = setup_view(BaseHandler(), request) 
+        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertEquals(
             handler.is_method_allowed(request),
@@ -45,7 +46,7 @@ class TestBaseHandlerIsMethodAllowed(TestCase):
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
         # Initialize the handler
-        handler = setup_view(BaseHandler(), request) 
+        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(isinstance(
             handler.is_method_allowed(request),
@@ -55,7 +56,7 @@ class TestBaseHandlerIsMethodAllowed(TestCase):
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
-        handler = setup_view(BaseHandler(), request) 
+        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(isinstance(
             handler.is_method_allowed(request),
@@ -67,13 +68,8 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler
-        handler = setup_view(ModelHandler(), request, ) 
+        handler = setup_handler(ModelHandler(), request, ) 
              
-        # Create GET request
-        request = RequestFactory().get('whateverpath/')
-        # Initialize the handler
-        handler = setup_view(ModelHandler(), request, ) 
-
         # Call handler method ``is_method_allowed``
         self.assertEquals(
             handler.is_method_allowed(request),
@@ -83,7 +79,7 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Create POST request
         request = RequestFactory().post('whateverpath/')
         # Initialize the handler
-        handler = setup_view(ModelHandler(), request) 
+        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertEquals(
             handler.is_method_allowed(request),
@@ -93,7 +89,7 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
         # Initialize the handler
-        handler = setup_view(ModelHandler(), request) 
+        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(isinstance(
             handler.is_method_allowed(request),
@@ -103,7 +99,7 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
-        handler = setup_view(ModelHandler(), request) 
+        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(isinstance(
             handler.is_method_allowed(request),

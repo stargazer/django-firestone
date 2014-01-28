@@ -12,11 +12,15 @@ from django.http import QueryDict
 from model_mommy import mommy
 from random import randrange
 
-def setup_view(view, request, *args, **kwargs):
-    view.request = request
-    view.args = args
-    view.kwargs = kwargs
-    return view
+def setup_handler(handler, request, *args, **kwargs):
+    """
+    Mimics the behavior of ``firestone.views.View.__call__``, without of course
+    invoking the handler.
+    """
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
 
 
 class TestModelHandlerSerializeToPython(TestCase):
@@ -64,7 +68,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/')
-        view = setup_view(
+        handler = setup_handler(
             self.modelhandler, 
             request,
         )
@@ -72,7 +76,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.all()
         # Serialize the queryset 
-        ser = view.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(request, users)
         
         # ** Assertions **
         # Is ``ser`` a list?
@@ -88,7 +92,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Does every dict in ``ser`` have all the fields that the template
         # requires?
         for item in ser:
-            self.assertItemsEqual(item.keys(), view.template['fields'])
+            self.assertItemsEqual(item.keys(), handler.template['fields'])
         
         # Does every ``logentry_set`` key in each dict in ``ser``, contain all
         # the fields that the ``logentry_template`` requires?
@@ -96,7 +100,7 @@ class TestModelHandlerSerializeToPython(TestCase):
             for logentry in user['logentry_set']:
                 self.assertItemsEqual(
                     logentry.keys(), 
-                    view.logentry_template['fields']
+                    handler.logentry_template['fields']
                 )
 
     def test_modelhandler_queryset_field_selection(self):                
@@ -107,8 +111,8 @@ class TestModelHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the class handler
+        handler = setup_handler(
             self.modelhandler,
             request
         )
@@ -116,7 +120,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.all()
         # Serialize to python
-        ser = view.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(request, users)
 
         # ** Assertions **
         # Is ``ser`` a list?
@@ -140,7 +144,7 @@ class TestModelHandlerSerializeToPython(TestCase):
             for logentry in user['logentry_set']:
                 self.assertItemsEqual(
                     logentry.keys(), 
-                    view.logentry_template['fields']
+                    handler.logentry_template['fields']
                 )
 
     def test_modelhandler_model(self):
@@ -150,15 +154,15 @@ class TestModelHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the handler
+        handler = setup_handler(
             self.modelhandler,
             request
         )
         # Retrieve the model
         user = User.objects.get(id=1)
         # Serialize the model
-        ser = view.serialize_to_python(request, user)
+        ser = handler.serialize_to_python(request, user)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -166,14 +170,14 @@ class TestModelHandlerSerializeToPython(TestCase):
         
         # Does the dict have all the fields that the template
         # requires?
-        self.assertItemsEqual(ser.keys(), view.template['fields'])
+        self.assertItemsEqual(ser.keys(), handler.template['fields'])
         
         # Does every ``logentry_set`` key in the dict in ``ser``, contain all
         # the fields that the ``logentry_template`` requires?
         for logentry in ser['logentry_set']:
             self.assertItemsEqual(
                 logentry.keys(), 
-                view.logentry_template['fields']
+                handler.logentry_template['fields']
             ) 
 
     def test_modelhandler_model_field_selection(self):                
@@ -184,8 +188,8 @@ class TestModelHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the handler
+        handler = setup_handler(
             self.modelhandler,
             request
         )
@@ -193,7 +197,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.get(id=1)
         # Serialize to python
-        ser = view.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(request, users)
         # ** Assertions **
         # Is ``ser`` a dict?
         self.assertEquals(type(ser), dict)
@@ -207,7 +211,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         for logentry in ser['logentry_set']:
             self.assertItemsEqual(
                 logentry.keys(), 
-                view.logentry_template['fields']
+                handler.logentry_template['fields']
             ) 
 
 class TestBaseHandlerSerializeToPython(TestCase): 
@@ -229,8 +233,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         }
 
         self.basehandler = basehandler
-
-
+                                
     def test_basehandler_dict(self):
         """
         Testing a base handler's ``serialize_to_python`` method, when
@@ -238,8 +241,8 @@ class TestBaseHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the handler
+        handler = setup_handler(
             self.basehandler, 
             request,
         )
@@ -249,7 +252,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = view.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(request, data)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -257,13 +260,13 @@ class TestBaseHandlerSerializeToPython(TestCase):
         
         # Does the dict have all the fields that the template
         # requires?
-        self.assertEquals(len(ser.keys()), len(view.template['fields']))
+        self.assertEquals(len(ser.keys()), len(handler.template['fields']))
         
         # Does the ``user`` key in the dict in ``ser``, contain all
         # the fields that the ``user_template`` requires?
         self.assertItemsEqual(
             ser['user'].keys(),
-            view.user_template['fields']
+            handler.user_template['fields']
         )
                     
     def test_basehandler_dict_field_selection(self):
@@ -273,8 +276,8 @@ class TestBaseHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/?field=dic&field=list')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the handler
+        handler = setup_handler(
             self.basehandler, 
             request,
         )
@@ -284,7 +287,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = view.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(request, data)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -302,8 +305,8 @@ class TestBaseHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/')
-        # Initialize the class based view instance
-        view = setup_view(
+        # Initialize the handler
+        handler = setup_handler(
             self.basehandler, 
             request
         )
@@ -327,7 +330,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             3
         ]
 
-        ser = view.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(request, data)
         
         # ** Assertions **
         # Is ``ser`` a list?
@@ -340,7 +343,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         # requires?
         for item in ser:
             if isinstance(item, dict):
-                self.assertItemsEqual(item.keys(), view.template['fields'])
+                self.assertItemsEqual(item.keys(), handler.template['fields'])
 
         # Do the ``user`` items in the dicts only have the fields that the
         # template requires?
@@ -349,7 +352,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
                 if 'user' in item:
                     self.assertItemsEqual(
                         item['user'].keys(),
-                        view.user_template['fields']
+                        handler.user_template['fields']
                     )
 
         

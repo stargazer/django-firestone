@@ -10,19 +10,20 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from model_mommy import mommy
 
-def setup_view(view, request, *args, **kwargs):
+def setup_handler(handler, request, *args, **kwargs):
     """
-    Mimics the behavior of django.views.generics.base.View.as_view()
+    Mimics the behavior of ``firestone.views.View.__call__``, without of course
+    invoking the handler.
     """
-    view.request = request
-    view.args = args
-    view.kwargs = kwargs
-    return view
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
 
 class TestBaseHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
-        self.handler = setup_view(BaseHandler(), self.request)
+        self.handler = setup_handler(BaseHandler(), self.request)
 
     def test_get_data_item(self):
         # Testing ``BaseHandler.get_item``
@@ -67,7 +68,7 @@ class TestBaseHandlerDataControl(TestCase):
 class testModelHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
-        self.handler = setup_view(ModelHandler(), self.request)
+        self.handler = setup_handler(ModelHandler(), self.request)
         self.handler.model = User
 
         # Create some model instances
