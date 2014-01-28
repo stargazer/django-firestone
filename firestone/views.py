@@ -1,7 +1,5 @@
 class View(object):
-    def __init__(self, args):
-        if not isinstance(args, list):
-            args = args,
+    def __init__(self, *args):
         self.handlers = tuple(args)
 
     def __call__(self, request, *args, **kwargs):
