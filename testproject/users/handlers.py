@@ -25,7 +25,7 @@ class DataHandler(BaseHandler):
 
 class UserHandlerDjangoAuth(ModelHandler):
     model = User
-    http_method_names = ['get']
+    http_methods = ['get']
     authentication = DjangoAuthentication
 
     # TODO: IF I only expose 1 field of content_type, instead of getting it as
@@ -58,7 +58,8 @@ class UserHandlerDjangoAuth(ModelHandler):
 
 class UserHandlerNoAuth(ModelHandler):
     model = User
-    http_method_names = ['get']
+    http_methods = ['GET']
+
     template = UserHandlerDjangoAuth.template
 
     def get(self, request, *args, **kwargs):

@@ -17,7 +17,7 @@ def setup_handler(handler, request, *args, **kwargs):
     handler.request = request
     handler.args = args
     handler.kwargs = kwargs
-    handler.http_method_names = ['GET', 'POST']
+    handler.http_methods = ['GET', 'POST']
     return handler
 
 class TestBaseHandlerIsMethodAllowed(TestCase):

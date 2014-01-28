@@ -12,14 +12,14 @@ from model_mommy import mommy
 
 class HandlerNoAuth(BaseHandler):
     authentication = None
-    http_method_names = ['get']
+    http_methods = ['get']
 
     def get(self, request, *args, **kwargs):
         return 'HandlerNoAuth'
 
 class HandlerDjangoAuth(BaseHandler):    
     authentication = DjangoAuthentication
-    http_method_names = ['get']
+    http_methods = ['get']
 
     def get(self, request, *args, **kwargs):
         return 'HandlerDjangoAuth'

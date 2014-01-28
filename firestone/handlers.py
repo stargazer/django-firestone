@@ -10,8 +10,8 @@ class HandlerMeta(type):
         paramaters.
         """
         cls = type.__new__(meta, name, bases, attrs)
-        cls.http_method_names = [method.upper() for method in cls.http_method_names]
-        
+        cls.http_methods = [method.upper() for method in cls.http_methods]
+
         if not cls.authentication:
             cls.authentication = NoAuthentication()
 
@@ -34,7 +34,7 @@ class HandlerDataFlow():
     template = {}     
 
     # List of allowed HTTP methods.
-    http_method_names = []
+    http_methods = []
 
     # authentication method: Should be an instance of any of the classes in the
     # ``authentication`` module, other than ``Authentication``
@@ -72,8 +72,8 @@ class HandlerDataFlow():
         HTTPResponse object, which ``dispatch`` will let bubble up.
         """
         # Is this type of request allowed?
-        if request.method.upper() not in self.http_method_names:
-            return http.HttpResponseNotAllowed(self.http_method_names)
+        if request.method.upper() not in self.http_methods:
+            return http.HttpResponseNotAllowed(self.http_methods)
 
     def preprocess(self, request, *args, **kwargs):
         """
