@@ -4,11 +4,11 @@ from authentication import DjangoAuthentication
 from django import http
 from preserialize.serialize import serialize
 
-class HandlerMeta(type):
+class HandlerMetaClass(type):
     def __new__(meta, name, bases, attrs):
         """
         Metaclass magic for preprocessing some of the handler class's
-        paramaters.
+        parameters.
         """
         cls = type.__new__(meta, name, bases, attrs)
 
@@ -27,7 +27,7 @@ class HandlerMeta(type):
         return cls
 
 
-class HandlerDataFlow():
+class HandlerDataFlow(object):
     """
     This class describes the basic data flow and outer shell operations of any handler. 
     Basically the generic behavior is set here, whereas more specific behavior is described in
@@ -35,7 +35,7 @@ class HandlerDataFlow():
     
     Don't inherit directly from this class.
     """
-    __metaclass__ = HandlerMeta
+    __metaclass__ = HandlerMetaClass
 
     # Override to define the handler's output representation. It should follow
     # the syntax of ``django-preserialize`` templates.
@@ -118,6 +118,7 @@ class HandlerDataFlow():
 
         return serialize(data, **self.template)
  
+
 class BaseHandler(HandlerDataFlow):
     """
     This class describes a handler's real operation.
