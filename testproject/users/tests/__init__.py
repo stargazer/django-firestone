@@ -1,3 +1,5 @@
-from test_serialize_to_python import *
-from test_is_method_allowed import *
-from test_data_control import *
+from test_view import *
+
+from test_handler_serialize_to_python import *
+from test_handler_is_method_allowed import *
+from test_handler_data_control import *
