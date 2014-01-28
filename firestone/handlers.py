@@ -1,5 +1,6 @@
-from django.views.generic.base import View
-from django.http import HttpResponse
+from authentication import NoAuthentication
+from authentication import DjangoAuthentication
+from django import http
 from preserialize.serialize import serialize
 
 class HandlerMeta(type):
@@ -9,12 +10,15 @@ class HandlerMeta(type):
         paramaters.
         """
         cls = type.__new__(meta, name, bases, attrs)
-        cls.http_method_names = [method.lower() for method in cls.http_method_names]
+        cls.http_method_names = [method.upper() for method in cls.http_method_names]
+        
+        if not cls.authentication:
+            cls.authentication = NoAuthentication()
 
         return cls
 
 
-class HandlerDataFlow(View):
+class HandlerDataFlow():
     """
     This class describes the basic data flow and outer shell operations of any handler. 
     Basically the generic behavior is set here, whereas more specific behavior is described in
@@ -32,7 +36,11 @@ class HandlerDataFlow(View):
     # List of allowed HTTP methods.
     http_method_names = []
 
-    def dispatch(self, request, *args, **kwargs):
+    # authentication method: Should be an instance of any of the classes in the
+    # ``authentication`` module, other than ``Authentication``
+    authentication = None
+
+    def execute(self, request, *args, **kwargs):
         """
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
@@ -47,10 +55,11 @@ class HandlerDataFlow(View):
         Once this is done, I then call ``dispatch``.
         """
         error = self.is_method_allowed(request, *args, **kwargs)
-        if isinstance(error, HttpResponse):
+        if isinstance(error, http.HttpResponse):
             return error
 
-        data = super(HandlerDataFlow, self).dispatch(request, *args, **kwargs)
+        action = getattr(self, request.method.lower())
+        data = action(request, *args, **kwargs)
 
         final_data = self.postprocess(request, data, *args, **kwargs)
 
@@ -63,8 +72,8 @@ class HandlerDataFlow(View):
         HTTPResponse object, which ``dispatch`` will let bubble up.
         """
         # Is this type of request allowed?
-        if request.method.lower() not in self.http_method_names:
-            return self.http_method_not_allowed(request, *args, **kwargs)
+        if request.method.upper() not in self.http_method_names:
+            return http.HttpResponseNotAllowed(self.http_method_names)
 
     def preprocess(self, request, *args, **kwargs):
         """
