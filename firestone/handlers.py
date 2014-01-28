@@ -54,26 +54,21 @@ class HandlerDataFlow():
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
         Don't override this method.
-
-        Normally the ``View.dispatch`` method, simply checks whether the
-        request's HTTP method is allowed, and if yes, invokes the corresponding
-        view method that carries out the operation. 
-        In this case though, they are many more checks and validations that I'd
-        like to perform before actually invoking the corresponding view method.
-        All these are performed in the ``preprocess``.
-        Once this is done, I then call ``dispatch``.
         """
         error = self.is_method_allowed(request, *args, **kwargs)
         if isinstance(error, http.HttpResponse):
             return error
 
-        action = getattr(self, request.method.lower())
-        data = action(request, *args, **kwargs)
+        # Call the appropriate method
+        data = getattr(self, request.method.lower())(request, *args, **kwargs)
+        # If the method has returned an ``HttpResponse`` return it.
+        # Otherwise, continue and process the results.
+        if isinstance(data, http.HttpResponse):
+            return data
 
         final_data = self.postprocess(request, data, *args, **kwargs)
-
         # create response and return it
-        return HttpResponse(final_data)
+        return http.HttpResponse(final_data)
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
