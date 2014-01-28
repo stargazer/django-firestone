@@ -1,3 +1,5 @@
+from django import http
+
 class View(object):
     def __init__(self, *args):
         self.handlers = tuple(args)
@@ -14,4 +16,5 @@ class View(object):
             if h.authentication.is_authenticated(request, *args, **kwargs):
                 return h.execute(request, *args, **kwargs)
 
+        return http.HttpResponseForbidden()
                         
