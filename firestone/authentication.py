@@ -9,4 +9,6 @@ class NoAuthentication(Authentication):
 
 class DjangoAuthentication(Authentication):    
     def is_authenticated(self, request, *args, **kwargs):
-        return request.user.is_authenticated()        
+        if hasattr(request, 'user'):
+            return request.user.is_authenticated()        
+        return False
