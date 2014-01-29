@@ -9,6 +9,7 @@ from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.auth.models import User
 from model_mommy import mommy
+import json
 
 class HandlerNoAuth(BaseHandler):
     authentication = None
@@ -35,22 +36,20 @@ class TestProxy(TestCase):
     def test_does_it_call_the_correct_handler(self):
         # Create proxy and non-authenticated request
         proxy = Proxy(HandlerNoAuth, HandlerDjangoAuth)
-        request = RequestFactory().get('whatever/')
-        
+        request = RequestFactory().get('/')
+
         # Request is not authenticated, and anyway the ``HandlerNoAuth`` is
         # declared first in the Proxy creation, so it's always the one to get
         # called.
-        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
-
-
+        self.assertIsInstance(proxy.choose_handler(request), HandlerNoAuth)
+        
         # Create proxy and authenticate request
         proxy = Proxy(HandlerNoAuth, HandlerDjangoAuth)
         request.user = mommy.make(User)
-
         # Request is authenticated. However, ``HandlerNoAuth`` is
         # declared first in the Proxy creation, so it's always the one to get
         # called.
-        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
+        self.assertIsInstance(proxy.choose_handler(request), HandlerNoAuth)
 
 
 
@@ -59,7 +58,7 @@ class TestProxy(TestCase):
         request = RequestFactory().get('whatever/')
         # Request is not authenticated and therefore will be carried out by
         # the ``HandlerNoAuth`` handler
-        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
+        self.assertIsInstance(proxy.choose_handler(request), HandlerNoAuth)
 
 
 
@@ -67,7 +66,7 @@ class TestProxy(TestCase):
         proxy = Proxy(HandlerDjangoAuth, HandlerNoAuth)
         request = RequestFactory().get('whatever')
         request.user = mommy.make(User)
-        self.assertEquals(proxy(request).content, 'HandlerDjangoAuth')
+        self.assertIsInstance(proxy.choose_handler(request), HandlerDjangoAuth)
 
     def test_does_it_return_403(self):
         """
