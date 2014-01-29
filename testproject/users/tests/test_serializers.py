@@ -6,6 +6,8 @@ from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
 from django.test import TestCase
 from django.test import RequestFactory
+from django.core.serializers.json import DateTimeAwareJSONEncoder
+from datetime import datetime
 import json
 
 
@@ -25,6 +27,11 @@ class TestSerializers(TestCase):
         data = {'key': 'value'}
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data))
+        self.assertEquals(headers, {'content_type': 'application/json'})
+
+        data = datetime.now()
+        result, headers = serializers._serialize_to_json(data)
+        self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
         self.assertEquals(headers, {'content_type': 'application/json'})
 
     def test_get_serializer(self):
@@ -53,6 +60,10 @@ class TestSerializers(TestCase):
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content_type': 'application/json'})
 
+        data = datetime.now()
+        result, headers = serializers.serialize(data, request)
+        self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
+        self.assertEquals(headers, {'content_type': 'application/json'})
 
 
 
