@@ -2,7 +2,7 @@ from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
 from django import http
-from preserialize.serialize import serialize
+from preserialize import serialize
 
 class HandlerMetaClass(type):
     def __new__(meta, name, bases, attrs):
@@ -66,7 +66,7 @@ class HandlerDataFlow(object):
         if isinstance(data, http.HttpResponse):
             return data
 
-        final_data = self.postprocess(request, data, *args, **kwargs)
+        final_data = self.postprocess(data, request, *args, **kwargs)
         # create response and return it
         return http.HttpResponse(final_data)
 
@@ -85,20 +85,20 @@ class HandlerDataFlow(object):
         """
         pass
 
-    def postprocess(self, request, data, *args, **kwargs):
+    def postprocess(self, data, request, *args, **kwargs):
         """
         Postprocess the data result
         """
-        data = self.serialize_to_python(request, data)   
+        data = self.serialize_to_python(data, request)   
 
         # serialize to JSON
 
         return data
 
-    def serialize_to_python(self, request, data):
+    def serialize_to_python(self, data, request):
         """
-        @param request: Incoming HTTPRequest object
         @param data   : Result of the handler's action
+        @param request: Incoming HTTPRequest object
 
         Serializes the output of a handler's action to python data structures, 
         according to the definition of the handler's ``template`` variable, or
@@ -114,9 +114,9 @@ class HandlerDataFlow(object):
             intersection = field_selection.intersection(set(self.template['fields']))
             template = {key: value for key, value in self.template.items()}
             template['fields'] = intersection
-            return serialize(data, **template)
+            return serialize.serialize(data, **template)
 
-        return serialize(data, **self.template)
+        return serialize.serialize(data, **self.template)
  
 
 class BaseHandler(HandlerDataFlow):

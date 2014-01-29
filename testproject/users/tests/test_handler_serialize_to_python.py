@@ -76,7 +76,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.all()
         # Serialize the queryset 
-        ser = handler.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(users, request)
         
         # ** Assertions **
         # Is ``ser`` a list?
@@ -120,7 +120,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.all()
         # Serialize to python
-        ser = handler.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(users, request)
 
         # ** Assertions **
         # Is ``ser`` a list?
@@ -162,7 +162,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Retrieve the model
         user = User.objects.get(id=1)
         # Serialize the model
-        ser = handler.serialize_to_python(request, user)
+        ser = handler.serialize_to_python(user, request)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -197,7 +197,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         # Queryset
         users = User.objects.get(id=1)
         # Serialize to python
-        ser = handler.serialize_to_python(request, users)
+        ser = handler.serialize_to_python(users, request)
         # ** Assertions **
         # Is ``ser`` a dict?
         self.assertEquals(type(ser), dict)
@@ -252,7 +252,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = handler.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(data, request)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -287,7 +287,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = handler.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(data, request)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -330,7 +330,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             3
         ]
 
-        ser = handler.serialize_to_python(request, data)
+        ser = handler.serialize_to_python(data, request)
         
         # ** Assertions **
         # Is ``ser`` a list?
