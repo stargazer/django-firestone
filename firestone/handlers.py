@@ -1,8 +1,9 @@
 from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
+from serializers import serialize
 from django import http
-from preserialize import serialize
+from preserialize import serialize as preserializer
 
 class HandlerMetaClass(type):
     def __new__(meta, name, bases, attrs):
@@ -115,9 +116,9 @@ class HandlerDataFlow(object):
             intersection = field_selection.intersection(set(self.template['fields']))
             template = {key: value for key, value in self.template.items()}
             template['fields'] = intersection
-            return serialize.serialize(data, **template)
+            return preserializer.serialize(data, **template)
 
-        return serialize.serialize(data, **self.template)
+        return preserializer.serialize(data, **self.template)
  
     def package(self, data, request, *args, **kwargs):
         """
