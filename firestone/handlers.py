@@ -118,6 +118,23 @@ class HandlerDataFlow(object):
 
         return serialize.serialize(data, **self.template)
  
+    def package(self, data, request, *args, **kwargs):
+        """
+        @data: Data result of the request operation, as python data
+        structure(s)
+
+        Returns the ``data`` packed in a dictionary
+        """
+        return {'data': data}
+
+    def add_metadata(self, package, request, *args, **kwargs):
+        """
+        @param package: Dictionary with data result of request operation
+
+        Returns a dictionary enriched with metadata.
+        """
+        return package
+
 
 class BaseHandler(HandlerDataFlow):
     """
