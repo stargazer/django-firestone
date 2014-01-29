@@ -66,9 +66,9 @@ class HandlerDataFlow(object):
         if isinstance(data, http.HttpResponse):
             return data
 
-        final_data = self.postprocess(data, request, *args, **kwargs)
+        data, headers = self.postprocess(data, request, *args, **kwargs)
         # create response and return it
-        return http.HttpResponse(final_data)
+        return http.HttpResponse(data, **headers)
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
@@ -91,11 +91,20 @@ class HandlerDataFlow(object):
         """
         Postprocess the data result
         """
+        # Serialize to python
         data = self.serialize_to_python(data, request)   
 
-        # serialize to JSON
-
-        return data
+        # Package it to a dictionary
+        pack = self.package(data, request, *args, **kwargs)
+        
+        # Add any metadata
+        pack = self.add_metadata(pack, request, *args, **kwargs)
+        
+        # Returns serialized response plus any http headers, like
+        # ``content_type`` that need to be passed in the HttpResponse instance.
+        serialized, headers = serialize(pack, request, *args, **kwargs)
+        
+        return serialized, headers
 
     def serialize_to_python(self, data, request):
         """
