@@ -1,9 +1,9 @@
 """
-This module tests the behavior of the ``views.View`` proxy view.
+This module tests the behavior of the ``proxy.Proxy`` class.
 """
 from firestone.handlers import BaseHandler
 from firestone.authentication import DjangoAuthentication
-from firestone.views import View
+from firestone.proxy import Proxy
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -24,59 +24,59 @@ class HandlerDjangoAuth(BaseHandler):
     def get(self, request, *args, **kwargs):
         return 'HandlerDjangoAuth'
 
-class TestView(TestCase):
+class TestProxy(TestCase):
     def test_does_it_initialize_the_correct_handlers(self):
-        view = View(HandlerNoAuth)
-        self.assertEquals(view.handlers, (HandlerNoAuth,))
+        proxy = Proxy(HandlerNoAuth)
+        self.assertEquals(proxy.handlers, (HandlerNoAuth,))
 
-        view = View(HandlerNoAuth, HandlerDjangoAuth)
-        self.assertEquals(view.handlers, (HandlerNoAuth, HandlerDjangoAuth))
+        proxy = Proxy(HandlerNoAuth, HandlerDjangoAuth)
+        self.assertEquals(proxy.handlers, (HandlerNoAuth, HandlerDjangoAuth))
         
     def test_does_it_call_the_correct_handler(self):
-        # Create view and non-authenticated request
-        view = View(HandlerNoAuth, HandlerDjangoAuth)
+        # Create proxy and non-authenticated request
+        proxy = Proxy(HandlerNoAuth, HandlerDjangoAuth)
         request = RequestFactory().get('whatever/')
         
         # Request is not authenticated, and anyway the ``HandlerNoAuth`` is
-        # declared first in the View creation, so it's always the one to get
+        # declared first in the Proxy creation, so it's always the one to get
         # called.
-        self.assertEquals(view(request).content, 'HandlerNoAuth')
+        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
 
 
-        # Create view and authenticate request
-        view = View(HandlerNoAuth, HandlerDjangoAuth)
+        # Create proxy and authenticate request
+        proxy = Proxy(HandlerNoAuth, HandlerDjangoAuth)
         request.user = mommy.make(User)
 
         # Request is authenticated. However, ``HandlerNoAuth`` is
-        # declared first in the View creation, so it's always the one to get
+        # declared first in the Proxy creation, so it's always the one to get
         # called.
-        self.assertEquals(view(request).content, 'HandlerNoAuth')
+        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
 
 
 
-        # Create view and non-authenticated request
-        view = View(HandlerDjangoAuth, HandlerNoAuth)
+        # Create proxy and non-authenticated request
+        proxy = Proxy(HandlerDjangoAuth, HandlerNoAuth)
         request = RequestFactory().get('whatever/')
         # Request is not authenticated and therefore will be carried out by
         # the ``HandlerNoAuth`` handler
-        self.assertEquals(view(request).content, 'HandlerNoAuth')
+        self.assertEquals(proxy(request).content, 'HandlerNoAuth')
 
 
 
-        # Create view and authenticated request
-        view = View(HandlerDjangoAuth, HandlerNoAuth)
+        # Create proxy and authenticated request
+        proxy = Proxy(HandlerDjangoAuth, HandlerNoAuth)
         request = RequestFactory().get('whatever')
         request.user = mommy.make(User)
-        self.assertEquals(view(request).content, 'HandlerDjangoAuth')
+        self.assertEquals(proxy(request).content, 'HandlerDjangoAuth')
 
     def test_does_it_return_403(self):
         """
-        Does the view return a status code 403 when the handler demands some
+        Does the proxy return a status code 403 when the handler demands some
         authentication, but the request is not authenticated?
         """
-        view = View(HandlerDjangoAuth)
+        proxy = Proxy(HandlerDjangoAuth)
         request = RequestFactory().get('whatever')
-        self.assertEquals(view(request).status_code, 403)
+        self.assertEquals(proxy(request).status_code, 403)
 
 
 

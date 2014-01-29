@@ -12,7 +12,7 @@ from model_mommy import mommy
 
 def setup_handler(handler, request, *args, **kwargs):
     """
-    Mimics the behavior of ``firestone.views.View.__call__``, without of course
+    Mimics the behavior of ``firestone.proxy.Proxy.__call__``, without of course
     invoking the handler.
     """
     handler.request = request
