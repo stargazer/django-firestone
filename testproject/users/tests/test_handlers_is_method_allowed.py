@@ -28,40 +28,28 @@ class TestBaseHandlerIsMethodAllowed(TestCase):
         handler = setup_handler(BaseHandler(), request, ) 
 
         # Call handler method ``is_method_allowed``
-        self.assertEquals(
-            handler.is_method_allowed(request),
-            None,
-        )
+        self.assertTrue(handler.is_method_allowed(request))
 
         # Create POST request
         request = RequestFactory().post('whateverpath/')
         # Initialize the handler
         handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertEquals(
-            handler.is_method_allowed(request),
-            None,
-        )
+        self.assertTrue(handler.is_method_allowed(request))
 
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
         # Initialize the handler
         handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertTrue(isinstance(
-            handler.is_method_allowed(request),
-            HttpResponseNotAllowed
-        ))
+        self.assertFalse(handler.is_method_allowed(request))
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
         handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertTrue(isinstance(
-            handler.is_method_allowed(request),
-            HttpResponseNotAllowed
-        ))
+        self.assertFalse(handler.is_method_allowed(request))
     
 class TestModelHandlerIsMethodAllowed(TestCase):        
     def test_is_method_allowed(self):
@@ -71,40 +59,28 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         handler = setup_handler(ModelHandler(), request, ) 
              
         # Call handler method ``is_method_allowed``
-        self.assertEquals(
-            handler.is_method_allowed(request),
-            None,
-        )
+        self.assertTrue(handler.is_method_allowed(request))
 
         # Create POST request
         request = RequestFactory().post('whateverpath/')
         # Initialize the handler
         handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertEquals(
-            handler.is_method_allowed(request),
-            None,
-        )
+        self.assertTrue(handler.is_method_allowed(request))
 
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
         # Initialize the handler
         handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertTrue(isinstance(
-            handler.is_method_allowed(request),
-            HttpResponseNotAllowed
-        ))
+        self.assertFalse(handler.is_method_allowed(request))
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
         handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertTrue(isinstance(
-            handler.is_method_allowed(request),
-            HttpResponseNotAllowed
-        ))
+        self.assertFalse(handler.is_method_allowed(request))
  
 
         

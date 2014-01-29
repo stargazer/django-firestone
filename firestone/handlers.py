@@ -55,9 +55,8 @@ class HandlerDataFlow(object):
         selects and calls the main action method.
         Don't override this method.
         """
-        error = self.is_method_allowed(request, *args, **kwargs)
-        if isinstance(error, http.HttpResponse):
-            return error
+        if not self.is_method_allowed(request, *args, **kwargs):
+            return http.HttpResponseNotAllowed(self.http_methods)
 
         # Call the appropriate method
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
@@ -77,7 +76,9 @@ class HandlerDataFlow(object):
         """
         # Is this type of request allowed?
         if request.method.upper() not in self.http_methods:
-            return http.HttpResponseNotAllowed(self.http_methods)
+            return False
+        return True
+        #    return http.HttpResponseNotAllowed(self.http_methods)
 
     def preprocess(self, request, *args, **kwargs):
         """
