@@ -56,20 +56,40 @@ class HandlerDataFlow(object):
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
         Don't override this method.
+
+        It needs to return an http.HttpResponse object.
         """
-        if not self.is_method_allowed(request, *args, **kwargs):
-            return http.HttpResponseNotAllowed(self.http_methods)
+        try:
+            # preprocess
+            self.preprocess(request, *args, **kwargs)
+            
+            # process
+            data = getattr(self, request.method.lower())(request, *args, **kwargs)
+            
+            # postprocess
+            data, headers = self.postprocess(data, request, *args, **kwargs)
+        except Exception, e:
+            return exceptions.handle_exception(e, request)
 
-        # Call the appropriate method
-        data = getattr(self, request.method.lower())(request, *args, **kwargs)
-        # If the method has returned an ``HttpResponse`` return it.
-        # Otherwise, continue and process the results.
-        if isinstance(data, http.HttpResponse):
-            return data
-
-        data, headers = self.postprocess(data, request, *args, **kwargs)
         # create response and return it
-        return http.HttpResponse(data, **headers)
+        res = http.HttpResponse(data)
+        for key, value in headers.items():
+            res[key] = value
+        return res
+
+    def preprocess(self, request, *args, **kwargs):
+        """
+        Preprocess the request
+
+        Is the request method allowed?
+        TODO: Is the request body valid according to the content-type?
+        TODO: Are the request body fields allowed?
+        TODO: Map the request body to some model, if possiblde
+        """
+        try:
+            self.is_method_allowed(request, *args, **kwargs)
+        except exceptions.MethodNotAllowed:
+            raise
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
@@ -79,12 +99,6 @@ class HandlerDataFlow(object):
         if request.method.upper() not in self.http_methods:
             raise exceptions.MethodNotAllowed(self.http_methods)
         return True
-
-    def preprocess(self, request, *args, **kwargs):
-        """
-        Preprocess the request
-        """
-        pass
 
     def postprocess(self, data, request, *args, **kwargs):
         """
@@ -101,7 +115,7 @@ class HandlerDataFlow(object):
         
         # Returns serialized response plus any http headers, like
         # ``content_type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serialize(pack, request, *args, **kwargs)
+        serialized, headers = serialize_request_data(pack, request, *args, **kwargs)
         
         return serialized, headers
 
