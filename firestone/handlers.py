@@ -4,6 +4,8 @@ from authentication import DjangoAuthentication
 from serializers import serialize_request_data
 import exceptions
 from django import http
+from django.conf import settings
+from django.db import connection
 from preserialize import serialize as preserializer
 
 class HandlerMetaClass(type):
@@ -149,7 +151,23 @@ class HandlerDataFlow(object):
         if isinstance(data, (dict, list, tuple, set)):
             count = len(data)
 
-        return {'data': data, 'count': count}
+        ret = {'data': data, 'count': count}
+        if settings.DEBUG:
+            ret['debug'] = self.get_debug(self, data, request, *args, **kwargs)
+        return ret
+
+    def get_debug(self, data, request, *args, **kwargs):
+        """
+        Returns debugging data or stats about this request
+        """
+        time_per_query = [float(dic['time']) for dic in connection.queries if 'time' in dic]
+        return {               
+            'total_query_time': sum(time_per_query),
+            'query_count': len(connection.queries),
+            'query_log': connection.queries,
+        }
+
+
 
 
 class BaseHandler(HandlerDataFlow):

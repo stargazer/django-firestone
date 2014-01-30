@@ -36,5 +36,6 @@ class Proxy(object):
         if h:
             return h.execute(request, *args, **kwargs)
 
+        # This is the only HttpResponse returned outside of the handler.
         return http.HttpResponseForbidden()
                         
