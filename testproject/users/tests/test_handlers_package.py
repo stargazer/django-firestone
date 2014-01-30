@@ -20,29 +20,77 @@ class TestPackage(TestCase):
         handler = setup_handler(BaseHandler(), request)
 
         data = 'datastring'
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 1}
+        )
+
+        data = 125.6
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 1}
+        )
 
         data = [1, 2, 3, 4, 5]
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 5}
+        )
 
+        data = {1, 2, 3, 4, 5}
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 5}
+        )
+        
         data = {'key1': 'value1', 'key2': 'value2'}
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 2}
+        )
 
         data = mommy.make(User, 10)
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 10}
+        )
 
     def test_modelhandler_package(self):
         request = RequestFactory().get('whatever/')
         handler = setup_handler(BaseHandler(), request)
 
         data = 'datastring'
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 1}
+        )
+
+        data = 125.6
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 1}
+        )
 
         data = [1, 2, 3, 4, 5]
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 5}
+        )
 
+        data = {1, 2, 3, 4, 5}
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 5}
+        )
+        
         data = {'key1': 'value1', 'key2': 'value2'}
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 2}
+        )
 
         data = mommy.make(User, 10)
-        self.assertEqual(handler.package(data, request), {'data': data})
+        self.assertEqual(
+            handler.package(data, request), 
+            {'data': data, 'count': 10}
+        )

@@ -62,13 +62,12 @@ class HandlerDataFlow(object):
         try:
             # preprocess
             self.preprocess(request, *args, **kwargs)
-            
             # process
             data = getattr(self, request.method.lower())(request, *args, **kwargs)
-            
             # postprocess
             data, headers = self.postprocess(data, request, *args, **kwargs)
         except Exception, e:
+            # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
 
         # create response and return it
@@ -110,9 +109,6 @@ class HandlerDataFlow(object):
         # Package it to a dictionary
         pack = self.package(data, request, *args, **kwargs)
         
-        # Add any metadata
-        pack = self.add_metadata(pack, request, *args, **kwargs)
-        
         # Returns serialized response plus any http headers, like
         # ``content_type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serialize_request_data(pack, request, *args, **kwargs)
@@ -147,17 +143,13 @@ class HandlerDataFlow(object):
         @data: Data result of the request operation, as python data
         structure(s)
 
-        Returns the ``data`` packed in a dictionary
+        Returns the ``data`` packed in a dictionary along with other metadata
         """
-        return {'data': data}
+        count = 1
+        if isinstance(data, (dict, list, tuple, set)):
+            count = len(data)
 
-    def add_metadata(self, package, request, *args, **kwargs):
-        """
-        @param package: Dictionary with data result of request operation
-
-        Returns a dictionary enriched with metadata.
-        """
-        return package
+        return {'data': data, 'count': count}
 
 
 class BaseHandler(HandlerDataFlow):
