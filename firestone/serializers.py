@@ -10,7 +10,8 @@ def _serialize_to_json(data):
     Serializes ``data`` into JSON, and returns a tuple
        serialized data, HttpResponse headers as dictionary key-values
     """
-    return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'content_type': 'application/json'}
+    return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'content-type': 'application/json'}
+
 
 DEFAULT_SERIALIZER = _serialize_to_json
 def _get_serializer(request, *args, **kwargs):

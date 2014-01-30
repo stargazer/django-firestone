@@ -17,22 +17,22 @@ class TestSerializers(TestCase):
 
         result, headers = serializers._serialize_to_json(data) 
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = [1, 2, 3]
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = {'key': 'value'}
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = datetime.now()
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
     def test_get_serializer(self):
         request = RequestFactory().get('/')
@@ -48,22 +48,22 @@ class TestSerializers(TestCase):
         data = 'somedata'
         result, headers = serializers.serialize(data, request) 
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = [1, 2, 3]
         result, headers = serializers.serialize(data, request)
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = {'key': 'value'}
         result, headers = serializers.serialize(data, request)
         self.assertJSONEqual(result, json.dumps(data))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
         data = datetime.now()
         result, headers = serializers.serialize(data, request)
         self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
-        self.assertEquals(headers, {'content_type': 'application/json'})
+        self.assertEquals(headers, {'content-type': 'application/json'})
 
 
 
