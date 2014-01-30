@@ -1,7 +1,8 @@
 from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
-from serializers import serialize
+from serializers import serialize_request_data
+import exceptions
 from django import http
 from preserialize import serialize as preserializer
 
@@ -72,14 +73,12 @@ class HandlerDataFlow(object):
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
-        Is the request method allowed? If not, returns an
-        HTTPResponse object, which ``dispatch`` will let bubble up.
+        Is the request method allowed? If not, raises an
+        ``exceptions.MethodNotAllowed`` exception.
         """
-        # Is this type of request allowed?
         if request.method.upper() not in self.http_methods:
-            return False
+            raise exceptions.MethodNotAllowed(self.http_methods)
         return True
-        #    return http.HttpResponseNotAllowed(self.http_methods)
 
     def preprocess(self, request, *args, **kwargs):
         """

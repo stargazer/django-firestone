@@ -3,7 +3,8 @@ This module tests the handler's ``is_method_allowed`` method.
 """
 
 from firestone.handlers import BaseHandler
-from firestone.handlers import ModelHandler
+from firestone.handlers import ModelHandler                     
+from firestone.exceptions import MethodNotAllowed
 from django.test import TestCase
 from django.test import RequestFactory
 from django.http.response import HttpResponseNotAllowed
@@ -42,14 +43,14 @@ class TestBaseHandlerIsMethodAllowed(TestCase):
         # Initialize the handler
         handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertFalse(handler.is_method_allowed(request))
+        self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
         handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertFalse(handler.is_method_allowed(request))
+        self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
     
 class TestModelHandlerIsMethodAllowed(TestCase):        
     def test_is_method_allowed(self):
@@ -73,14 +74,14 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Initialize the handler
         handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertFalse(handler.is_method_allowed(request))
+        self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
         # Initialize the handler
         handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
-        self.assertFalse(handler.is_method_allowed(request))
+        self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
  
 
         
