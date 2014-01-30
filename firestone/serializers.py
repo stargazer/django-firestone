@@ -1,7 +1,3 @@
-# Read the format given by Accept Header.
-# IF supported, output to that format. If not supported, fallback to default
-# serializer. Along with the serialized response, return the response's Content-type
-
 import json
 from django.core.serializers.json import DateTimeAwareJSONEncoder
 
@@ -13,17 +9,38 @@ def _serialize_to_json(data):
     return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'content-type': 'application/json'}
 
 
-DEFAULT_SERIALIZER = _serialize_to_json
-def _get_serializer(request, *args, **kwargs):
-    """
-    Returns the function that will serialize the data
-    """
-    return DEFAULT_SERIALIZER
 
-def serialize(data, request, *args, **kwargs):
+DEFAULT_SERIALIZATION_FORMAT = 'application/json'
+MAPPER = {
+    'application/json': _serialize_to_json,
+}        
+def _get_serializer(ser_format=''):
     """
-    Selects the appropriate serializer, calls it, and returns its result
+    Returns the serialization function
     """
-    s = _get_serializer(request, *args, **kwargs)
+    return MAPPER.get(ser_format, MAPPER[DEFAULT_SERIALIZATION_FORMAT])
+
+def _get_serialization_format(request, *args, **kwargs):
+    """
+    Returns the serialization format that the ``request``'s ``Accept`` header
+    wants.
+    """
+    return DEFAULT_SERIALIZATION_FORMAT
+
+def serialize(data, ser_format=''):
+    """
+    Serializes ``data`` to ``ser_format``.
+    
+    Returns a tuple of (serialized_data, headers_dict)
+    """
+    s = _get_serializer(ser_format)
     return s(data)
 
+def serialize_request_data(data, request, *args, **kwargs):
+    """
+    Serializes ``data`` to a serialization format that ``request`` demands
+    
+    Returns a tuple of (serialized_data, headers_dict)
+    """
+    ser_format = _get_serialization_format(request)
+    return serialize(data, ser_format)
