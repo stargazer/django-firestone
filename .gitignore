@@ -1,8 +1,10 @@
-*.swp
-*.pyc
-django_firestone.egg-info
 bin/
 parts/
 eggs/
 develop-eggs/
+django_firestone.egg-info/
+htmlcov/
+*.swp
+*.pyc
 .installed.cfg
+.coverage

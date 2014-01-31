@@ -128,8 +128,9 @@ For now, clone github repository. Soon available on PyPi.
 
 ## Tests
 
-The ``tests`` package contains a Django application that tests many of django-firestone's features. 
-In order to build the application:
+The ``testproject`` package contains a mini Django application built on top of
+``django-firestone``. The test project is mainly used to initiate the
+``django-firestone``'s test suite
 
 	python bootstrap.py -v 2.1.1
 	bin/buildout
@@ -137,7 +138,13 @@ In order to build the application:
 In order to run the tests:
 
 	bin/test
- 
+
+In order to run the tests and get a test coverate report, run:
+
+    bin/createcoverate
+
+You will get an HTML report in ``htmlcov/index.html`` with all details.
+
 ## Resources
 
 * [django-preserialize](https://github.com/bruth/django-preserialize)

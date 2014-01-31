@@ -1,0 +1,6 @@
+[report]
+omit = 
+ eggs/* 
+ develop-eggs* 
+ parts/*
+ testproject/*
