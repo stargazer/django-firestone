@@ -185,6 +185,15 @@ class HandlerDataFlow(object):
         Returns debugging data or stats about this request
         """
         time_per_query = [float(dic['time']) for dic in connection.queries if 'time' in dic]
+        
+        # Tweaking ``connection.queries`` to increase query readability
+        connection.queries = [{
+                'time': item['time'], 
+                'sql': item['sql'].replace('"', '')
+            } 
+            for item in connection.queries
+        ]
+        
         return {               
             'total_query_time': sum(time_per_query),
             'query_count': len(connection.queries),
