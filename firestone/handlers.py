@@ -72,7 +72,7 @@ class HandlerDataFlow(object):
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
 
-        # create response and return it
+        # create and return response
         res = http.HttpResponse(data)
         for key, value in headers.items():
             res[key] = value
@@ -81,16 +81,21 @@ class HandlerDataFlow(object):
     def preprocess(self, request, *args, **kwargs):
         """
         Preprocess the request
-
-        Is the request method allowed?
-        TODO: Is the request body valid according to the content-type?
-        TODO: Are the request body fields allowed?
-        TODO: Map the request body to some model, if possiblde
         """
+        # Is the request method allowed?
         try:
             self.is_method_allowed(request, *args, **kwargs)
         except exceptions.MethodNotAllowed:
             raise
+        # Transform request body to python data structures
+        try:
+            self.transform_body(request, *args, **kwargs)
+        except exceptions.UnsupportedMediaType:
+            raise
+        # Remove disallawed request body fields
+        self.cleanse_body(request, *args, **kwargs)
+        # Validate request body
+        self.validate(request, *args, **kwargs)
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
@@ -101,16 +106,35 @@ class HandlerDataFlow(object):
             raise exceptions.MethodNotAllowed(self.http_methods)
         return True
 
+    def transform_body(self, request, *args, **kwargs):
+        """
+        Is the request body valid according the ``Content-type`` header? If
+        yes, transform to python data structures. Else raise
+        ``exceptions.UnsupportedMediaType``.
+        """
+        pass
+
+    def cleanse_body(self, request, *args, **kwargs):
+        """
+        Scan request body and only let the allowed fields go through.
+        """
+        pass
+
+    def validate(self, request, *args, **kwargs):
+        """
+        Extra request body validation step. For Nodel Handlers, it will map the
+        request body to model instances. For Base Handlers, it's simply a hook.
+        """
+        pass
+
     def postprocess(self, data, request, *args, **kwargs):
         """
         Postprocess the data result
         """
         # Serialize to python
         data = self.serialize_to_python(data, request)   
-
         # Package it to a dictionary
         pack = self.package(data, request, *args, **kwargs)
-        
         # Returns serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
@@ -166,8 +190,6 @@ class HandlerDataFlow(object):
             'query_count': len(connection.queries),
             'query_log': connection.queries,
         }
-
-
 
 
 class BaseHandler(HandlerDataFlow):
