@@ -177,10 +177,10 @@ class HandlerDataFlow(object):
 
         ret = {'data': data, 'count': count}
         if settings.DEBUG:
-            ret['debug'] = self.get_debug(self, data, request, *args, **kwargs)
+            ret['debug'] = self.debug_data(self, data, request, *args, **kwargs)
         return ret
 
-    def get_debug(self, data, request, *args, **kwargs):
+    def debug_data(self, data, request, *args, **kwargs):
         """
         Returns debugging data or stats about this request
         """
