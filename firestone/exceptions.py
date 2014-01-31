@@ -59,6 +59,11 @@ class OtherException(Exception):
     def __init__(self, e, request):
         """
         @param e: Some Exception instance
+
+        Any exceptions that was left uncaught and is not an instance of
+        ``APIException``, is handled here. We consider it a Server Error.
+        If DEBUG==True, we return an error in the response. Else, we email the
+        administrator.
         """
         self.status = 500
         exc_type, exc_value, traceback = sys.exc_info()
