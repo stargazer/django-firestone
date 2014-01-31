@@ -4,6 +4,7 @@ This module tests the behavior of the module ``firestone.exceptions``
 from firestone import exceptions
 from django.test import TestCase
 from django.test import RequestFactory
+from django.conf import settings
 from django import http
 import json
 
@@ -157,8 +158,10 @@ class TestHandleException(TestCase):
             res = exceptions.handle_exception(e, request)
         self.assertEqual(res.status_code, 501)            
 
-    def test_other_exception(self):
+    def test_other_exception_debug_false(self):
+        # With settings.DEBUG = False, the response should be empty
         request = RequestFactory().get('/')
+        settings.DEBUG = False
 
         try:
             raise TypeError
@@ -166,5 +169,21 @@ class TestHandleException(TestCase):
             res = exceptions.handle_exception(e, request)
 
         self.assertEqual(res.status_code, 500)
+        self.assertFalse(res.content)
+        self.assertEqual(res['content-type'], 'text/html; charset=utf-8')
+
+    def test_other_exception_debug_true(self):
+        # With settings.DEBUG = False, the response should be non empty
+        request = RequestFactory().get('/')
+        settings.DEBUG = True
+
+        try:
+            raise TypeError
+        except TypeError, e:
+            res = exceptions.handle_exception(e, request)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertTrue(res.content)
+        self.assertEqual(res['content-type'], 'text/html; charset=utf-8')
 
 

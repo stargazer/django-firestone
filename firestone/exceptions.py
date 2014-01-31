@@ -71,7 +71,10 @@ class OtherException(Exception):
         html = reporter.get_traceback_html()
 
         if settings.DEBUG:
-            self.http_response = http.HttpResponseServerError(html, content_type='text/html')
+            self.http_response = http.HttpResponseServerError(
+                html,
+                content_type='text/html; charset=utf-8'
+            )
         else:
             self.http_response = http.HttpResponseServerError()
             # and send email
