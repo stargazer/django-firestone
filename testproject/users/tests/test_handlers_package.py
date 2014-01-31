@@ -9,16 +9,11 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from model_mommy import mommy
 
-def setup_handler(handler, request, *args, **kwargs):
-    handler.request = request
-    handler.args = args
-    handler.kwargs = kwargs
-    return handler
-
 class TestPackage(TestCase):
     def test_basehandler_package(self):
+        settings.DEBUG = False # No debug message will appear on response
         request = RequestFactory().get('whatever/')
-        handler = setup_handler(BaseHandler(), request)
+        handler = BaseHandler()
 
         data = 'datastring'
         res = handler.package(data, request)
@@ -57,8 +52,9 @@ class TestPackage(TestCase):
         self.assertEqual(res['count'], 10)
 
     def test_modelhandler_package(self):
+        settings.DEBUG = False # No debug message will appear on response
         request = RequestFactory().get('whatever/')
-        handler = setup_handler(ModelHandler(), request)
+        handler = ModelHandler()
 
         data = 'datastring'
         res = handler.package(data, request)
@@ -103,7 +99,7 @@ class TestPackage(TestCase):
         """
         settings.DEBUG = True
         request = RequestFactory().get('whatever/')
-        handler = setup_handler(BaseHandler(), request)
+        handler = BaseHandler()
 
         data = 'datastring'
         res = handler.package(data, request)
