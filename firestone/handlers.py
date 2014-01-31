@@ -1,7 +1,7 @@
 from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
-from serializers import serialize_request_data
+import serializers 
 import exceptions
 from django import http
 from django.conf import settings
@@ -112,8 +112,8 @@ class HandlerDataFlow(object):
         pack = self.package(data, request, *args, **kwargs)
         
         # Returns serialized response plus any http headers, like
-        # ``content_type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serialize_request_data(pack, request, *args, **kwargs)
+        # ``content-type`` that need to be passed in the HttpResponse instance.
+        serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
         
         return serialized, headers
 

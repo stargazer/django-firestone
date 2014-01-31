@@ -36,7 +36,7 @@ def serialize(data, ser_format=''):
     s = _get_serializer(ser_format)
     return s(data)
 
-def serialize_request_data(data, request, *args, **kwargs):
+def serialize_response_data(data, request, *args, **kwargs):
     """
     Serializes ``data`` to a serialization format that ``request`` demands
     
