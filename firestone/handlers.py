@@ -2,11 +2,13 @@ from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import DjangoAuthentication
 import serializers 
+import deserializers
 import exceptions
 from django import http
 from django.conf import settings
 from django.db import connection
 from preserialize import serialize as preserializer
+
 
 class HandlerMetaClass(type):
     def __new__(meta, name, bases, attrs):
@@ -87,11 +89,16 @@ class HandlerDataFlow(object):
             self.is_method_allowed(request, *args, **kwargs)
         except exceptions.MethodNotAllowed:
             raise
+        
+        if request.method.upper() not in ('POST', 'PUT'):
+            return
+
         # Transform request body to python data structures
         try:
             self.deserialize_body(request, *args, **kwargs)
-        except exceptions.UnsupportedMediaType:
+        except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
             raise
+
         # Remove disallawed request body fields
         self.cleanse_body(request, *args, **kwargs)
         # Validate request body
@@ -109,10 +116,13 @@ class HandlerDataFlow(object):
     def deserialize_body(self, request, *args, **kwargs):
         """
         Is the request body valid according the ``Content-type`` header? If
-        yes, transform to python data structures. Else raise
-        ``exceptions.UnsupportedMediaType``.
+        yes, deserialize to python data structures. 
+        Else raise ``exceptions.UnsupportedMediaType`` or ``exceptions.BadRequest``.
         """
-        pass
+        try:
+            request.body = deserializers.deserialize_request_body(request, *args, **kwargs)
+        except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
+            raise
 
     def cleanse_body(self, request, *args, **kwargs):
         """
