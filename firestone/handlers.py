@@ -89,7 +89,7 @@ class HandlerDataFlow(object):
             raise
         # Transform request body to python data structures
         try:
-            self.transform_body(request, *args, **kwargs)
+            self.deserialize_body(request, *args, **kwargs)
         except exceptions.UnsupportedMediaType:
             raise
         # Remove disallawed request body fields
@@ -106,7 +106,7 @@ class HandlerDataFlow(object):
             raise exceptions.MethodNotAllowed(self.http_methods)
         return True
 
-    def transform_body(self, request, *args, **kwargs):
+    def deserialize_body(self, request, *args, **kwargs):
         """
         Is the request body valid according the ``Content-type`` header? If
         yes, transform to python data structures. Else raise
