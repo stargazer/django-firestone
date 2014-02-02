@@ -2,6 +2,8 @@ from test_proxy import *
 
 from test_serializers import *
 
+from test_deserializers import *
+
 from test_exceptions import *
 
 from test_authentication import *
