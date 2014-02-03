@@ -10,45 +10,29 @@ from django.test import RequestFactory
 from django.http.response import HttpResponseNotAllowed
 
 
-def setup_handler(handler, request, *args, **kwargs):
-    """
-    Mimics the behavior of ``firestone.proxy.Proxy.__call__``, without of course
-    invoking the handler.
-    """
-    handler.request = request
-    handler.args = args
-    handler.kwargs = kwargs
-    handler.http_methods = ['GET', 'POST']
-    return handler
-
 class TestBaseHandlerIsMethodAllowed(TestCase):
     def test_is_method_allowed(self):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler
-        handler = setup_handler(BaseHandler(), request, ) 
+        handler = BaseHandler()
+        handler.http_methods = ('GET', 'POST', )
 
         # Call handler method ``is_method_allowed``
         self.assertTrue(handler.is_method_allowed(request))
 
         # Create POST request
         request = RequestFactory().post('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(handler.is_method_allowed(request))
 
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(BaseHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
     
@@ -57,29 +41,24 @@ class TestModelHandlerIsMethodAllowed(TestCase):
         # Create GET request
         request = RequestFactory().get('whateverpath/')
         # Initialize the handler
-        handler = setup_handler(ModelHandler(), request, ) 
+        handler = ModelHandler()
+        handler.http_methods = ('GET', 'POST', )
              
         # Call handler method ``is_method_allowed``
         self.assertTrue(handler.is_method_allowed(request))
 
         # Create POST request
         request = RequestFactory().post('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertTrue(handler.is_method_allowed(request))
 
         # Create DELETE request
         request = RequestFactory().delete('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
 
         # Create PUT request
         request = RequestFactory().put('whateverpath/')
-        # Initialize the handler
-        handler = setup_handler(ModelHandler(), request) 
         # Call handler method ``is_method_allowed``
         self.assertRaises(MethodNotAllowed, handler.is_method_allowed, request)
  

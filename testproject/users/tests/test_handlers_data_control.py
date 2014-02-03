@@ -10,20 +10,11 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from model_mommy import mommy
 
-def setup_handler(handler, request, *args, **kwargs):
-    """
-    Mimics the behavior of ``firestone.proxy.Proxy.__call__``, without of course
-    invoking the handler.
-    """
-    handler.request = request
-    handler.args = args
-    handler.kwargs = kwargs
-    return handler
 
 class TestBaseHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
-        self.handler = setup_handler(BaseHandler(), self.request)
+        self.handler = BaseHandler()
 
     def test_get_data_item(self):
         # Testing ``BaseHandler.get_item``
@@ -68,7 +59,7 @@ class TestBaseHandlerDataControl(TestCase):
 class testModelHandlerDataControl(TestCase):
     def setUp(self):
         self.request = RequestFactory().get('whateverpath/')
-        self.handler = setup_handler(ModelHandler(), self.request)
+        self.handler = ModelHandler()
         self.handler.model = User
 
         # Create some model instances

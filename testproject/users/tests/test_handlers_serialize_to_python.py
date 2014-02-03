@@ -12,16 +12,6 @@ from django.http import QueryDict
 from model_mommy import mommy
 from random import randrange
 
-def setup_handler(handler, request, *args, **kwargs):
-    """
-    Mimics the behavior of ``firestone.proxy.Proxy.__call__``, without of course
-    invoking the handler.
-    """
-    handler.request = request
-    handler.args = args
-    handler.kwargs = kwargs
-    return handler
-
 
 class TestModelHandlerSerializeToPython(TestCase):
     def setUp(self):
@@ -68,10 +58,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         """
         request = RequestFactory()
         request = request.get('whateverpath/')
-        handler = setup_handler(
-            self.modelhandler, 
-            request,
-        )
+        handler = self.modelhandler 
 
         # Queryset
         users = User.objects.all()
@@ -112,10 +99,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the class handler
-        handler = setup_handler(
-            self.modelhandler,
-            request
-        )
+        handler = self.modelhandler
 
         # Queryset
         users = User.objects.all()
@@ -155,10 +139,8 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/')
         # Initialize the handler
-        handler = setup_handler(
-            self.modelhandler,
-            request
-        )
+        handler = self.modelhandler
+        
         # Retrieve the model
         user = User.objects.get(id=1)
         # Serialize the model
@@ -189,10 +171,7 @@ class TestModelHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
         # Initialize the handler
-        handler = setup_handler(
-            self.modelhandler,
-            request
-        )
+        handler = self.modelhandler
 
         # Queryset
         users = User.objects.get(id=1)
@@ -242,10 +221,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/')
         # Initialize the handler
-        handler = setup_handler(
-            self.basehandler, 
-            request,
-        )
+        handler = self.basehandler
         
         data = {
             'dic': {'a': 1, 'b': 2, 'c': 3},
@@ -277,10 +253,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/?field=dic&field=list')
         # Initialize the handler
-        handler = setup_handler(
-            self.basehandler, 
-            request,
-        )
+        handler = self.basehandler
         
         data = {
             'dic': {'a': 1, 'b': 2, 'c': 3},
@@ -306,10 +279,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         request = RequestFactory()
         request = request.get('whateverpath/')
         # Initialize the handler
-        handler = setup_handler(
-            self.basehandler, 
-            request
-        )
+        handler = self.basehandler
         
         data = [
             {

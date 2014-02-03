@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from model_mommy import mommy
 
+
 class TestPackage(TestCase):
     def test_basehandler_package(self):
         settings.DEBUG = False # No debug message will appear on response
