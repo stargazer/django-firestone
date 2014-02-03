@@ -9,7 +9,6 @@ def _serialize_to_json(data):
     return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'content-type': 'application/json'}
 
 
-
 DEFAULT_SERIALIZATION_FORMAT = 'application/json'
 MAPPER = {
     'application/json': _serialize_to_json,

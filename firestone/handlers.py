@@ -82,7 +82,8 @@ class HandlerControlFlow(object):
 
     def preprocess(self, request, *args, **kwargs):
         """
-        Preprocess the request
+        Invoked by ``dispatch``.
+        Preprocesses the request.
         """
         # Is the request method allowed?
         try:
@@ -106,7 +107,9 @@ class HandlerControlFlow(object):
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
-        Is the request method allowed? If not, raises an
+        Invoked by ``preprocess``.
+
+        Is the request method allowed? Returns True, else raises an
         ``exceptions.MethodNotAllowed`` exception.
         """
         if request.method.upper() not in self.http_methods:
@@ -115,9 +118,11 @@ class HandlerControlFlow(object):
 
     def deserialize_body(self, request, *args, **kwargs):
         """
-        Is the request body valid according the ``Content-type`` header? If
-        yes, deserialize to python data structures. 
-        Else raise ``exceptions.UnsupportedMediaType`` or ``exceptions.BadRequest``.
+        Invoked by ``preprocess``.
+
+        Is the request body valid according the ``Content-type`` header? 
+        If yes, deserializes to python data structures. 
+        Else raises ``exceptions.UnsupportedMediaType`` or ``exceptions.BadRequest``.
         """
         try:
             request.body = deserializers.deserialize_request_body(request, *args, **kwargs)
@@ -126,20 +131,30 @@ class HandlerControlFlow(object):
 
     def cleanse_body(self, request, *args, **kwargs):
         """
-        Scan request body and only let the allowed fields go through.
+        Invoked by ``preprocess``.
+
+        Scans request body and only lets the allowed fields go through.
+        Modifies ``request.body`` in place.
         """
         pass
 
     def validate(self, request, *args, **kwargs):
         """
-        Extra request body validation step. For Nodel Handlers, it will map the
-        request body to model instances. For Base Handlers, it's simply a hook.
+        Invoked by ``preprocess``.
+
+        Extra request body validation step. For ModelHandler subclasses it
+        should map the request bo dy to model instances. For BaseHandler
+        subclasses, it's a simple hook.
         """
         pass
 
     def postprocess(self, data, request, *args, **kwargs):
         """
-        Postprocess the data result
+        Invoked by ``dispatch``.
+        
+        @param data   : Result of the handler's action
+
+        Postprocesses the data result of the operation.
         """
         # Serialize to python
         data = self.serialize_to_python(data, request)   
@@ -153,12 +168,13 @@ class HandlerControlFlow(object):
 
     def serialize_to_python(self, data, request):
         """
-        @param data   : Result of the handler's action
-        @param request: Incoming HTTPRequest object
+        Invoked by ``postprocess``.
 
-        Serializes the output of a handler's action to python data structures, 
-        according to the definition of the handler's ``template`` variable, or
-        to reqeust level field selection, by querystring parameter ``field``.
+        @param data   : Result of the handler's action
+
+        Serializes ``data`` to python data structures, according to the
+        handler's ``template`` attribute, or request-level field selection
+        defined by querystring parameter ``field``.
         """
         # NOTE: The request level field selection doesn not work if the
         # handler's ``template`` attribute uses ``django-preserialize``'s
@@ -176,8 +192,9 @@ class HandlerControlFlow(object):
  
     def package(self, data, request, *args, **kwargs):
         """
-        @data: Data result of the request operation, as python data
-        structure(s)
+        Invoked by ``postprocess``
+
+        @data: Python data structures, as returned by ``serialize_to_python``.
 
         Returns the ``data`` packed in a dictionary along with other metadata
         """
@@ -192,7 +209,12 @@ class HandlerControlFlow(object):
 
     def debug_data(self, data, request, *args, **kwargs):
         """
-        Returns debugging data or stats about this request
+        Invoked by ``package``
+
+        @data: Dictionary with ``data`` and ``count`` keys.
+        
+        Returns the ``data`` dictionary enriched with debugging data or stats
+        about this request.
         """
         time_per_query = [float(dic['time']) for dic in connection.queries if 'time' in dic]
         
@@ -214,7 +236,7 @@ class HandlerControlFlow(object):
 class BaseHandler(HandlerControlFlow):
     """
     This class describes a handler's real operation.
-    """
+    """                               
     def get_data(self, request, *args, **kwargs):
         """
         Returns the data of the current operation. To do so, it uses methods
