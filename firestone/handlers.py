@@ -33,13 +33,13 @@ class HandlerMetaClass(type):
         return cls
 
 
-class HandlerDataFlow(object):
+class HandlerControlFlow(object):
     """
-    This class describes the basic data flow and outer shell operations of any handler. 
-    Basically the generic behavior is set here, whereas more specific behavior is described in
-    its child classes.
+    This class describes the basic control flow and outer shell operations of any handler. 
+    Basically the generic behavior is set here, whereas more specific behavior
+    that corresponds to HTTP methods are  described in its subclasses.
     
-    Don't inherit directly from this class.
+    Don't subclass it.
     """
     __metaclass__ = HandlerMetaClass
 
@@ -55,13 +55,13 @@ class HandlerDataFlow(object):
     # ``authentication`` module, other than ``Authentication``
     authentication = None
 
-    def execute(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         """
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
-        Don't override this method.
-
         It needs to return an http.HttpResponse object.
+
+        Don't override this method.
         """
         try:
             # preprocess
@@ -211,7 +211,7 @@ class HandlerDataFlow(object):
         }
 
 
-class BaseHandler(HandlerDataFlow):
+class BaseHandler(HandlerControlFlow):
     """
     This class describes a handler's real operation.
     """

@@ -34,7 +34,7 @@ class Proxy(object):
     def __call__(self, request, *args, **kwargs):
         h = self.choose_handler(request, *args, **kwargs)
         if h:
-            return h.execute(request, *args, **kwargs)
+            return h.dispatch(request, *args, **kwargs)
 
         # This is the only HttpResponse returned outside of the handler.
         return http.HttpResponseForbidden()
