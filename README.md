@@ -117,13 +117,13 @@ For now, clone github repository. Soon available on PyPi.
 
     # urls.py
     from django.conf.urls import *
-    from firestone.views import View
+    from firestone.proxy import Proxy
     from handlers import UserHandlerDjangoAuth, UserHandlerNoAuth
 
-    userhandler_view = View(UserHandlerDjangoAuth, UserHandlerNoAuth)
+    userhandler_proxy = Proxy(UserHandlerDjangoAuth, UserHandlerNoAuth)
 
     urlpatterns = patterns('',
-        url(r'^users/$', userhandler_view),
+        url(r'^users/$', userhandler_proxy),
     )
 
 ## Tests
