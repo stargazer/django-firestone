@@ -22,10 +22,13 @@ class Proxy(object):
         for handler in self.handlers:
             h = handler()
 
-            # Mimics the behavior of Django's class based views ``as_view`` method
-            h.request = request
-            h.args = args
-            h.kwargs = kwargs
+            # I could very well mimic the behavior of Django's class based
+            # views ``as_view`` method, which assigns request, args, kwargs to
+            # the view/handler instance. But there really is no reason, since I
+            # pass them to every method as arguments.
+            # h.request = request
+            # h.args = args
+            # h.kwargs = kwargs
             if h.authentication.is_authenticated(request, *args, **kwargs):
                 return h
 
