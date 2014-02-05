@@ -5,6 +5,7 @@ This module tests the ``get_data``, ``get_data_item``, ``get_data_set`` and
 
 from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
+from firestone import exceptions
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
@@ -82,9 +83,20 @@ class testModelHandlerDataControl(TestCase):
             handler.get_data_item(request, id=10),
             User.objects.get(id=10),
         )
+        # ObjectDoesNotExist becomes exceptions.Gone
         self.assertRaises(
-            User.DoesNotExist,
+            exceptions.Gone,
             handler.get_data_item, request, id=1000,
+        )
+        # ValueError becomes exceptions.Gone
+        self.assertRaises(
+            exceptions.Gone,
+            handler.get_data_item, request, id='string',
+        )
+        # TypeError becomes exceptions.Gone
+        self.assertRaises(
+            exceptions.Gone,
+            handler.get_data_item, request, id={'key': 'value'},
         )
 
     def test_get_data_set(self):        
@@ -125,7 +137,7 @@ class testModelHandlerDataControl(TestCase):
             User.objects.get(id=10),
         )
         self.assertRaises(
-            User.DoesNotExist,
+            exceptions.Gone,
             handler.get_data, request, id=1000,
         )
 

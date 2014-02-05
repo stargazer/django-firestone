@@ -243,8 +243,13 @@ class BaseHandler(HandlerControlFlow):
         ``get_data_item`` and ``get_data_set``.
         
         Applies for both BaseHandler and ModelHandler.
+
+        Raises ``exceptions.Gone``
         """
-        data = self.get_data_item(request, *args, **kwargs)
+        try:
+            data = self.get_data_item(request, *args, **kwargs)
+        except exceptions.Gone:
+            raise
         if data is None:
             data = self.get_data_set(request, *args, **kwargs)
         return data
@@ -281,16 +286,21 @@ class ModelHandler(BaseHandler):
     Returns the model instance if indicated correctly by kwargs, or raises
     self.ObjectDoesNotExist
     """
-    
     # Override to define the handler's model
     model = None
 
     def get_data_item(self, request, *args, **kwargs):
+        """
+        Raises ``exceptions.Gone``
+        """
         for field in kwargs.keys():
             if self.model._meta.get_field(field).unique:
                 value = kwargs.get(field)
                 if value is not None:
-                    return self.get_working_set(self, request, *args, **kwargs).get(**{field: value})
+                    try:
+                        return self.get_working_set(self, request, *args, **kwargs).get(**{field: value})
+                    except (self.model.DoesNotExist, ValueError, TypeError):
+                        raise exceptions.Gone
 
     def get_working_set(self, request, *args, **kwargs):
         """
