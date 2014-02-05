@@ -121,11 +121,12 @@ class HandlerControlFlow(object):
         Invoked by ``preprocess``.
 
         Is the request body valid according the ``Content-type`` header? 
-        If yes, deserializes to python data structures. 
+        If yes, deserializes to python data structures and assigns to
+        ``request.data``.
         Else raises ``exceptions.UnsupportedMediaType`` or ``exceptions.BadRequest``.
         """
         try:
-            request.body = deserializers.deserialize_request_body(request, *args, **kwargs)
+            request.data = deserializers.deserialize_request_body(request, *args, **kwargs)
         except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
             raise
 
@@ -143,7 +144,7 @@ class HandlerControlFlow(object):
         Invoked by ``preprocess``.
 
         Extra request body validation step. For ModelHandler subclasses it
-        should map the request bo dy to model instances. For BaseHandler
+        should map ``request.data`` to model instances. For BaseHandler
         subclasses, it's a simple hook.
         """
         pass
