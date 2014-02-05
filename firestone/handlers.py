@@ -242,6 +242,8 @@ class BaseHandler(HandlerControlFlow):
 
     def get_data(self, request, *args, **kwargs):
         """
+        Invoked by ``get``.
+
         Returns the data of the current operation. To do so, it uses methods
         ``get_data_item`` and ``get_data_set``.
         
@@ -259,6 +261,8 @@ class BaseHandler(HandlerControlFlow):
 
     def get_data_item(self, request, *args, **kwargs):
         """
+        Invoked by ``get_data``.
+
         Returns the data item for singular operations. Returns None if not
         applicable.
         
@@ -266,8 +270,10 @@ class BaseHandler(HandlerControlFlow):
         """
         return None
 
-    def get_data_set(self, request, *args, **kwargs):
+    def get_data_set(self, request, *args, **kwargs):        
         """
+        Invoked by ``get_data``.
+
         Returns the dataset for plural operations. To do so, it uses method
         ``get_working_set``.
         
@@ -277,6 +283,8 @@ class BaseHandler(HandlerControlFlow):
 
     def get_working_set(self, request, *args, **kwargs):
         """
+        Invoked by ``get_data_set``.
+
         Returns the operation's base dataset.
         """
         return None
@@ -294,6 +302,8 @@ class ModelHandler(BaseHandler):
 
     def get_data_item(self, request, *args, **kwargs):
         """
+        Invoked by ``get_data``.
+
         Raises ``exceptions.Gone``
         """
         for field in kwargs.keys():
@@ -307,6 +317,8 @@ class ModelHandler(BaseHandler):
 
     def get_working_set(self, request, *args, **kwargs):
         """
+        Invoked by ``get_data_set``.
+
         Returns the default queryset for the ModelHandler, on top of which other filters
         should be chained, in order to limit the data view.
         """
