@@ -53,8 +53,6 @@ class UserHandlerDjangoAuth(ModelHandler):
         'allow_missing': True,
     }            
 
-    def get(self, request, *args, **kwargs):
-        return User.objects.filter(id=1)
 
 class UserHandlerNoAuth(ModelHandler):
     model = User
