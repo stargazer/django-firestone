@@ -30,6 +30,10 @@ class HandlerMetaClass(type):
         else:
             cls.authentication = cls.authentication()
 
+        # Transform to sets
+        cls.post_body_fields = set(cls.post_body_fields)
+        cls.put_body_fields = set(cls.put_body_fields)
+
         return cls
 
 
@@ -54,6 +58,9 @@ class HandlerControlFlow(object):
     # authentication method: Should be an instance of any of the classes in the
     # ``authentication`` module, other than ``Authentication``
     authentication = None
+
+    # Allowed request body fields for POST and PUT requests
+    post_body_fields = put_body_fields = []    
 
     def dispatch(self, request, *args, **kwargs):
         """
