@@ -13,3 +13,4 @@ from test_handlers_serialize_to_python import *
 from test_handlers_is_method_allowed import *
 from test_handlers_data_control import *
 from test_handlers_package import *
+from test_handlers_get import *

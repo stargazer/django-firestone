@@ -236,7 +236,10 @@ class HandlerControlFlow(object):
 class BaseHandler(HandlerControlFlow):
     """
     This class describes a handler's real operation.
-    """                               
+    """
+    def get(self, request, *args, **kwargs):
+        return self.get_data(request, *args, **kwargs)
+
     def get_data(self, request, *args, **kwargs):
         """
         Returns the data of the current operation. To do so, it uses methods
