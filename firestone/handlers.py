@@ -142,9 +142,24 @@ class HandlerControlFlow(object):
         Invoked by ``preprocess``.
 
         Scans request body and only lets the allowed fields go through.
-        Modifies ``request.body`` in place.
+        Modifies ``request.data`` in place.
         """
-        pass
+        if request.method.upper() == 'POST':
+            if isinstance(request.data, dict):
+                for key in request.data.keys():
+                    if key not in self.post_body_fields:
+                        request.data.pop(key)
+
+            if isinstance(request.data, list):
+                for dic in request.data:
+                    for key in dic.keys():
+                        if key not in self.post_body_fields:
+                            dic.pop(key)
+
+        elif request.method.upper() == 'PUT':
+            for key in request.data.keys():
+                if key not in self.put_body_fields:
+                    request.data.pop(key)
 
     def validate(self, request, *args, **kwargs):
         """
@@ -296,7 +311,6 @@ class BaseHandler(HandlerControlFlow):
         Returns the operation's base dataset.
         """
         return None
-
 
 class ModelHandler(BaseHandler):
     """
