@@ -2,6 +2,7 @@
 This module tests the ``firestone.handlers.ModelHandler.validate method
 """
 from firestone.handlers import ModelHandler
+from firestone import exceptions
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
@@ -19,6 +20,7 @@ class TestModelHandlerPOST(TestCase):
         request = RequestFactory().post('/')
         request.data = {
             'username': 'user',
+            'password': 'pass',
             'first_name': 'name',
         }                
 
@@ -27,6 +29,26 @@ class TestModelHandlerPOST(TestCase):
         self.assertIsInstance(request.data, handler.model)
         self.assertEqual(request.data.username, 'user')
         self.assertEqual(request.data.first_name, 'name')
+
+    def test_dict_error(self):
+        """
+        ``request.data`` is a dictionary. 
+        Mandatory parameters are missing
+        """
+        handler = ModelHandler()
+        handler.model = User
+
+        request = RequestFactory().post('/')
+        request.data = {
+            'username': 'user',
+            'first_name': 'name',
+        }                
+
+        self.assertRaises(
+            exceptions.BadRequest,                
+            handler.validate,
+            request
+        )
 
     def test_list(self):
         """
@@ -39,14 +61,17 @@ class TestModelHandlerPOST(TestCase):
         request.data = [
             {
                 'username': 'user0',
+                'password': 'pass0',
                 'first_name': 'name0',
             },
             {
                 'username': 'user1',
+                'password': 'pass1',
                 'first_name': 'name1',
             },
             {
                 'username': 'user2',
+                'password': 'pass2',
                 'first_name': 'name2',
             },
         ]
@@ -58,6 +83,39 @@ class TestModelHandlerPOST(TestCase):
             self.assertIsInstance(request.data[i], handler.model)
             self.assertEqual(request.data[i].username, 'user%s' % i)
             self.assertEqual(request.data[i].first_name, 'name%s' % i)
+
+    def test_list_error(self):
+        """
+        ``request.data`` is a list of dictionaries.
+        Mandatory parameter missing from 2nd dictionary.
+        """
+        handler = ModelHandler()
+        handler.model = User
+
+        request = RequestFactory().post('/')
+        request.data = [
+            {
+                'username': 'user0',
+                'password': 'pass0',
+                'first_name': 'name0',
+            },
+            {
+                'username': 'user1',
+                'first_name': 'name1',
+            },
+            {
+                'username': 'user2',
+                'password': 'pass2',
+                'first_name': 'name2',
+            },
+        ]
+
+        self.assertRaises(
+            exceptions.BadRequest,
+            handler.validate,
+            request
+        )
+
 
 class TestModelHandlerPUT(TestCase):
     def test_single_model(self):
