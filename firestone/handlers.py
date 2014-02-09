@@ -161,16 +161,6 @@ class HandlerControlFlow(object):
                 if key not in self.put_body_fields:
                     request.data.pop(key)
 
-    def validate(self, request, *args, **kwargs):
-        """
-        Invoked by ``preprocess``.
-
-        Extra request body validation step. For ModelHandler subclasses it
-        should map ``request.data`` to model instances. For BaseHandler
-        subclasses, it's a simple hook.
-        """
-        pass
-
     def postprocess(self, data, request, *args, **kwargs):
         """
         Invoked by ``dispatch``.
@@ -260,6 +250,12 @@ class BaseHandler(HandlerControlFlow):
     """
     This class describes a base handler's real operation.
     """
+    def validate(self, request, *args, **kwargs):
+        """
+        Simple hook for extra request body validations.
+        """
+        pass
+
     def get(self, request, *args, **kwargs):
         raise exceptions.NotImplemented
 
@@ -333,6 +329,21 @@ class ModelHandler(BaseHandler):
         should be chained, in order to limit the data view.
         """
         return self.model.objects.all()
+
+    def validate(self, request, *args, **kwargs):
+        """
+        Invoked by ``preprocess``.
+
+        Extra request body validation step. It should map the contents of
+        ``request.data`` to ``self.model`` instances.
+        """
+        if request.method.upper() == 'POST':
+            pass
+
+        elif request.method.upper() == 'PUT':
+            # find dataset (by calling get_data_set
+            # validate body and map that t
+            pass
 
 """
 Example of BaseHandler
