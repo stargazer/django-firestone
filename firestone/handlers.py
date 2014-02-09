@@ -335,15 +335,35 @@ class ModelHandler(BaseHandler):
         Invoked by ``preprocess``.
 
         Extra request body validation step. It should map the contents of
-        ``request.data`` to ``self.model`` instances.
+        ``request.data``(which at this point are python data structures) to
+        ``self.model`` instances, and validate them.
         """
         if request.method.upper() == 'POST':
-            pass
+            if isinstance(request.data, dict):
+                request.data = self.model(**request.data)
+
+            elif isinstance(request.data, list):
+                request.data = map(lambda item: self.model(**item), request.data)                    
+                
 
         elif request.method.upper() == 'PUT':
-            # find dataset (by calling get_data_set
-            # validate body and map that t
-            pass
+            # Find the relevant dataset on which the ``update`` will be applied
+            dataset = self.get_data(request, *args, **kwargs)            
+
+            # Now update it/them
+            if isinstance(dataset, self.model):
+                for key, value in request.data.items():
+                    setattr(dataset, key, value)
+            else:
+                def update(instance):
+                    for key, value in request.data.items():
+                        setattr(instance, key, value)
+
+                [update(instance) for instance in dataset]
+            
+            request.data = dataset
+
+        # TODO: Call full clean
 
 """
 Example of BaseHandler
