@@ -139,6 +139,25 @@ class TestModelHandlerPUT(TestCase):
         self.assertEqual(request.data.username, 'user')
         self.assertEqual(request.data.first_name, 'name')         
 
+    def test_single_model_error(self):
+        """
+        dataset is a single model instance. We set invalid field value
+        """
+        handler = ModelHandler()
+        handler.model = User
+        
+        mommy.make(User, 10)
+        request = RequestFactory().put('/')
+        request.data = {'username': ''}
+
+        # Raises correct exception?
+        self.assertRaises(
+            exceptions.BadRequest,
+            handler.validate,
+            request,
+            id=1,
+        )
+
     def test_queryset(self):
         """
         dataset is a queryset
@@ -160,4 +179,23 @@ class TestModelHandlerPUT(TestCase):
             self.assertIsInstance(user, handler.model)
             self.assertEqual(user.first_name, 'name')
             self.assertEqual(user.last_name, 'surname')
-            
+
+    def test_queryset_error(self):
+        """
+        dataset is a queryset. We set invalid field values
+        """
+        handler = ModelHandler()
+        handler.model = User
+
+        mommy.make(User, 10)
+
+        request = RequestFactory().put('/')
+        request.data = {'username': ''}
+
+        # Raises correct exception?
+        self.assertRaises(
+            exceptions.BadRequest,
+            handler.validate,
+            request,
+            id=1,
+        )
