@@ -14,13 +14,21 @@ class TestBaseHandler(TestCase):
         handler = BaseHandler()            
         request = RequestFactory().get('/')
 
-        self.assertEqual(handler.get(request), None)
+        self.assertRaises(
+            exceptions.NotImplemented,
+            handler.get,
+            request,
+        )
 
     def test_get_singular(self):
         handler = BaseHandler()            
         request = RequestFactory().get('/')
 
-        self.assertEqual(handler.get(request, id=1), None)
+        self.assertRaises(
+            exceptions.NotImplemented,
+            handler.get,
+            request, id=1,
+        )
 
 class TestModelHandler(TestCase):
     def setUp(self):

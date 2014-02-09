@@ -258,9 +258,27 @@ class HandlerControlFlow(object):
 
 class BaseHandler(HandlerControlFlow):
     """
-    This class describes a handler's real operation.
+    This class describes a base handler's real operation.
     """
     def get(self, request, *args, **kwargs):
+        raise exceptions.NotImplemented
+
+
+class ModelHandler(BaseHandler):
+    """
+    This class describes a Model handler's operation.
+    """
+    # Override to define the handler's model
+    model = None
+
+    def get(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``.
+
+        Returns the data of the current operation. 
+
+        Raises ``exceptions.Gone``        
+        """
         return self.get_data(request, *args, **kwargs)
 
     def get_data(self, request, *args, **kwargs):
@@ -270,8 +288,6 @@ class BaseHandler(HandlerControlFlow):
         Returns the data of the current operation. To do so, it uses methods
         ``get_data_item`` and ``get_data_set``.
         
-        Applies for both BaseHandler and ModelHandler.
-
         Raises ``exceptions.Gone``
         """
         try:
@@ -284,47 +300,10 @@ class BaseHandler(HandlerControlFlow):
 
     def get_data_item(self, request, *args, **kwargs):
         """
-        Invoked by ``get_data``.
+        Invoked by ``get_data``. 
 
-        Returns the data item for singular operations. Returns None if not
-        applicable.
-        
-        Applies for both BaseHandler and ModelHandler.
-        """
-        return None
-
-    def get_data_set(self, request, *args, **kwargs):        
-        """
-        Invoked by ``get_data``.
-
-        Returns the dataset for plural operations. To do so, it uses method
-        ``get_working_set``.
-        
-        Applies for both BaseHandler and ModelHandler.
-        """
-        return self.get_working_set(request, *args, **kwargs)
-
-    def get_working_set(self, request, *args, **kwargs):
-        """
-        Invoked by ``get_data_set``.
-
-        Returns the operation's base dataset.
-        """
-        return None
-
-class ModelHandler(BaseHandler):
-    """
-    This class describes a Model handler's operation.
-
-    Returns the model instance if indicated correctly by kwargs, or raises
-    self.ObjectDoesNotExist
-    """
-    # Override to define the handler's model
-    model = None
-
-    def get_data_item(self, request, *args, **kwargs):
-        """
-        Invoked by ``get_data``.
+        Returns a model instance, if indicated correctly by kwargs, or None
+        otherwise.
 
         Raises ``exceptions.Gone``
         """
@@ -337,6 +316,15 @@ class ModelHandler(BaseHandler):
                     except (self.model.DoesNotExist, ValueError, TypeError):
                         raise exceptions.Gone
 
+    def get_data_set(self, request, *args, **kwargs):        
+        """
+        Invoked by ``get_data``.
+
+        Returns the dataset for plural operations. To do so, it uses method
+        ``get_working_set``.
+        """
+        return self.get_working_set(request, *args, **kwargs)
+
     def get_working_set(self, request, *args, **kwargs):
         """
         Invoked by ``get_data_set``.
@@ -345,7 +333,6 @@ class ModelHandler(BaseHandler):
         should be chained, in order to limit the data view.
         """
         return self.model.objects.all()
-
 
 """
 Example of BaseHandler
