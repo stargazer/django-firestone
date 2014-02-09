@@ -27,6 +27,8 @@ class MethodNotAllowed(APIException):
 class BadRequest(APIException):
     def __init__(self, errors=None):
         self.status = 400
+        self.errors = errors
+
         errors, headers = errors and serialize(errors) or ('', {})
         self.http_response = http.HttpResponseBadRequest(errors)
         for key, value in headers.items():
@@ -40,6 +42,8 @@ class Gone(APIException):
 class Unprocessable(APIException):
     def __init__(self, errors=None):
         self.status = 422
+        self.errors = errors
+
         errors, headers = errors and serialize(errors) or ('', {})
         self.http_response = http.HttpResponse(errors, status=422)
         for key, value in headers.items():
