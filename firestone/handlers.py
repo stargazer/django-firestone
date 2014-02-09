@@ -335,6 +335,8 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``preprocess``.
 
+        Raises ``exceptions.BadRequest``
+
         Extra request body validation step. It should map the contents of
         ``request.data``(which at this point are python data structures) to
         ``self.model`` instances, and validate them.
@@ -364,7 +366,10 @@ class ModelHandler(BaseHandler):
             
             request.data = dataset
 
-        self.clean_models(request, *args, **kwargs)        
+        try:
+            self.clean_models(request, *args, **kwargs)        
+        except exceptions.BadRequest:
+            raise
 
     def clean_models(self, request, *args, **kwargs):
         """
