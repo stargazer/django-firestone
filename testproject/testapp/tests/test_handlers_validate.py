@@ -60,7 +60,7 @@ class TestModelHandlerPOST(TestCase):
             self.assertEqual(request.data[i].first_name, 'name%s' % i)
 
 class TestModelHandlerPUT(TestCase):
-    def test_1(self):
+    def test_single_model(self):
         """
         dataset is a single model instance
         """

@@ -7,6 +7,7 @@ import exceptions
 from django import http
 from django.conf import settings
 from django.db import connection
+from django.core.exceptions import ValidationError
 from preserialize import serialize as preserializer
 
 
@@ -363,7 +364,23 @@ class ModelHandler(BaseHandler):
             
             request.data = dataset
 
-        # TODO: Call full clean
+        self.clean_models(request, *args, **kwargs)        
+
+    def clean_models(self, request, *args, **kwargs):
+        """
+        Invoked by ``preprocess``
+
+        Calls full_clean() on the model instances in ``request.data``. Raises
+        a ``exceptions.BadRequest`` exception at the first error.
+        """
+        for element in isinstance(request.data, self.model) and [request.data] or request.data:
+            try:
+                element.full_clean()
+            except ValidationError, e:                
+                # e.message_dict is either a dictionary {field: <error
+                # message>} for field errors, or a dictionary of 
+                # {'__all__': [<string>]} for non-field errors.
+                raise exceptions.BadRequest(e.message_dict)
 
 """
 Example of BaseHandler

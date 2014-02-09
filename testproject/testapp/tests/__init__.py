@@ -15,4 +15,5 @@ from test_handlers_data_control import *
 from test_handlers_package import *
 from test_handlers_cleanse_body import *
 from test_handlers_validate import *
+from test_handlers_clean_models import *
 from test_handlers_get import *
