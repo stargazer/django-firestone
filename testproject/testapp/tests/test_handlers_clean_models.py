@@ -10,11 +10,11 @@ from django.core.exceptions import ValidationError
 from model_mommy import mommy
 
 
-class TestCleanModels(TestCase):
+class TestCleanModelsSingleModel(TestCase):
     def setUp(self):
        mommy.make(User, 10)
 
-    def test_single_model(self):
+    def test_correct(self):
         handler = ModelHandler()
         handler.model = User
 
@@ -23,7 +23,7 @@ class TestCleanModels(TestCase):
 
         handler.clean_models(request)
 
-    def test_single_model_invalid_field_values(self):
+    def test_invalid_field_values(self):
         """
         We will set some invalid field values.
 
@@ -53,13 +53,14 @@ class TestCleanModels(TestCase):
             self.assertIsInstance(e.errors, dict)
             self.assertItemsEqual(e.errors.keys(), ('username', 'password'))
 
-    def test_single_model_invalid_general(self):
+    def test_invalid_general(self):
         """
         We will make the model's clean() method to raise some ValidationError.
 
         Are errors raised by model.clean() handler correctly?
         They should raise a ``exceptions.BadRequest`` exception.
         """
+        old_clean = User.clean
         def clean(self):
             raise ValidationError('Error string')
         User.clean = clean
@@ -84,6 +85,22 @@ class TestCleanModels(TestCase):
             self.assertIsInstance(e.errors, dict)
             self.assertEqual(e.errors['__all__'][0], 'Error string')
 
-    def test_queryset(self):
+        User.clean = old_clean            
+
+class TestCleanModelsQueryset(TestCase):
+    """
+    Errors on some model instance in a queryset, will behave exactly as in the
+    case of a single model instance.
+    """
+
+    def setUp(self):
+       mommy.make(User, 10)
+
+    def test_correct(self):
         pass
 
+    def test_invalid_field_values(self):
+        pass
+    
+    def test_invalid_general(self):
+        pass
