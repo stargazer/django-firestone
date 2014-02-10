@@ -274,6 +274,14 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
+    def put(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for PUT requests
+        """
+        raise exceptions.NotImplemented
+
 
 class ModelHandler(BaseHandler):
     """
@@ -419,6 +427,21 @@ class ModelHandler(BaseHandler):
             for instance in request.data:
                 instance.save(force_insert=True)
         return request.data            
+
+    def put(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+        
+        Action method for PUT requests.
+        """
+        # TODO: What kind of errors do I contemplate for here? How do I handle
+        # them?
+        if isinstance(request.data, self.model):
+            request.data.save(force_update=True)
+        else:
+            for instance in request.data:
+                instance.save(force_update=True)
+        return request.data
 
 """
 Example of BaseHandler
