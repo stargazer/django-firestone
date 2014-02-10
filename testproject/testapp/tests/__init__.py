@@ -17,3 +17,4 @@ from test_handlers_cleanse_body import *
 from test_handlers_validate import *
 from test_handlers_clean_models import *
 from test_handlers_get import *
+from test_handlers_post import *

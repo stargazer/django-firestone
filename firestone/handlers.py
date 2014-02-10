@@ -259,6 +259,19 @@ class BaseHandler(HandlerControlFlow):
         pass
 
     def get(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for GET requests
+        """
+        raise exceptions.NotImplemented
+    
+    def post(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for POST requests
+        """
         raise exceptions.NotImplemented
 
 
@@ -389,6 +402,23 @@ class ModelHandler(BaseHandler):
                 # When it's raised by ``clean`` e has the parameter:
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for POST requests. For Bulk POST requests, I could have
+        used ``bulk_create``. This has many drawbacks though
+        (https://docs.djangoproject.com/en/dev/ref/models/querysets/#bulk-create),
+        so I've gone for the more conservative approach of one query per item.
+        """
+        #TODO: What kind of errors do I contemplate for here?
+        if isinstance(request.data, self.model):
+            request.data.save(force_insert=True)
+        else:
+            for instance in request.data:
+                instance.save(force_insert=True)
+        return request.data            
 
 """
 Example of BaseHandler
