@@ -8,6 +8,7 @@ from django import http
 from django.conf import settings
 from django.db import connection
 from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 from preserialize import serialize as preserializer
 
 
@@ -381,10 +382,12 @@ class ModelHandler(BaseHandler):
         for element in isinstance(request.data, self.model) and [request.data] or request.data:
             try:
                 element.full_clean()
-            except ValidationError, e:                
-                # e.message_dict is either a dictionary {field: <error
-                # message>} for field errors, or a dictionary of 
-                # {'__all__': [<string>]} for non-field errors.
+            except ValidationError, e:  
+                # When a ValidationError exception e is raised by model.clean_fields, it has
+                # the parameter:
+                # e.message_dict = {'field1': 'error string', 'field2':  'error string, ...}
+                # When it's raised by ``clean`` e has the parameter:
+                # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
 
 """

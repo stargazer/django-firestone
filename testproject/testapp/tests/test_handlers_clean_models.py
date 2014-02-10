@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS
 from model_mommy import mommy
 
 
@@ -85,7 +86,7 @@ class TestCleanModelsSingleModel(TestCase):
             handler.clean_models(request)
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
-            self.assertEqual(e.errors['__all__'][0], 'Error string')
+            self.assertEqual(e.errors[NON_FIELD_ERRORS][0], 'Error string')
         else:
             assert(False)
 
@@ -172,7 +173,7 @@ class TestCleanModelsQueryset(TestCase):
             handler.clean_models(request)
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
-            self.assertEqual(e.errors['__all__'][0], 'Error string')
+            self.assertEqual(e.errors[NON_FIELD_ERRORS][0], 'Error string')
         else:
             assert(False)
 
