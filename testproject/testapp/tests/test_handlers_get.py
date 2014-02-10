@@ -10,8 +10,8 @@ from firestone.handlers import ModelHandler
 from firestone import exceptions
 from model_mommy import mommy
 
-class TestBaseHandler(TestCase):
-    def test_get_plural(self):
+class TestBaseHandlerGet(TestCase):
+    def test_plural(self):
         handler = BaseHandler()            
         request = RequestFactory().get('/')
 
@@ -21,7 +21,7 @@ class TestBaseHandler(TestCase):
             request,
         )
 
-    def test_get_singular(self):
+    def test_singular(self):
         handler = BaseHandler()            
         request = RequestFactory().get('/')
 
@@ -31,37 +31,91 @@ class TestBaseHandler(TestCase):
             request, id=1,
         )
 
-class TestModelHandler(TestCase):
+class TestModelHandlerGetSingular(TestCase):
     def setUp(self):
+        self.handler = ModelHandler()
+        self.handler.model = User
+        self.request = RequestFactory().get('/')
         mommy.make(User, 10)
 
-    def test_get_plural(self):
-        handler = ModelHandler()
-        handler.model = User
-        request = RequestFactory().get('/')
+    def test_singular_exists(self):
+        """
+        Test result
+        """
+        self.assertEqual(
+            self.handler.get(self.request, id=1), 
+            User.objects.get(id=1)
+        )
+        self.assertEqual(
+            self.handler.get(self.request, id=10),
+            User.objects.get(id=10)
+        )
 
-        self.assertItemsEqual(handler.get(request), User.objects.all())
+    def test_singular_exists_num_queries(self):
+        """
+        Test num queries
+        """
+        self.assertNumQueries(
+            1,
+            self.handler.get,
+            self.request, id=1,
+        )
 
-    def test_get_singular_existing_item(self):
-        handler = ModelHandler()
-        handler.model = User
-        request = RequestFactory().get('/')
-        
-        self.assertEqual(handler.get(request, id=1), User.objects.get(id=1))
-        self.assertEqual(handler.get(request, id=10), User.objects.get(id=10))
+        self.assertNumQueries(
+            1,
+            self.handler.get,
+            self.request, id=10,
+        )
 
-    def test_get_singular_non_existing_item(self):
-        handler = ModelHandler()
-        handler.model = User
-        request = RequestFactory().get('/')
-        
-        self.assertRaises(exceptions.Gone, handler.get, request, id=1000)
-        self.assertRaises(exceptions.Gone, handler.get, request, id=100000)
+    def test_singular_doesnt_exist(self):
+        self.assertRaises(
+            exceptions.Gone,
+            self.handler.get,
+            self.request, id=1000,
+        )
 
-    def test_get_singular_invalid_type(self):
-        handler = ModelHandler()
-        handler.model = User
-        request = RequestFactory().get('/')
+        self.assertRaises(
+            exceptions.Gone,
+            self.handler.get,
+            self.request, id=100000,
+        )
 
-        self.assertRaises(exceptions.Gone, handler.get, request, id='string')
-        self.assertRaises(exceptions.Gone, handler.get, request, id={'key': 'value'})
+    def test_singular_invalid_type(self):
+        self.assertRaises(
+            exceptions.Gone,
+            self.handler.get,
+            self.request, id='string',
+        )
+        self.assertRaises(
+            exceptions.Gone,
+            self.handler.get,
+            self.request, id={'key': 'value'},
+        )
+
+
+
+class TestModelHandlerGetPlural(TestCase):
+    def setUp(self):
+        self.handler = ModelHandler()
+        self.handler.model = User
+        self.request = RequestFactory().get('/')
+        mommy.make(User, 10)
+
+    def test_plural(self):
+        self.assertItemsEqual(
+            self.handler.get(self.request), 
+            User.objects.all()
+        )
+
+    def test_plural_num_queries(self):
+        self.assertNumQueries(
+            0,
+            self.handler.get,
+            self.request,
+        )
+        # Note: Why does a plural result in 0 queries, whereas singular results
+        # in 1 query? 
+        # Querysets are lazy, and don't hit the db unless we try to access
+        # their results.
+        # Singular requests though perform a ``get`` on the Queryset result,
+        # which results in one query.
