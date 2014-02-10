@@ -1,5 +1,6 @@
 """
-This module tests the ``firestone.handlers.BaseHandler.get`` method
+This module tests the ``firestone.handlers.BaseHandler.get`` and
+``firestone.handlers.ModelHandler.get`` methods
 """
 from django.test import TestCase
 from django.test import RequestFactory

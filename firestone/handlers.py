@@ -273,7 +273,7 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``.
 
-        Returns the data of the current operation. 
+        Action method for GET requests.
 
         Raises ``exceptions.Gone``        
         """
