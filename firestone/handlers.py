@@ -415,12 +415,14 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``
 
-        Action method for POST requests. For Bulk POST requests, I could have
-        used ``bulk_create``. This has many drawbacks though
+        Action method for POST requests. 
+        For Bulk POST requests, I could have used ``bulk_create``. 
+        This has many drawbacks though
         (https://docs.djangoproject.com/en/dev/ref/models/querysets/#bulk-create),
         so I've gone for the more conservative approach of one query per item.
         """
-        #TODO: What kind of errors do I contemplate for here?
+        # TODO: What kind of errors do I contemplate for here? How do I handle
+        # them?
         if isinstance(request.data, self.model):
             request.data.save(force_insert=True)
         else:
