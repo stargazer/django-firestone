@@ -6,3 +6,7 @@ install:
  - bin/buildout
 script:
  - bin/test
+ - bin/coverage run bin/test
+after_success:
+ - pip install coveralls
+ - coveralls
