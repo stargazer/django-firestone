@@ -4,3 +4,5 @@ omit =
  develop-eggs* 
  parts/*
  testproject/*
+ bin/*
+ firestone/__init__.py
