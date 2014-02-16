@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/stargazer/django-firestone.png?branch=master)](https://travis-ci.org/stargazer/django-firestone)
+
 # django-fiRESTone
 
 [_Gatorade me bitch_](http://www.youtube.com/watch?v=wNvk4DD1fCU)
@@ -150,4 +152,10 @@ You will get an HTML report in ``htmlcov/index.html`` with all details.
 * [django-preserialize](https://github.com/bruth/django-preserialize)
 * [Classy Class Based Views](http://ccbv.co.uk/)
 * [HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html)
- 
+
+## Improvements compared to django-icetea
+
+Errors - Clear and readable error messages
+Serialization - Every handler is solely responsible for the representation of its own output. That includes nested data structures, no matter how deeply nested they are
+Lots of handlers can be declared per resource, with each one responsible for one auth method. This greatly reduces control flow statements on application level
+Allowed fields for POST and PUT requests can be specified differently
