@@ -282,6 +282,14 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
+    def delete(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for DELETE requests
+        """
+        raise exceptions.NotImplemented
+
 
 class ModelHandler(BaseHandler):
     """
@@ -444,6 +452,17 @@ class ModelHandler(BaseHandler):
             for instance in request.data:
                 instance.save(force_update=True)
         return request.data
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for DELETE requests. It doesn't perform the actual delete
+        query. We still want to keep the data intact, in order to output them
+        in the response. Method ``finalize`` does so.
+        """
+        return self.get_data(request, *args, **kwargs)
+
 
 """
 Example of BaseHandler
