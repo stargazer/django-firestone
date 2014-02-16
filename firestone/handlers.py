@@ -172,9 +172,11 @@ class HandlerControlFlow(object):
         Postprocesses the data result of the operation.
         """
         # Serialize to python
-        data = self.serialize_to_python(data, request)   
+        python_data = self.serialize_to_python(data, request)   
+        # finalize any pending data processing
+        self.finalize(data, request, *args, **kwargs)
         # Package it to a dictionary
-        pack = self.package(data, request, *args, **kwargs)
+        pack = self.package(python_data, request, *args, **kwargs)
         # Returns serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
@@ -221,6 +223,17 @@ class HandlerControlFlow(object):
         if settings.DEBUG:
             ret['debug'] = self.debug_data(self, data, request, *args, **kwargs)
         return ret
+
+    def finalize(self, data, request, *args, **kwargs):
+        """
+        Invoked by ``postprocess``
+
+        @data: Result of the handler's action
+
+        Deletes the data, in case of DELETE requests.
+        """
+        if request.method.upper() == 'DELETE':
+            data.delete()
 
     def debug_data(self, data, request, *args, **kwargs):
         """
