@@ -78,13 +78,13 @@ class HandlerControlFlow(object):
             # process
             data = getattr(self, request.method.lower())(request, *args, **kwargs)
             # postprocess
-            data, headers = self.postprocess(data, request, *args, **kwargs)
+            response_data, headers = self.postprocess(data, request, *args, **kwargs)
         except Exception, e:
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
 
         # create and return response
-        res = http.HttpResponse(data)
+        res = http.HttpResponse(response_data)
         for key, value in headers.items():
             res[key] = value
         return res
