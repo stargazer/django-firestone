@@ -83,11 +83,7 @@ class HandlerControlFlow(object):
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
 
-        # create and return response
-        res = http.HttpResponse(response_data)
-        for key, value in headers.items():
-            res[key] = value
-        return res
+        return self.response(response_data, headers)
 
     def preprocess(self, request, *args, **kwargs):
         """
@@ -259,6 +255,21 @@ class HandlerControlFlow(object):
             'query_count': len(connection.queries),
             'query_log': connection.queries,
         }
+
+    def response(self, data, headers={}):
+        """
+        Invoked by ``dispatch``
+
+        @param data: Serialized data into text
+        @param headers: Dictionary of key-value pairs, that will be used as
+        response headers.
+
+        Returns an ``http.HttpResponse`` object
+        """
+        res = http.HttpResponse(data)
+        for key, value in headers.items():
+            res[key] = value
+        return res
 
 
 class BaseHandler(HandlerControlFlow):
