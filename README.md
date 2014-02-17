@@ -16,16 +16,14 @@ REST API Framework, built out of frustration for everything else out there.
 Write a very simple, well-documented and extensible API framework. I want to lay out the basic data flow with limited functionality, mainly to 
 test my design ideas.
 
-* Create Base and Model handler
-* Handlers should be able to serialize their output to a pure python data
-  structure and then to json. 
-* Request-level field selection
-* Deserialize request body
+* Base and Model handlers
 * CRUD operations
+* Deserialize JSON request body
+* Serialize response data to JSON
+* Request-level field selection
 * Handlers should declare everything cleanly and with little code
-* Easily testable
-* Offer simple Django authentication
-* Accepts and returns only json data
+* Django authentication
+* 100% test coverage
 
 ### Second iteration
 
@@ -33,7 +31,10 @@ test my design ideas.
  * Multiple authentication methods per handler
  * Does it make more sense to define authentication method per HTTP method, for each handler? For example, 
    have a decorator for each action method view that defines whether this requires an authentication, and if yes, which one.
+* More authentication methods - Http Signature authentication
+* Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
 * Ordering, slicing, filtering   
+* ModelHahdler should be able to output fake fields
 
 ## Design decisions
 
@@ -132,7 +133,7 @@ For now, clone github repository. Soon available on PyPi.
 ## Tests
 
 The ``testproject`` package contains a mini Django application built on top of
-``django-firestone``. The test project is mainly used to initiate the
+``django-firestone``. The test project is mainly used to initiate
 ``django-firestone``'s test suite
 
 	python bootstrap.py 
@@ -144,7 +145,7 @@ In order to run the tests:
 
 In order to run the tests and get a test coverate report, run:
 
-    bin/createcoverate
+    bin/createcoverage
 
 You will get an HTML report in ``htmlcov/index.html`` with all details.
 

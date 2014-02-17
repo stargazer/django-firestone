@@ -83,11 +83,7 @@ class HandlerControlFlow(object):
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
 
-        # create and return response
-        res = http.HttpResponse(response_data)
-        for key, value in headers.items():
-            res[key] = value
-        return res
+        return self.response(response_data, headers)
 
     def preprocess(self, request, *args, **kwargs):
         """
@@ -175,9 +171,9 @@ class HandlerControlFlow(object):
         python_data = self.serialize_to_python(data, request)   
         # finalize any pending data processing
         self.finalize(data, request, *args, **kwargs)
-        # Package it to a dictionary
+        # Package the python_data to a dictionary
         pack = self.package(python_data, request, *args, **kwargs)
-        # Returns serialized response plus any http headers, like
+        # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
         
@@ -259,6 +255,21 @@ class HandlerControlFlow(object):
             'query_count': len(connection.queries),
             'query_log': connection.queries,
         }
+
+    def response(self, data, headers={}):
+        """
+        Invoked by ``dispatch``
+
+        @param data: Serialized data into text
+        @param headers: Dictionary of key-value pairs, that will be used as
+        response headers.
+
+        Returns an ``http.HttpResponse`` object
+        """
+        res = http.HttpResponse(data)
+        for key, value in headers.items():
+            res[key] = value
+        return res
 
 
 class BaseHandler(HandlerControlFlow):
