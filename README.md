@@ -22,7 +22,7 @@ test my design ideas.
 * Serialize response data to JSON
 * Request-level field selection
 * Handlers should declare everything cleanly and with little code
-* Django authentication
+* Session Authentication
 * 100% test coverage
 
 ### Second iteration
@@ -35,6 +35,7 @@ test my design ideas.
 * Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
 * Ordering, slicing, filtering   
 * ModelHahdler should be able to output fake fields
+* CSRF protection
 
 ## Design decisions
 
@@ -102,13 +103,13 @@ For now, clone github repository. Soon available on PyPi.
 
     # handlers.py
     from firestone import ModelHandler
-    from authentication import DjangoAuthentication, NoAuthentication
-    class UserHandlerDjangoAuth(ModelMandler):
+    from authentication import SessionAuthentication, NoAuthentication
+    class UserHandlerSessionAuth(ModelMandler):
         """
         This handler will take over requests carrying a Django session
         """
         model = User
-        authentication = DjangoAuthentication
+        authentication = SessionAuthentication
         http_methods = ['GET', 'POST']
 
     class UserHandlerNoAuth(ModelHandler):
@@ -122,9 +123,9 @@ For now, clone github repository. Soon available on PyPi.
     # urls.py
     from django.conf.urls import *
     from firestone.proxy import Proxy
-    from handlers import UserHandlerDjangoAuth, UserHandlerNoAuth
+    from handlers import UserHandlerSessionAuth, UserHandlerNoAuth
 
-    userhandler_proxy = Proxy(UserHandlerDjangoAuth, UserHandlerNoAuth)
+    userhandler_proxy = Proxy(UserHandlerSessionAuth, UserHandlerNoAuth)
 
     urlpatterns = patterns('',
         url(r'^users/$', userhandler_proxy),

@@ -5,7 +5,7 @@ This module tests the behavior of the metaclass
 from django.test import TestCase
 from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
-from firestone.authentication import DjangoAuthentication
+from firestone.authentication import SessionAuthentication
 from firestone.authentication import NoAuthentication
 
 class BaseHandlerExample(BaseHandler):
@@ -16,7 +16,7 @@ base_handler = BaseHandlerExample()
 
 class ModelHandlerExample(ModelHandler):
     http_methods = ['pOSt', 'Delete']
-    authentication = DjangoAuthentication
+    authentication = SessionAuthentication
     post_body_fields = ('id', 'name', 'surname')
     put_body_fields = ('name', 'surname')
 model_handler = ModelHandlerExample()    
@@ -44,7 +44,7 @@ class TestHandlerMetaClass(TestCase):
         )
 
         # test``authentication``
-        self.assertTrue(isinstance(model_handler.authentication, DjangoAuthentication))
+        self.assertTrue(isinstance(model_handler.authentication, SessionAuthentication))
 
         # Have these 2 parameters been transformed to sets?
         self.assertIsInstance(model_handler.post_body_fields, set)

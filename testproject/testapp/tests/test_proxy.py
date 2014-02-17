@@ -2,7 +2,7 @@
 This module tests the behavior of the ``proxy.Proxy`` class.
 """
 from firestone.handlers import BaseHandler
-from firestone.authentication import DjangoAuthentication
+from firestone.authentication import SessionAuthentication
 from firestone.proxy import Proxy
 from django.test import TestCase
 from django.test import RequestFactory
@@ -19,7 +19,7 @@ class HandlerNoAuth(BaseHandler):
         return 'HandlerNoAuth'
 
 class HandlerDjangoAuth(BaseHandler):    
-    authentication = DjangoAuthentication
+    authentication = SessionAuthentication
     http_methods = ['get']
 
     def get(self, request, *args, **kwargs):

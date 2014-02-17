@@ -5,7 +5,7 @@ class NoAuthentication(Authentication):
     def is_authenticated(self, request, *args, **kwargs):
         return True
 
-class DjangoAuthentication(Authentication):    
+class SessionAuthentication(Authentication):    
     def is_authenticated(self, request, *args, **kwargs):
         if hasattr(request, 'user'):
             return request.user.is_authenticated()        

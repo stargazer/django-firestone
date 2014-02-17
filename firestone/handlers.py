@@ -1,6 +1,6 @@
 from authentication import Authentication
 from authentication import NoAuthentication
-from authentication import DjangoAuthentication
+from authentication import SessionAuthentication
 import serializers 
 import deserializers
 import exceptions

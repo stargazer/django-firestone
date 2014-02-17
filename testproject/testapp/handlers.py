@@ -1,5 +1,5 @@
 from firestone.handlers import ModelHandler, BaseHandler
-from firestone.authentication import DjangoAuthentication
+from firestone.authentication import SessionAuthentication
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
@@ -23,10 +23,10 @@ class DataHandler(BaseHandler):
         }
     }
 
-class UserHandlerDjangoAuth(ModelHandler):
+class UserHandlerSessionAuth(ModelHandler):
     model = User
-    http_methods = ['get']
-    authentication = DjangoAuthentication
+    http_methods = ['get', 'delete']
+    authentication = SessionAuthentication
 
     # TODO: IF I only expose 1 field of content_type, instead of getting it as
     # 'content_type': {key:value}, I get it as 'content_type': value.
@@ -58,7 +58,7 @@ class UserHandlerNoAuth(ModelHandler):
     model = User
     http_methods = ['GET']
 
-    template = UserHandlerDjangoAuth.template
+    template = UserHandlerSessionAuth.template
 
     def get(self, request, *args, **kwargs):
         return
