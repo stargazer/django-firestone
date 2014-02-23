@@ -1,10 +1,10 @@
 from django.conf.urls import *
 from firestone.proxy import Proxy
-from handlers import UserHandlerDjangoAuth
+from handlers import UserHandlerSessionAuth
 from handlers import UserHandlerNoAuth
 
 
-userhandler_proxy = Proxy(UserHandlerDjangoAuth, UserHandlerNoAuth)
+userhandler_proxy = Proxy(UserHandlerSessionAuth, UserHandlerNoAuth)
 
 urlpatterns = patterns('',
     url(r'^users/$', userhandler_proxy),
