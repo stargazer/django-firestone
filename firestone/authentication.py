@@ -111,7 +111,7 @@ class SignatureAuthentication(Authentication):
         """
         Builds the string that we want to sign
         """
-        return '%s-%s' % (method, url)
+        return '%s-%s' % (method.upper(), url)
 
     def _sign_string(self, string):
         """
@@ -137,8 +137,6 @@ class SignatureAuthentication(Authentication):
         url = request.build_absolute_uri().split('?')[0]
         method = request.method.upper()
         signature = request.GET.get(self.sig_param, '')
-        if not signature:
-            return False
 
         # expires from url
         try:
