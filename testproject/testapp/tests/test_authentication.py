@@ -35,6 +35,9 @@ class TestSessionAuthentication(TestCase):
 
 
 class TestSignatureAuthentication(TestCase):
+    """
+    Testing the ``is_authenticated`` method, under different scenarios
+    """
     def setUp(self):
         # Instance of SignatureAuthentication()
         self.auth = SignatureAuthentication()

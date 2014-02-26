@@ -64,6 +64,38 @@ class SignatureAuthentication(Authentication):
         self.sig_param = sig_param
         self.max_age_param = max_age_param
 
+    def is_authenticated(self, request, *args, **kwargs):
+        """
+        Strictly speaking, this is not an authentication check, since we don't
+        really check whether the request is from who it claims to be. We check
+        whether it's valid and can go through.
+        
+        Returns True if request signature is valid, else False
+        """
+        # url, without querystring
+        url = request.build_absolute_uri().split('?')[0]
+        method = request.method.upper()
+        signature = request.GET.get(self.sig_param, '')
+        # max_age parameter
+        try:
+            max_age = int(request.GET.get(self.max_age_param, 0))
+        except ValueError:
+            max_age = 0
+
+        # Building the string that generated the signature, by constructing the
+        # request url without the signature parameter
+        query_params = {key: value for key, value in request.GET.items() if key != self.sig_param}
+        qs = self._dict_to_ordered_qs(query_params)
+        full_url = '%s?%s' % (url, qs)
+        string = self._get_string(method, full_url)
+
+        # Check if indeed this string generated the signature we got
+        try:
+            self.signer.unsign('%s:%s' % (string, signature), max_age=max_age)
+        except BadSignature, SignatureExpires:
+            return False
+        return True        
+
     def get_signed_url(self, url, method, params, max_age):
         """
         This method should be used by API handlers.
@@ -124,39 +156,6 @@ class SignatureAuthentication(Authentication):
         # I want to return the part ``<sig1>:<sig2>``
         parts = sig.rsplit(':', 2)
         return '%s:%s' % (parts[1], parts[2])
-
-    def is_authenticated(self, request, *args, **kwargs):
-        """
-        Strictly speaking, this is not an authentication check, since we don't
-        really check whether the request is from who it claims to be. We check
-        whether it's valid and can go through.
-        
-        Returns True if request signature is valid, else False
-        """
-        # url, without querystring
-        url = request.build_absolute_uri().split('?')[0]
-        method = request.method.upper()
-        signature = request.GET.get(self.sig_param, '')
-
-        # expires from url
-        try:
-            max_age = int(request.GET.get(self.max_age_param, 0))
-        except ValueError:
-            max_age = 0
-
-        # Building the string that generated the signature, by constructing the
-        # request url without the signature parameter
-        query_params = {key: value for key, value in request.GET.items() if key != self.sig_param}
-        qs = self._dict_to_ordered_qs(query_params)
-        full_url = '%s?%s' % (url, qs)
-        string = self._get_string(method, full_url)
-
-        # Check if indeed this string generated the signature we got
-        try:
-            self.signer.unsign('%s:%s' % (string, signature), max_age=max_age)
-        except BadSignature, SignatureExpires:
-            return False
-        return True        
 
 
 class TokenAuthentication(Authentication):
