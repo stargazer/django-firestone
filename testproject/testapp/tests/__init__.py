@@ -22,3 +22,4 @@ from test_handlers_post import *
 from test_handlers_put import *
 from test_handlers_delete import *
 from test_handlers_response import *
+from test_handlers_authentication_hook import *

@@ -90,6 +90,8 @@ class HandlerControlFlow(object):
         Invoked by ``dispatch``.
         Preprocesses the request.
         """
+        self.authentication_hook()
+
         # Is the request method allowed?
         try:
             self.is_method_allowed(request, *args, **kwargs)
@@ -109,6 +111,17 @@ class HandlerControlFlow(object):
         self.cleanse_body(request, *args, **kwargs)
         # Validate request body
         self.validate(request, *args, **kwargs)
+
+    def authentication_hook(self, request, *args, **kwargs):
+        """
+        Invoked by ``preprocess``
+
+        Hook that adds ``authentication`` related data to the ``request``
+        object. For example, on a handler with SignatureAuthentication, it
+        could set the ``request.user`` parameter according to some querystring
+        parameter.
+        """
+        pass
 
     def is_method_allowed(self, request, *args, **kwargs):
         """
