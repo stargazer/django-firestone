@@ -27,6 +27,7 @@ class UserHandlerSessionAuth(ModelHandler):
     model = User
     http_methods = ['get', 'delete']
     authentication = SessionAuthentication
+    filters = ('filter_id', 'filter_name',)
 
     # TODO: IF I only expose 1 field of content_type, instead of getting it as
     # 'content_type': {key:value}, I get it as 'content_type': value.
@@ -53,6 +54,18 @@ class UserHandlerSessionAuth(ModelHandler):
         'allow_missing': True,
     }            
 
+    def filter_id(self, data, request, *args, **kwargs):
+        ids = request.GET.getlist('id')
+        if ids:
+            data = User.objects.filter(id__in=ids)            
+        return data            
+
+    def filter_name(self, data, request, *args, **kwargs):
+        names = request.GET.getlist('name')
+        if names:
+            data = data.filter(first_name__in=names)
+        return data
+                    
 
 class UserHandlerNoAuth(ModelHandler):
     model = User
