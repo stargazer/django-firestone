@@ -7,6 +7,7 @@ import exceptions
 from django import http
 from django.conf import settings
 from django.db import connection
+from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from preserialize import serialize as preserializer
@@ -36,6 +37,12 @@ class HandlerMetaClass(type):
         cls.post_body_fields = set(cls.post_body_fields)
         cls.put_body_fields = set(cls.put_body_fields)
 
+        # Make sure all method names declared in ``filters`` are defined in the
+        # class
+        for f in cls.filters:
+            if not hasattr(cls, f):
+                raise ImproperlyConfigured('%s.filters is improperly configured' % name)
+    
         return cls
 
 
@@ -63,6 +70,14 @@ class HandlerControlFlow(object):
 
     # Allowed request body fields for POST and PUT requests
     post_body_fields = put_body_fields = []    
+
+    # Filters, declared as strings. Each string indicate the method name of
+    # each filter. Every method accepts parameters:
+    #   ``(self, data, request, *args, **kwargs)``
+    # It should define all its logic, and return a subset of ``data``.
+    # This generic scheme, requires that we write some code for every filter,
+    # but is very flexible and powerful.
+    filters = []
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -327,6 +342,19 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
+    def filter_data(self, data, request, *args, **kwargs):
+        """
+        Invoked by  ``ModelHandler.get_data``. On a ``BaseHandler``
+        it should be called explicitly. I have defined it here, since it's
+        generic enough to be used by any type of handler.
+
+        Applies all the filters declared in ``self.filters``, and returns the
+        result.
+        """
+        for f in self.filters:
+            data = getattr(self, f)(data, request, *args, **kwargs)
+        return data            
+
 
 class ModelHandler(BaseHandler):
     """
@@ -360,6 +388,7 @@ class ModelHandler(BaseHandler):
             raise
         if data is None:
             data = self.get_data_set(request, *args, **kwargs)
+            data = self.filter_data(data, request, *args, **kwargs)
         return data
 
     def get_data_item(self, request, *args, **kwargs):
