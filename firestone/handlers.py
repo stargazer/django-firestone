@@ -90,7 +90,7 @@ class HandlerControlFlow(object):
         Invoked by ``dispatch``.
         Preprocesses the request.
         """
-        self.authentication_hook()
+        self.authentication_hook(request, *args, **kwargs)
 
         # Is the request method allowed?
         try:
