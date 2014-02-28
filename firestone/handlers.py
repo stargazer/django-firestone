@@ -90,8 +90,10 @@ class HandlerControlFlow(object):
         try:
             # preprocess
             self.preprocess(request, *args, **kwargs)
+            
             # process
-            data = getattr(self, request.method.lower())(request, *args, **kwargs)
+            data = self.process(request, *args, **kwargs)
+            
             # postprocess
             response_data, headers = self.postprocess(data, request, *args, **kwargs)
         except Exception, e:
@@ -186,6 +188,14 @@ class HandlerControlFlow(object):
             for key in request.data.keys():
                 if key not in self.put_body_fields:
                     request.data.pop(key)
+
+    def process(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``.
+        """
+        data = getattr(self, request.method.lower())(request, *args, **kwargs)
+
+        return data
 
     def postprocess(self, data, request, *args, **kwargs):
         """
