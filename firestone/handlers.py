@@ -314,12 +314,6 @@ class BaseHandler(HandlerControlFlow):
     """
     This class describes a base handler's real operation.
     """
-    def validate(self, request, *args, **kwargs):
-        """
-        Simple hook for extra request body validations.
-        """
-        pass
-
     def get(self, request, *args, **kwargs):
         """
         Invoked by ``dispatch``
@@ -352,6 +346,12 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
+    def validate(self, request, *args, **kwargs):
+        """
+        Simple hook for extra request body validations.
+        """
+        pass
+
     def filter_data(self, data, request, *args, **kwargs):
         """
         Invoked by  ``ModelHandler.get_data``. On a ``BaseHandler``
@@ -380,6 +380,50 @@ class ModelHandler(BaseHandler):
         Action method for GET requests.
 
         Raises ``exceptions.Gone``        
+        """
+        return self.get_data(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for POST requests. 
+        For Bulk POST requests, I could have used ``bulk_create``. 
+        This has many drawbacks though
+        (https://docs.djangoproject.com/en/dev/ref/models/querysets/#bulk-create),
+        so I've gone for the more conservative approach of one query per item.
+        """
+        # TODO: What kind of errors do I contemplate for here? How do I handle
+        # them?
+        if isinstance(request.data, self.model):
+            request.data.save(force_insert=True)
+        else:
+            for instance in request.data:
+                instance.save(force_insert=True)
+        return request.data            
+
+    def put(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+        
+        Action method for PUT requests.
+        """
+        # TODO: What kind of errors do I contemplate for here? How do I handle
+        # them?
+        if isinstance(request.data, self.model):
+            request.data.save(force_update=True)
+        else:
+            for instance in request.data:
+                instance.save(force_update=True)
+        return request.data
+
+    def delete(self, request, *args, **kwargs):
+        """
+        Invoked by ``dispatch``
+
+        Action method for DELETE requests. It doesn't perform the actual delete
+        query. We still want to keep the data intact, in order to output them
+        in the response. Method ``finalize`` does so.
         """
         return self.get_data(request, *args, **kwargs)
 
@@ -495,49 +539,6 @@ class ModelHandler(BaseHandler):
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
 
-    def post(self, request, *args, **kwargs):
-        """
-        Invoked by ``dispatch``
-
-        Action method for POST requests. 
-        For Bulk POST requests, I could have used ``bulk_create``. 
-        This has many drawbacks though
-        (https://docs.djangoproject.com/en/dev/ref/models/querysets/#bulk-create),
-        so I've gone for the more conservative approach of one query per item.
-        """
-        # TODO: What kind of errors do I contemplate for here? How do I handle
-        # them?
-        if isinstance(request.data, self.model):
-            request.data.save(force_insert=True)
-        else:
-            for instance in request.data:
-                instance.save(force_insert=True)
-        return request.data            
-
-    def put(self, request, *args, **kwargs):
-        """
-        Invoked by ``dispatch``
-        
-        Action method for PUT requests.
-        """
-        # TODO: What kind of errors do I contemplate for here? How do I handle
-        # them?
-        if isinstance(request.data, self.model):
-            request.data.save(force_update=True)
-        else:
-            for instance in request.data:
-                instance.save(force_update=True)
-        return request.data
-
-    def delete(self, request, *args, **kwargs):
-        """
-        Invoked by ``dispatch``
-
-        Action method for DELETE requests. It doesn't perform the actual delete
-        query. We still want to keep the data intact, in order to output them
-        in the response. Method ``finalize`` does so.
-        """
-        return self.get_data(request, *args, **kwargs)
 
 
 """
