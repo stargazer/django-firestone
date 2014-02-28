@@ -12,7 +12,7 @@ import string
 import random
 
 
-class TestModelHandler(TestCase):
+class TestModelHandlerFilterData(TestCase):
     def setUp(self):
         # Initialize data
         self.users = mommy.make(User, 100)
