@@ -92,10 +92,10 @@ class HandlerControlFlow(object):
             self.preprocess(request, *args, **kwargs)
             
             # process
-            data = self.process(request, *args, **kwargs)
+            data, total = self.process(request, *args, **kwargs)
             
             # postprocess
-            response_data, headers = self.postprocess(data, request, *args, **kwargs)
+            response_data, headers = self.postprocess(data, total, request, *args, **kwargs)
         except Exception, e:
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
@@ -192,25 +192,35 @@ class HandlerControlFlow(object):
     def process(self, request, *args, **kwargs):
         """
         Invoked by ``dispatch``.
+
+        Calls the method that corresponds to the HTTP method, computes the
+        result, orders, slices and returns.
+        Returns the tuple ``data, total``, where ``total`` indicates the total
+        number of data items before slicing. If no slicing was performed, total
+        is None.
         """
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
+        ordered_data = self.order(data, request, *args, **kwargs)
+        sliced_data, total = self.slice(ordered_data, request, *args, **kwargs)
 
-        return data
+        return sliced_data, total
 
-    def postprocess(self, data, request, *args, **kwargs):
+    def postprocess(self, data, total, request, *args, **kwargs):
         """
         Invoked by ``dispatch``.
         
         @param data   : Result of the handler's action
+        @param total  : Total data items, before slicing. None if no slicing
+        was performed.
 
         Postprocesses the data result of the operation.
         """
-        # Serialize to python
+        # Serialize ``data`` to python data structures
         python_data = self.serialize_to_python(data, request)   
         # finalize any pending data processing
         self.finalize(data, request, *args, **kwargs)
         # Package the python_data to a dictionary
-        pack = self.package(python_data, request, *args, **kwargs)
+        pack = self.package(python_data, total, request, *args, **kwargs)
         # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
@@ -241,11 +251,13 @@ class HandlerControlFlow(object):
 
         return preserializer.serialize(data, **self.template)
  
-    def package(self, data, request, *args, **kwargs):
+    def package(self, data, total, request, *args, **kwargs):
         """
         Invoked by ``postprocess``
 
         @data: Python data structures, as returned by ``serialize_to_python``.
+        @param total  : Total data items, before slicing. None if no slicing
+        was performed.
 
         Returns the ``data`` packed in a dictionary along with other metadata
         """
@@ -254,6 +266,9 @@ class HandlerControlFlow(object):
             count = len(data)
 
         ret = {'data': data, 'count': count}
+
+        if total:
+            ret['total'] = total
         if settings.DEBUG:
             ret['debug'] = self.debug_data(self, data, request, *args, **kwargs)
         return ret
