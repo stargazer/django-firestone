@@ -17,37 +17,44 @@ class TestPackage(TestCase):
         handler = BaseHandler()
 
         data = 'datastring'
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        res = handler.package(data, request)
-        self.assertItemsEqual(res.keys(), ('data', 'count'))
+        total = 10
+        res = handler.package(data, total, request)
+        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
         self.assertEqual(res['data'], data)
+        self.assertEqual(res['total'], 10)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 10)
@@ -58,42 +65,50 @@ class TestPackage(TestCase):
         handler = ModelHandler()
 
         data = 'datastring'
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        res = handler.package(data, request)
-        self.assertItemsEqual(res.keys(), ('data', 'count'))
+        total = 100
+        res = handler.package(data, total, request)
+        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
         self.assertEqual(res['data'], data)
+        self.assertEqual(res['total'], 100)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        res = handler.package(data, request)
-        self.assertItemsEqual(res.keys(), ('data', 'count'))
+        total = 100
+        res = handler.package(data, total, request)
+        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
         self.assertEqual(res['data'], data)
+        self.assertEqual(res['total'], 100)
         self.assertEqual(res['count'], 10)
 
-    def test_modelhandler_package(self):
+    def test_modelhandler_package_debug(self):
         """
         I repeat the tests of the previous method, but with
         ``settings.debug=True``, which will return another key in the response.
@@ -103,37 +118,44 @@ class TestPackage(TestCase):
         handler = BaseHandler()
 
         data = 'datastring'
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        res = handler.package(data, request)
-        self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
+        total = 100
+        res = handler.package(data, total, request)
+        self.assertItemsEqual(res.keys(), ('data', 'count', 'total', 'debug'))
         self.assertEqual(res['data'], data)
+        self.assertEqual(res['total'], 100)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        res = handler.package(data, request)
+        total = None
+        res = handler.package(data, total, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 10)

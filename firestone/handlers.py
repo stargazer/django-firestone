@@ -588,19 +588,21 @@ class ModelHandler(BaseHandler):
         number of model instances before slicing.
         """
         total = None
-        if isinstance(data, self.model):
+        params = request.GET.get('slice')
+
+        if not params or isinstance(data, self.model):
             return data, None
 
-        params = request.GET.get('slice').split(':')
+        params = params.split(':')
         try:
             params = [int(param) for param in params]
         except ValueError:
-            raise UnprocessableEntity('Invalid slicing parameters')
+            raise exceptions.Unprocessable('Invalid slicing parameters')
         
         if request.GET.get('slice'):
             total = data.count()
             try:
-                data = data[slice(params)]
+                data = data[slice(*params)]
             except TypeError:
                 raise exceptions.Unprocessable('Invalid slicing parameters')
 
