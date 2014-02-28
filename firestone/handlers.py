@@ -365,6 +365,30 @@ class BaseHandler(HandlerControlFlow):
             data = getattr(self, f)(data, request, *args, **kwargs)
         return data            
 
+    def order(self, data, request, *args, **kwargs):
+        """
+        Invoked by ``process``.
+
+        Typically ordering is indicated by the ``order`` querystring parameter.
+        Returns the ordered data.
+
+        Override to specify the ordering logic.
+        """
+        return data
+
+    def slice(self, data, request, *args, **kwargs):
+        """
+        Invoked by ``process``. 
+
+        Typically slicing is indicated by the ``slice`` querystring parameter,
+        and follows Python's slice notation.
+        Returns a tuple (sliced_data, total). ``total`` indicates the total
+        number of model instances before slicing.
+
+        Override to specify the slicing logic.
+        """
+        return data, None
+
 
 class ModelHandler(BaseHandler):
     """
@@ -539,6 +563,33 @@ class ModelHandler(BaseHandler):
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
 
+    def slice(self, data, request, *args, **kwargs):
+        """
+        Invoked by ``process``. 
+
+        Typically slicing is indicated by the ``slice`` querystring parameter,
+        and follows Python's slice notation.
+        Returns a tuple (sliced_data, total). ``total`` indicates the total
+        number of model instances before slicing.
+        """
+        total = None
+        if isinstance(data, self.model):
+            return data, None
+
+        params = request.GET.get('slice').split(':')
+        try:
+            params = [int(param) for param in params]
+        except ValueError:
+            raise UnprocessableEntity('Invalid slicing parameters')
+        
+        if request.GET.get('slice'):
+            total = data.count()
+            try:
+                data = data[slice(params)]
+            except TypeError:
+                raise exceptions.Unprocessable('Invalid slicing parameters')
+
+        return data, total
 
 
 """
