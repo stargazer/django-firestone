@@ -83,7 +83,6 @@ class HandlerControlFlow(object):
     # Reserved querystring parameters:
     # field, for field selection
     # order, for ordering
-    # slice, for slicing
     # page, ipp(items per page) for paging
 
     items_per_page = 10
@@ -205,10 +204,10 @@ class HandlerControlFlow(object):
         Invoked by ``dispatch``.
 
         Calls the method that corresponds to the HTTP method, computes the
-        result, orders, slices and returns.
-        Returns the tuple ``data, total``, where ``total`` indicates the total
-        number of data items before slicing. If no slicing was performed, total
-        is None.
+        result, orders, paginates and returns.
+        Returns the tuple ``data, pagination``, where ``pagination`` is a
+        dictionary with some pagination data. If no pagination was performed,
+        ``pagination`` is {}.
         """
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
         ordered_data = self.order(data, request, *args, **kwargs)
@@ -397,19 +396,6 @@ class BaseHandler(HandlerControlFlow):
         """
         return data
 
-    def slice(self, data, request, *args, **kwargs):
-        """
-        Invoked by ``process``. 
-
-        Typically slicing is indicated by the ``slice`` querystring parameter,
-        and follows Python's slice notation.
-        Returns a tuple (sliced_data, total). ``total`` indicates the total
-        number of model instances before slicing.
-
-        Override to specify the slicing logic.
-        """
-        return data, None
-    
     def paginate(self, data, request, *args, **kwargs):
         """
         Invoked by ``process``.
@@ -610,39 +596,6 @@ class ModelHandler(BaseHandler):
                 # When it's raised by ``clean`` e has the parameter:
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
-
-    def slice(self, data, request, *args, **kwargs):
-        """
-        Invoked by ``process``. 
-
-        Typically slicing is indicated by the ``slice`` querystring parameter,
-        and follows Python's slice notation.
-        Returns a tuple (sliced_data, total). ``total`` indicates the total
-        number of model instances before slicing.
-        """
-        return self.paginate(data, request)
-
-
-        total = None
-        params = request.GET.get('slice')
-
-        if not params or isinstance(data, self.model):
-            return data, None
-
-        params = params.split(':')
-        try:
-            params = [int(param) for param in params]
-        except ValueError:
-            raise exceptions.Unprocessable('Invalid slicing parameters')
-        
-        if request.GET.get('slice'):
-            total = data.count()
-            try:
-                data = data[slice(*params)]
-            except TypeError:
-                raise exceptions.Unprocessable('Invalid slicing parameters')
-
-        return data, total
 
     def paginate_data(self, data, page, request, *args, **kwargs):
         """
