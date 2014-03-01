@@ -10,6 +10,7 @@ from django.db import connection
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from preserialize import serialize as preserializer
 
 
@@ -79,6 +80,14 @@ class HandlerControlFlow(object):
     # but is very flexible and powerful.
     filters = []
 
+    # Reserved querystring parameters:
+    # field, for field selection
+    # order, for ordering
+    # slice, for slicing
+    # page, ipp(items per page) for paging
+
+    items_per_page = 10
+
     def dispatch(self, request, *args, **kwargs):
         """
         Entry point. Coordinates pre and post processing actions, as well as
@@ -92,10 +101,12 @@ class HandlerControlFlow(object):
             self.preprocess(request, *args, **kwargs)
             
             # process
-            data, total = self.process(request, *args, **kwargs)
+            data, pagination = self.process(request, *args, **kwargs)
             
             # postprocess
-            response_data, headers = self.postprocess(data, total, request, *args, **kwargs)
+            response_data, headers = self.postprocess(
+                data, pagination, request, *args, **kwargs
+            )
         except Exception, e:
             # If exception, return the appropriate http. HttpResponse object
             return exceptions.handle_exception(e, request)
@@ -201,17 +212,16 @@ class HandlerControlFlow(object):
         """
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
         ordered_data = self.order(data, request, *args, **kwargs)
-        sliced_data, total = self.slice(ordered_data, request, *args, **kwargs)
+        data, pagination = self.paginate(ordered_data, request, *args, **kwargs)
 
-        return sliced_data, total
+        return data, pagination
 
-    def postprocess(self, data, total, request, *args, **kwargs):
+    def postprocess(self, data, pagination, request, *args, **kwargs):
         """
         Invoked by ``dispatch``.
         
-        @param data   : Result of the handler's action
-        @param total  : Total data items, before slicing. None if no slicing
-        was performed.
+        @param data         : Result of the handler's action
+        @param pagination   : Dictionary with pagination data
 
         Postprocesses the data result of the operation.
         """
@@ -220,7 +230,7 @@ class HandlerControlFlow(object):
         # finalize any pending data processing
         self.finalize(data, request, *args, **kwargs)
         # Package the python_data to a dictionary
-        pack = self.package(python_data, total, request, *args, **kwargs)
+        pack = self.package(python_data, pagination, request, *args, **kwargs)
         # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
@@ -251,13 +261,9 @@ class HandlerControlFlow(object):
 
         return preserializer.serialize(data, **self.template)
  
-    def package(self, data, total, request, *args, **kwargs):
+    def package(self, data, pagination, request, *args, **kwargs):
         """
         Invoked by ``postprocess``
-
-        @data: Python data structures, as returned by ``serialize_to_python``.
-        @param total  : Total data items, before slicing. None if no slicing
-        was performed.
 
         Returns the ``data`` packed in a dictionary along with other metadata
         """
@@ -267,8 +273,8 @@ class HandlerControlFlow(object):
 
         ret = {'data': data, 'count': count}
 
-        if total:
-            ret['total'] = total
+        if pagination:
+            ret['pagination'] = pagination
         if settings.DEBUG:
             ret['debug'] = self.debug_data(self, data, request, *args, **kwargs)
         return ret
@@ -403,6 +409,31 @@ class BaseHandler(HandlerControlFlow):
         Override to specify the slicing logic.
         """
         return data, None
+    
+    def paginate(self, data, request, *args, **kwargs):
+        """
+        Invoked by ``process``.
+
+        Typically pagination is indicated by the ``page`` and ``ipp``
+        querystring parameters. ``page`` indicates the requested page, and
+        ``ipp`` indicates the items per page (default is ``self.items_per_page``).
+
+        Returns data_page, total_dict. ``total_dict`` is a dictionary
+        containing extra pagination data.
+        """
+        page = request.GET.get('page', None)
+        if page:
+            return self.paginate_data(data, page, request, *args, **kwargs)
+
+        return data, {}
+
+    def paginate_data(self, data, page, request, *args, **kwargs):
+        """
+        Invoked by ``paginate``.
+
+        Override to specify paging logic.
+        """
+        return data, {}
 
 
 class ModelHandler(BaseHandler):
@@ -471,7 +502,9 @@ class ModelHandler(BaseHandler):
         Invoked by ``get``.
 
         Returns the data of the current operation. To do so, it uses methods
-        ``get_data_item`` and ``get_data_set``.
+        ``get_data_item`` and ``get_data_set``. Filtering is also relevant an
+        all kinds of requests that operate on already existing data (GET, PUT,
+        DELETE), and that's why it's applied here.
         
         Raises ``exceptions.Gone``
         """
@@ -587,6 +620,9 @@ class ModelHandler(BaseHandler):
         Returns a tuple (sliced_data, total). ``total`` indicates the total
         number of model instances before slicing.
         """
+        return self.paginate(data, request)
+
+
         total = None
         params = request.GET.get('slice')
 
@@ -607,6 +643,29 @@ class ModelHandler(BaseHandler):
                 raise exceptions.Unprocessable('Invalid slicing parameters')
 
         return data, total
+
+    def paginate_data(self, data, page, request, *args, **kwargs):
+        """
+        Invoked by ``paginate``.
+
+        Raises ``exceptions.Unprocessable``.
+
+        Returns data_page, {'pages': <total pages>, 'items': <total items>}
+        """
+        ipp = request.GET.get('ipp', None) or self.items_per_page
+        try:
+            paginator = Paginator(data, ipp)
+        except ValueError:
+            # in case ipp is not an int
+            raise exceptions.Unprocessable('Invalid paging parameters')
+        try:
+            data_page = paginator.page(page)
+        except (EmptyPage, PageNotAnInteger):
+            raise exceptions.Unprocessable('Invalid paging parameters')
+
+        # TODO: return data, {pagination info}
+        return data_page, {'total_pages': paginator.num_pages, 'total_items': paginator.count}
+
 
 
 """
