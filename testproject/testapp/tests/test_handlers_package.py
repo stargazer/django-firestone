@@ -17,44 +17,44 @@ class TestPackage(TestCase):
         handler = BaseHandler()
 
         data = 'datastring'
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        total = 10
-        res = handler.package(data, total, request)
-        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
+        pagination = {'key': 'value'}
+        res = handler.package(data, pagination, request)
+        self.assertItemsEqual(res.keys(), ('data', 'pagination', 'count'))
         self.assertEqual(res['data'], data)
-        self.assertEqual(res['total'], 10)
+        self.assertEqual(res['pagination'], pagination)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 10)
@@ -65,47 +65,47 @@ class TestPackage(TestCase):
         handler = ModelHandler()
 
         data = 'datastring'
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        total = None
-        res = handler.package(data, total, request)
+        pagination = None
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        total = 100
-        res = handler.package(data, total, request)
-        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
+        pagination = {'key': 'value'}
+        res = handler.package(data, pagination, request)
+        self.assertItemsEqual(res.keys(), ('data', 'pagination', 'count'))
         self.assertEqual(res['data'], data)
-        self.assertEqual(res['total'], 100)
+        self.assertEqual(res['pagination'], pagination)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        total = 100
-        res = handler.package(data, total, request)
-        self.assertItemsEqual(res.keys(), ('data', 'total', 'count'))
+        pagination = {'key': 'value'}
+        res = handler.package(data, pagination, request)
+        self.assertItemsEqual(res.keys(), ('data', 'pagination', 'count'))
         self.assertEqual(res['data'], data)
-        self.assertEqual(res['total'], 100)
+        self.assertEqual(res['pagination'], pagination)
         self.assertEqual(res['count'], 10)
 
     def test_modelhandler_package_debug(self):
@@ -118,44 +118,44 @@ class TestPackage(TestCase):
         handler = BaseHandler()
 
         data = 'datastring'
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = 125.6
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 1)
 
         data = [1, 2, 3, 4, 5]
-        total = 100
-        res = handler.package(data, total, request)
-        self.assertItemsEqual(res.keys(), ('data', 'count', 'total', 'debug'))
+        pagination = {'key': 'value'}
+        res = handler.package(data, pagination, request)
+        self.assertItemsEqual(res.keys(), ('data', 'count', 'pagination', 'debug'))
         self.assertEqual(res['data'], data)
-        self.assertEqual(res['total'], 100)
+        self.assertEqual(res['pagination'], pagination)
         self.assertEqual(res['count'], 5)
 
         data = {1, 2, 3, 4, 5}
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 5)
         
         data = {'key1': 'value1', 'key2': 'value2'}
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 2)
 
         data = mommy.make(User, 10)
-        total = None
-        res = handler.package(data, total, request)
+        pagination = {}
+        res = handler.package(data, pagination, request)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)
         self.assertEqual(res['count'], 10)
