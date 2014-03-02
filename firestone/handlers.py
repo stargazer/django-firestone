@@ -374,9 +374,10 @@ class BaseHandler(HandlerControlFlow):
 
     def filter_data(self, data, request, *args, **kwargs):
         """
-        Invoked by  ``ModelHandler.get_data``. On a ``BaseHandler``
-        it should be called explicitly. I have defined it here, since it's
-        generic enough to be used by any type of handler.
+        Invoked by  ``ModelHandler.get_data_set``. 
+        On a ``BaseHandler`` it should be called explicitly. 
+        I have defined it here, since it's generic enough to be 
+        used by any type of handler.
 
         Applies all the filters declared in ``self.filters``, and returns the
         result.
@@ -512,7 +513,6 @@ class ModelHandler(BaseHandler):
             raise
         if data is None:
             data = self.get_data_set(request, *args, **kwargs)
-            data = self.filter_data(data, request, *args, **kwargs)
         return data
 
     def get_data_item(self, request, *args, **kwargs):
@@ -537,10 +537,13 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``get_data``.
 
-        Returns the dataset for plural operations. To do so, it uses method
-        ``get_working_set``.
+        Returns the dataset for plural operations. To do so, it uses methods
+        ``get_working_set`` and ``filter_data``
         """
-        return self.get_working_set(request, *args, **kwargs)
+        return self.filter_data(
+            self.get_working_set(request, *args, **kwargs),
+            request, *args, **kwargs
+        )
 
     def get_working_set(self, request, *args, **kwargs):
         """
