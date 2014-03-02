@@ -203,7 +203,7 @@ class HandlerControlFlow(object):
         Invoked by ``dispatch``.
 
         Calls the method that corresponds to the HTTP method, computes the
-        result, orders, paginates and returns.
+        result, and returns.
         
         Returns the tuple ``data, pagination``, where ``pagination`` is a
         dictionary with some pagination data. If no pagination was performed,
@@ -211,7 +211,6 @@ class HandlerControlFlow(object):
         """
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
         data, pagination = self.paginate(ordered_data, request, *args, **kwargs)
-
         return data, pagination
 
     def postprocess(self, data, pagination, request, *args, **kwargs):
@@ -418,8 +417,9 @@ class BaseHandler(HandlerControlFlow):
         querystring parameters. ``page`` indicates the requested page, and
         ``ipp`` indicates the items per page (default is ``self.items_per_page``).
 
-        Returns data_page, total_dict. ``total_dict`` is a dictionary
-        containing extra pagination data.
+        Returns (data_page, total_dict). ``total_dict`` is a dictionary
+        containing extra pagination data. If data is not paginable, or invalid
+        pagination data has been given, returns (data, {})
         """
         page = request.GET.get('page', None)
         if page:
@@ -621,22 +621,22 @@ class ModelHandler(BaseHandler):
         @param page: ``page`` parameter value
 
         Returns data_page, {'pages': <total pages>, 'items': <total items>}
-        Raises ``exceptions.Unprocessable``.
+        If for some reason we can't paginate data, returns (data, {})
         """
         ipp = request.GET.get('ipp', None) or self.items_per_page
         try:
-            paginator = Paginator(data, ipp)
+            ipp = int(ipp)
         except ValueError:
-            # in case ipp is not an int
-            raise exceptions.Unprocessable('Invalid paging parameters')
+            ipp = self.items_per_page
+
+        paginator = Paginator(data, ipp)
+
         try:
             data_page = paginator.page(page)
-        except (EmptyPage, PageNotAnInteger):
-            raise exceptions.Unprocessable('Invalid paging parameters')
-        except TypeError:
-            raise exceptions.Unprocessable('Single model instance cannot be paginated')
+        except (EmptyPage, PageNotAnInteger, TypeError):
+            # TypeError: in case ``data`` is a single model instance
+            return data, {}
 
-        # TODO: return data, {pagination info}
         return data_page, {'total_pages': paginator.num_pages, 'total_items': paginator.count}
 
 

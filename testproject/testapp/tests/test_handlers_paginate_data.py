@@ -48,36 +48,36 @@ class ModelHandlerTestPaginateData(TestCase):
         self.assertEqual(pagination['total_items'], 100)
 
     def test_valid_paging_single_model_instance(self):
+        # Data is unpaginable, so returns as is
         data = User.objects.get(id=1)
         page = 1
-        self.assertRaises(
-            exceptions.Unprocessable,
-            self.handler.paginate_data,
-            data, page, self.request
+
+        self.assertEqual(
+            self.handler.paginate_data(data, page, self.request),
+            (data, {}),
         )
 
     def test_invalid_paging(self):
+        # Data is unpaginable, so returns as is
         data = User.objects.all()
         page = 1000000
-        self.assertRaises(
-            exceptions.Unprocessable,
-            self.handler.paginate_data,
-            data, page, self.request,
+        self.assertEqual(
+            self.handler.paginate_data(data, page, self.request),
+            (data, {}),
+        )
+            
+        data = User.objects.all()
+        page = 'invalid'
+        self.assertEqual(
+            self.handler.paginate_data(data, page, self.request),
+            (data, {}),
         )
 
         data = User.objects.all()
-        page = 'invalid'
-        self.assertRaises(
-            exceptions.Unprocessable,
-            self.handler.paginate_data,
-            data, page, self.request,
-        )
-
         page = None
-        self.assertRaises(
-            exceptions.Unprocessable,
-            self.handler.paginate_data,
-            data, page, self.request,
+        self.assertEqual(
+            self.handler.paginate_data(data, page, self.request),
+            (data, {}),
         )
 
     def test_paging_with_valid_ipp(self):
@@ -91,13 +91,14 @@ class ModelHandlerTestPaginateData(TestCase):
         self.assertEqual(pagination['total_items'], 100)
 
     def test_paging_with_invalid_ipp(self):
+        # In case of invalid ipp, we fallback to handler.items_per_page
         data = User.objects.all()
-        page = 2
+        page = 1
         request = RequestFactory().get('/?ipp=invalid')
-        
-        self.assertRaises(
-            exceptions.Unprocessable,
-            self.handler.paginate_data,
-            data, page, request,
-        )
+
+        data, pagination = self.handler.paginate_data(data, page, request)
+
+        self.assertItemsEqual(data, User.objects.filter(id__in=range(1, 11)))
+        self.assertEqual(pagination['total_pages'], 10)
+        self.assertEqual(pagination['total_items'], 100)
         
