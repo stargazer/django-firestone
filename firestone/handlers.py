@@ -210,7 +210,6 @@ class HandlerControlFlow(object):
         ``pagination`` is {}.
         """
         data = getattr(self, request.method.lower())(request, *args, **kwargs)
-        ordered_data = self.order(data, request, *args, **kwargs)
         data, pagination = self.paginate(ordered_data, request, *args, **kwargs)
 
         return data, pagination
@@ -390,7 +389,7 @@ class BaseHandler(HandlerControlFlow):
 
     def order(self, data, request, *args, **kwargs):
         """
-        Invoked by ``process``.
+        Invoked by ``get_data_set``.
 
         Typically ordering is indicated by the ``order`` querystring parameter.
         Returns the ordered data.
@@ -505,9 +504,7 @@ class ModelHandler(BaseHandler):
         Invoked by ``get``.
 
         Returns the data of the current operation. To do so, it uses methods
-        ``get_data_item`` and ``get_data_set``. Filtering is also relevant an
-        all kinds of requests that operate on already existing data (GET, PUT,
-        DELETE), and that's why it's applied here.
+        ``get_data_item`` and ``get_data_set``. 
         
         Raises ``exceptions.Gone``
         """
@@ -542,12 +539,13 @@ class ModelHandler(BaseHandler):
         Invoked by ``get_data``.
 
         Returns the dataset for plural operations. To do so, it uses methods
-        ``get_working_set`` and ``filter_data``
+        ``get_working_set``, ``filter_data`` and ``order``.
         """
-        return self.filter_data(
-            self.get_working_set(request, *args, **kwargs),
-            request, *args, **kwargs
-        )
+        data = self.get_working_set(request, *args, **kwargs)
+        filtered_data = self.filter_data(data, request, *args, **kwargs)
+        ordered_data = self.order(filtered_data, request, *args, **kwargs)
+
+        return ordered_data
 
     def get_working_set(self, request, *args, **kwargs):
         """
