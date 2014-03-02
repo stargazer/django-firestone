@@ -391,8 +391,20 @@ class BaseHandler(HandlerControlFlow):
 
         Typically ordering is indicated by the ``order`` querystring parameter.
         Returns the ordered data.
+        """
+        order = request.GET.get('order', None)
+        if order:
+            return self.order_data(data, order, request, *args, **kwargs)
 
-        Override to specify the ordering logic.
+        return data
+
+    def order_data(self, data, order, request, *args, **kwargs):
+        """
+        Invoked by ``order``
+
+        @param order: Order parameter value
+
+        Override to specify ordering logic.
         """
         return data
 

@@ -10,9 +10,19 @@ from model_mommy import mommy
 
 
 class TestBaseHandlerOrder(TestCase):
-    def test_order(self):
+    def test_no_ordering(self):
         handler = BaseHandler()
         request = RequestFactory().get('/')
+        data = 'whatever'
+
+        self.assertEqual(
+            handler.order(data, request),
+            data
+        )
+
+    def test_ordering(self):
+        handler = BaseHandler()
+        request = RequestFactory().get('/?order=someordering')
         data = 'whatever'
 
         self.assertEqual(

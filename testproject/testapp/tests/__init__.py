@@ -25,5 +25,6 @@ from test_handlers_response import *
 from test_handlers_authentication_hook import *
 from test_handlers_filter_data import *
 from test_handlers_order import *
+from test_handlers_order_data import *
 from test_handlers_paginate import *
 from test_handlers_paginate_data import *
