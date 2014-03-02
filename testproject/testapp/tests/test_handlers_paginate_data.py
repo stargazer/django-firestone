@@ -47,6 +47,15 @@ class ModelHandlerTestPaginateData(TestCase):
         self.assertEqual(pagination['total_pages'], 10)
         self.assertEqual(pagination['total_items'], 100)
 
+    def test_valid_paging_single_model_instance(self):
+        data = User.objects.get(id=1)
+        page = 1
+        self.assertRaises(
+            exceptions.Unprocessable,
+            self.handler.paginate_data,
+            data, page, self.request
+        )
+
     def test_invalid_paging(self):
         data = User.objects.all()
         page = 1000000

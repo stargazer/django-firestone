@@ -615,6 +615,8 @@ class ModelHandler(BaseHandler):
             data_page = paginator.page(page)
         except (EmptyPage, PageNotAnInteger):
             raise exceptions.Unprocessable('Invalid paging parameters')
+        except TypeError:
+            raise exceptions.Unprocessable('Single model instance cannot be paginated')
 
         # TODO: return data, {pagination info}
         return data_page, {'total_pages': paginator.num_pages, 'total_items': paginator.count}
