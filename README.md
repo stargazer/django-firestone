@@ -90,6 +90,12 @@ authentication method.
     Handler    --> Executes the request and returns an HTTPResponse object to the proxy view
     Proxy view --> Returns the HttpResponse object
 
+## Reserved querystring parameters
+
+* ``field``, for field selection
+* ``order``, for ordering
+* ``page``, ``ipp``(items per page) for paging
+
 ## Requirements
 
 * Python 2.7

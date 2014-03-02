@@ -80,11 +80,7 @@ class HandlerControlFlow(object):
     # but is very flexible and powerful.
     filters = []
 
-    # Reserved querystring parameters:
-    # field, for field selection
-    # order, for ordering
-    # page, ipp(items per page) for paging
-
+    # Default item per page, when pagination is requested
     items_per_page = 10
 
     def dispatch(self, request, *args, **kwargs):
@@ -154,8 +150,9 @@ class HandlerControlFlow(object):
         """
         Invoked by ``preprocess``.
 
-        Is the request method allowed? Returns True, else raises an
-        ``exceptions.MethodNotAllowed`` exception.
+        If the request method is allowed, returns True.
+        
+        Raises ``exceptions.MethodNotAllowed`` exception otherwise.
         """
         if request.method.upper() not in self.http_methods:
             raise exceptions.MethodNotAllowed(self.http_methods)
@@ -165,10 +162,12 @@ class HandlerControlFlow(object):
         """
         Invoked by ``preprocess``.
 
-        Is the request body valid according the ``Content-type`` header? 
-        If yes, deserializes to python data structures and assigns to
+        If the request body is valid, according to ``Content-type`` header,
+        it is deserialized to python data structures, and assigned to
         ``request.data``.
-        Else raises ``exceptions.UnsupportedMediaType`` or ``exceptions.BadRequest``.
+
+        Raises ``exceptions.UnsupportedMediaType`` or
+        ``exceptions.BadRequest``.
         """
         try:
             request.data = deserializers.deserialize_request_body(request, *args, **kwargs)
@@ -205,6 +204,7 @@ class HandlerControlFlow(object):
 
         Calls the method that corresponds to the HTTP method, computes the
         result, orders, paginates and returns.
+        
         Returns the tuple ``data, pagination``, where ``pagination`` is a
         dictionary with some pagination data. If no pagination was performed,
         ``pagination`` is {}.
@@ -262,7 +262,9 @@ class HandlerControlFlow(object):
  
     def package(self, data, pagination, request, *args, **kwargs):
         """
-        Invoked by ``postprocess``
+        Invoked by ``postprocess``.
+
+        @param pagination   : Dictionary with pagination data
 
         Returns the ``data`` packed in a dictionary along with other metadata
         """
@@ -293,7 +295,7 @@ class HandlerControlFlow(object):
         """
         Invoked by ``package``
 
-        @data: Dictionary with ``data`` and ``count`` keys.
+        @data: Data dictionary.
         
         Returns the ``data`` dictionary enriched with debugging data or stats
         about this request.
@@ -403,7 +405,7 @@ class BaseHandler(HandlerControlFlow):
         """
         Invoked by ``order``
 
-        @param order: Order parameter value
+        @param order: ``order`` parameter value
 
         Override to specify ordering logic.
         """
@@ -429,6 +431,8 @@ class BaseHandler(HandlerControlFlow):
     def paginate_data(self, data, page, request, *args, **kwargs):
         """
         Invoked by ``paginate``.
+
+        @param page: ``page`` parameter value
 
         Override to specify paging logic.
         """
@@ -616,9 +620,10 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``paginate``.
 
-        Raises ``exceptions.Unprocessable``.
+        @param page: ``page`` parameter value
 
         Returns data_page, {'pages': <total pages>, 'items': <total items>}
+        Raises ``exceptions.Unprocessable``.
         """
         ipp = request.GET.get('ipp', None) or self.items_per_page
         try:
