@@ -38,13 +38,15 @@ class TestModelHandlerOrderData(TestCase):
         )
 
     def test_order_data_singular(self):
+        # Thing is that ``order_data`` is called by ``get_data_set``. So it's
+        # never the case that it's called with ``data`` being a single model
+        # instance. However, I just test here for clarity.
         handler = ModelHandler()
         handler.model = User
         request = RequestFactory().get('/')
         data = User.objects.get(id=1)
         order = 'someorder'
 
-        # TODO: I should probably throw an error here.
         self.assertEqual(
             handler.order_data(data, order, request),
             data,

@@ -96,6 +96,26 @@ authentication method.
 * ``order``, for ordering
 * ``page``, ``ipp``(items per page) for paging
 
+## Ordering
+Initiated by the ``order=`` querystring parameter. It only makes sense for
+plural GET, plural PUT and plural DELETE requests. For all other requests it's
+ignored.
+
+## Pagination
+Initiated by the ``page=`` querystring parameter. The ``ipp=`` querystring 
+parameters indicates the items per page. If not given, the handler's default     
+``items_per_page`` attribute is used.
+It only makes sense on requests that return a list of data, and for all other 
+requests is ignored.
+
+Pagination is performed after the action takes place, and this is mainly the
+reason that it should never raise an error. In that case, the resources
+modified/created would be hidden from the response.
+
+Careful, for requests like a plural DELETE, plural PUT, or bulk POST, pagination can be
+confusing, since it could hide part of the resources that have been
+created/deleted/updated.
+
 ## Requirements
 
 * Python 2.7
