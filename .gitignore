@@ -2,6 +2,7 @@ bin/
 parts/
 eggs/
 develop-eggs/
+dist/
 django_firestone.egg-info/
 htmlcov/
 *.swp

@@ -9,7 +9,7 @@ setup(
     author_email='already.late@gmail.com',
     license='WTFPL',
     url='http://github.com/stargazer/django-firestone',
-    keywords=('rest', 'restful', 'api', 'crud'),
+    keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
         'Django==1.5.4',
         'django-preserialize==1.0.5',
@@ -22,7 +22,7 @@ setup(
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: Freely Distributable',
-        'Development Status :: 1 - Planning',
+        'Development Status :: 3 - Alpha',
     ),
 )                                                    
 
