@@ -10,43 +10,36 @@
 
 ## Say what?
 
-REST API Framework, built out of frustration for everything else out there.
+REST API Framework. Modular, extendible and addressing lots of the limitations
+that I came across using other frameworks.
 
-## Goal
+## Goals
 
-### First iteration
-
-Write a very simple, well-documented and extensible API framework. I want to lay out the basic data flow with limited functionality, mainly to 
-test my design ideas.
-
+### Currently achieved
 * Base and Model handlers
 * CRUD operations
-* Deserialize JSON request body
-* Serialize response data to JSON
+* Accepts JSON request bodies and returns JSON
 * Request-level field selection
-* Handlers should declare everything cleanly and with little code
-* Session Authentication
+* Session and Signature Authentication
 * 100% test coverage
-
-### Second iteration
-
-* Think of authentication and authorization
- * Multiple authentication methods per handler
- * Does it make more sense to define authentication method per HTTP method, for each handler? For example, 
-   have a decorator for each action method view that defines whether this requires an authentication, and if yes, which one.
-* More authentication methods - Http Signature authentication
-* Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
+* Multiple handlers should be able to to serve the same resource, with each
+  using a different authentication mechanism.
 * Ordering, slicing, filtering   
 * ModelHahdler should be able to output fake fields
+
+### TODO
+* Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
 * CSRF protection
+* Recognize more content-type
+* More serialization formats for responses
 
 ## Design decisions
 
-* ``django-firestone`` makes use of class based-views*. This means that:
- * API Handlers are more modular and very easily testable
- * They inherit from each other and therefore reduce boilerplate code
+* ``django-firestone`` makes use of class based-views. This means that:
+ * API Handlers are modular and very easily testable
  * Every step in the request data flow, from start to finish, can be easily
    overridden and extended.
+ * They inherit from each other, and therefore reduce boilerplate code
 
 * Multiple handlers can be assigned per resource type, with each handler being
   responsible for a specific authentication mechanism. This way multiple
@@ -55,9 +48,8 @@ test my design ideas.
 * Every handler specifies the representation of its own response, including
   that of nested fields, regardless of how deep they appear.
 
-* For now, only accepts ``content-type: application/json``, and returns
-  ``application/json`` responses. I will soon extend it to other serialization
-  formats.
+* For now, only *content-type: application/json* is accepted in the request
+  body, only ``application/json`` responses are returned. 
 
 ## A few words on Django's class-based views (CVBs).
 
@@ -86,6 +78,11 @@ Need to expose a model resource, using multiple authentication methods? You'd
 then need create as many handlers, with each one responsible for each
 authentication method.
 
+## Requirements
+
+* Python 2.7
+* Django 1.5.4
+
 ## Life Cycle of a Request
 
     request    --> URL Mapper invokes the corresponding proxy view based on the URL
@@ -93,18 +90,23 @@ authentication method.
     Handler    --> Executes the request and returns an HTTPResponse object to the proxy view
     Proxy view --> Returns the HttpResponse object
 
-## Reserved querystring parameters
+## Handler specifics
+
+### Reserved querystring parameters
 
 * ``field``, for field selection
 * ``order``, for ordering
 * ``page``, ``ipp``(items per page) for paging
 
-## Ordering
+### Filtering
+TODO
+
+### Ordering
 Initiated by the ``order=`` querystring parameter. It only makes sense for
 plural GET, plural PUT and plural DELETE requests. For all other requests it's
 ignored.
 
-## Pagination
+### Pagination
 Initiated by the ``page=`` querystring parameter. The ``ipp=`` querystring 
 parameters indicates the items per page. If not given, the handler's default     
 ``items_per_page`` attribute is used.
@@ -119,14 +121,9 @@ Careful, for requests like a plural DELETE, plural PUT, or bulk POST, pagination
 confusing, since it could hide part of the resources that have been
 created/deleted/updated.
 
-## Requirements
-
-* Python 2.7
-* Django 1.5.4
-
 ## How to install
 
-For now, clone github repository. Soon available on PyPi.
+Clone github repository, or install from PyPI
 
 ## How to use
 
@@ -187,7 +184,7 @@ You will get an HTML report in ``htmlcov/index.html`` with all details.
 
 ## Improvements compared to django-icetea
 
-Errors - Clear and readable error messages
-Serialization - Every handler is solely responsible for the representation of its own output. That includes nested data structures, no matter how deeply nested they are
-Lots of handlers can be declared per resource, with each one responsible for one auth method. This greatly reduces control flow statements on application level
-Allowed fields for POST and PUT requests can be specified differently
+* Errors - Clear and readable error messages
+* Serialization - Every handler is solely responsible for the representation of its own output. That includes nested data structures, no matter how deeply nested they are
+* Lots of handlers can be declared per resource, with each one responsible for one auth method. This greatly reduces control flow statements on application level
+* Allowed request body fields for POST and PUT requests can be specified differently
