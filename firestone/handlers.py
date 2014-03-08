@@ -121,7 +121,7 @@ class HandlerControlFlow(object):
         except exceptions.MethodNotAllowed:
             raise
         
-        if request.method.upper() not in ('POST', 'PUT'):
+        if self.request.method.upper() not in ('POST', 'PUT'):
             return
 
         # Transform request body to python data structures
@@ -210,7 +210,7 @@ class HandlerControlFlow(object):
         ``pagination`` is {}.
         """
         data = getattr(self, self.request.method.lower())()
-        data, pagination = self.paginate(ordered_data)
+        data, pagination = self.paginate(data)
         return data, pagination
 
     def postprocess(self, data, pagination):
@@ -230,7 +230,9 @@ class HandlerControlFlow(object):
         pack = self.package(python_data, pagination)
         # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serializers.serialize_response_data(pack)
+        serialized, headers = serializers.serialize_response_data(
+            pack, self.request, self.args, self.kwargs
+        )
         
         return serialized, headers
 
