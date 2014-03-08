@@ -4,7 +4,7 @@
 [![Downloads](https://pypip.in/d/django-firestone/badge.png)](https://pypi.python.org/pypi/django-firestone/)
 
 
-# django-fiRESTone
+# django-firestone
 
 [_Gatorade me bitch_](http://www.youtube.com/watch?v=wNvk4DD1fCU)
 
@@ -15,7 +15,7 @@ that I came across using other frameworks.
 
 ## Goals
 
-### Currently achieved
+### Currently accomplished
 * Base and Model handlers
 * CRUD operations
 * Accepts JSON request bodies and returns JSON
