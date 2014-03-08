@@ -12,6 +12,7 @@ from django.http import HttpResponse
 # after the request action is executed.
 
 class DataHandler(BaseHandler):
+    http_methods = ['get']
 
     user_template = {
         'fields': ['id', 'username', 'email']
@@ -22,6 +23,9 @@ class DataHandler(BaseHandler):
             'user': user_template    
         }
     }
+
+    def get(self):
+        return "aaa"
 
 class UserHandlerSessionAuth(ModelHandler):
     model = User
@@ -54,14 +58,14 @@ class UserHandlerSessionAuth(ModelHandler):
         'allow_missing': True,
     }            
 
-    def filter_id(self, data, request, *args, **kwargs):
-        ids = request.GET.getlist('id')
+    def filter_id(self, data):
+        ids = self.request.GET.getlist('id')
         if ids:
             data = User.objects.filter(id__in=ids)            
         return data            
 
-    def filter_name(self, data, request, *args, **kwargs):
-        names = request.GET.getlist('name')
+    def filter_name(self, data):
+        names = self.request.GET.getlist('name')
         if names:
             data = data.filter(first_name__in=names)
         return data
@@ -73,6 +77,6 @@ class UserHandlerNoAuth(ModelHandler):
 
     template = UserHandlerSessionAuth.template
 
-    def get(self, request, *args, **kwargs):
-        return
+    def get(self):
+        return []
 
