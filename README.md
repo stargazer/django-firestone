@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/stargazer/django-firestone.png?branch=master)](https://travis-ci.org/stargazer/django-firestone)
 [![Coverage Status](https://coveralls.io/repos/stargazer/django-firestone/badge.png?branch=master)](https://coveralls.io/r/stargazer/django-firestone?branch=master)
+<!--
 [![Latest Version](https://pypip.in/v/django-firestone/badge.png)](https://pypi.python.org/pypi/django-firestone/)
 [![Downloads](https://pypip.in/d/django-firestone/badge.png)](https://pypi.python.org/pypi/django-firestone/)
+-->
 
 
 # django-firestone
