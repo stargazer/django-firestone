@@ -83,7 +83,7 @@ class HandlerControlFlow(object):
     # Default item per page, when pagination is requested
     items_per_page = 10
 
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(self):
         """
         Entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
@@ -93,31 +93,31 @@ class HandlerControlFlow(object):
         """
         try:
             # preprocess
-            self.preprocess(request, *args, **kwargs)
+            self.preprocess()
             
             # process
-            data, pagination = self.process(request, *args, **kwargs)
+            data, pagination = self.process()
             
             # postprocess
             response_data, headers = self.postprocess(
-                data, pagination, request, *args, **kwargs
+                data, pagination,
             )
         except Exception, e:
             # If exception, return the appropriate http. HttpResponse object
-            return exceptions.handle_exception(e, request)
+            return exceptions.handle_exception(e, self.request)
 
         return self.response(response_data, headers)
 
-    def preprocess(self, request, *args, **kwargs):
+    def preprocess(self):
         """
         Invoked by ``dispatch``.
         Preprocesses the request.
         """
-        self.authentication_hook(request, *args, **kwargs)
+        self.authentication_hook()
 
         # Is the request method allowed?
         try:
-            self.is_method_allowed(request, *args, **kwargs)
+            self.is_method_allowed()
         except exceptions.MethodNotAllowed:
             raise
         
@@ -126,16 +126,16 @@ class HandlerControlFlow(object):
 
         # Transform request body to python data structures
         try:
-            self.deserialize_body(request, *args, **kwargs)
+            self.deserialize_body()
         except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
             raise
 
         # Remove disallawed request body fields
-        self.cleanse_body(request, *args, **kwargs)
+        self.cleanse_body()
         # Validate request body
-        self.validate(request, *args, **kwargs)
+        self.validate()
 
-    def authentication_hook(self, request, *args, **kwargs):
+    def authentication_hook(self):
         """
         Invoked by ``preprocess``
 
@@ -146,7 +146,7 @@ class HandlerControlFlow(object):
         """
         pass
 
-    def is_method_allowed(self, request, *args, **kwargs):
+    def is_method_allowed(self):
         """
         Invoked by ``preprocess``.
 
@@ -154,11 +154,11 @@ class HandlerControlFlow(object):
         
         Raises ``exceptions.MethodNotAllowed`` exception otherwise.
         """
-        if request.method.upper() not in self.http_methods:
+        if self.request.method.upper() not in self.http_methods:
             raise exceptions.MethodNotAllowed(self.http_methods)
         return True
 
-    def deserialize_body(self, request, *args, **kwargs):
+    def deserialize_body(self):
         """
         Invoked by ``preprocess``.
 
@@ -170,35 +170,35 @@ class HandlerControlFlow(object):
         ``exceptions.BadRequest``.
         """
         try:
-            request.data = deserializers.deserialize_request_body(request, *args, **kwargs)
+            self.request.data = deserializers.deserialize_request_body(self.request, *self.args, **self.kwargs)
         except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
             raise
 
-    def cleanse_body(self, request, *args, **kwargs):
+    def cleanse_body(self):
         """
         Invoked by ``preprocess``.
 
         Scans request body and only lets the allowed fields go through.
         Modifies ``request.data`` in place.
         """
-        if request.method.upper() == 'POST':
-            if isinstance(request.data, dict):
-                for key in request.data.keys():
+        if self.request.method.upper() == 'POST':
+            if isinstance(self.request.data, dict):
+                for key in self.request.data.keys():
                     if key not in self.post_body_fields:
-                        request.data.pop(key)
+                        self.request.data.pop(key)
 
-            if isinstance(request.data, list):
-                for dic in request.data:
+            if isinstance(self.request.data, list):
+                for dic in self.request.data:
                     for key in dic.keys():
                         if key not in self.post_body_fields:
                             dic.pop(key)
 
-        elif request.method.upper() == 'PUT':
-            for key in request.data.keys():
+        elif self.request.method.upper() == 'PUT':
+            for key in self.request.data.keys():
                 if key not in self.put_body_fields:
-                    request.data.pop(key)
+                    self.request.data.pop(key)
 
-    def process(self, request, *args, **kwargs):
+    def process(self):
         """
         Invoked by ``dispatch``.
 
@@ -209,11 +209,11 @@ class HandlerControlFlow(object):
         dictionary with some pagination data. If no pagination was performed,
         ``pagination`` is {}.
         """
-        data = getattr(self, request.method.lower())(request, *args, **kwargs)
-        data, pagination = self.paginate(ordered_data, request, *args, **kwargs)
+        data = getattr(self, self.request.method.lower())()
+        data, pagination = self.paginate(ordered_data)
         return data, pagination
 
-    def postprocess(self, data, pagination, request, *args, **kwargs):
+    def postprocess(self, data, pagination):
         """
         Invoked by ``dispatch``.
         
@@ -223,18 +223,18 @@ class HandlerControlFlow(object):
         Postprocesses the data result of the operation.
         """
         # Serialize ``data`` to python data structures
-        python_data = self.serialize_to_python(data, request)   
+        python_data = self.serialize_to_python(data)   
         # finalize any pending data processing
-        self.finalize(data, request, *args, **kwargs)
+        self.finalize(data)
         # Package the python_data to a dictionary
-        pack = self.package(python_data, pagination, request, *args, **kwargs)
+        pack = self.package(python_data, pagination)
         # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serializers.serialize_response_data(pack, request, *args, **kwargs)
+        serialized, headers = serializers.serialize_response_data(pack)
         
         return serialized, headers
 
-    def serialize_to_python(self, data, request):
+    def serialize_to_python(self, data):
         """
         Invoked by ``postprocess``.
 
@@ -249,7 +249,7 @@ class HandlerControlFlow(object):
         # pseudo selectors
         # See <https://github.com/bruth/django-preserialize#my-model-has-a-ton-of-fields-and-i-dont-want-to-type-them-all-out-what-do-i-do>
         # It only works when the ``fields`` are defined one by one in a list.
-        field_selection = set(request.GET.getlist('field'))
+        field_selection = set(self.request.GET.getlist('field'))
         if field_selection:
             intersection = field_selection.intersection(set(self.template['fields']))
             template = {key: value for key, value in self.template.items()}
@@ -258,7 +258,7 @@ class HandlerControlFlow(object):
 
         return preserializer.serialize(data, **self.template)
  
-    def package(self, data, pagination, request, *args, **kwargs):
+    def package(self, data, pagination):
         """
         Invoked by ``postprocess``.
 
@@ -275,10 +275,10 @@ class HandlerControlFlow(object):
         if pagination:
             ret['pagination'] = pagination
         if settings.DEBUG:
-            ret['debug'] = self.debug_data(self, data, request, *args, **kwargs)
+            ret['debug'] = self.debug_data(data)
         return ret
 
-    def finalize(self, data, request, *args, **kwargs):
+    def finalize(self, data):
         """
         Invoked by ``postprocess``
 
@@ -286,10 +286,10 @@ class HandlerControlFlow(object):
 
         Deletes the data, in case of DELETE requests.
         """
-        if request.method.upper() == 'DELETE':
+        if self.request.method.upper() == 'DELETE':
             data.delete()
 
-    def debug_data(self, data, request, *args, **kwargs):
+    def debug_data(self, data):
         """
         Invoked by ``package``
 
@@ -334,7 +334,7 @@ class BaseHandler(HandlerControlFlow):
     """
     This class describes a base handler's real operation.
     """
-    def get(self, request, *args, **kwargs):
+    def get(self):
         """
         Invoked by ``dispatch``
 
@@ -342,7 +342,7 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
     
-    def post(self, request, *args, **kwargs):
+    def post(self):
         """
         Invoked by ``dispatch``
 
@@ -350,7 +350,7 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
-    def put(self, request, *args, **kwargs):
+    def put(self):
         """
         Invoked by ``dispatch``
 
@@ -358,7 +358,7 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self):
         """
         Invoked by ``dispatch``
 
@@ -366,13 +366,13 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
-    def validate(self, request, *args, **kwargs):
+    def validate(self):
         """
         Simple hook for extra request body validations.
         """
         pass
 
-    def filter_data(self, data, request, *args, **kwargs):
+    def filter_data(self, data):
         """
         Invoked by  ``ModelHandler.get_data_set``. 
         On a ``BaseHandler`` it should be called explicitly. 
@@ -383,23 +383,23 @@ class BaseHandler(HandlerControlFlow):
         result.
         """
         for f in self.filters:
-            data = getattr(self, f)(data, request, *args, **kwargs)
+            data = getattr(self, f)(data)
         return data            
 
-    def order(self, data, request, *args, **kwargs):
+    def order(self, data):
         """
         Invoked by ``get_data_set``.
 
         Typically ordering is indicated by the ``order`` querystring parameter.
         Returns the ordered data.
         """
-        order = request.GET.get('order', None)
+        order = self.request.GET.get('order', None)
         if order:
-            return self.order_data(data, order, request, *args, **kwargs)
+            return self.order_data(data, order)
 
         return data
 
-    def order_data(self, data, order, request, *args, **kwargs):
+    def order_data(self, data, order):
         """
         Invoked by ``order``
 
@@ -409,7 +409,7 @@ class BaseHandler(HandlerControlFlow):
         """
         return data
 
-    def paginate(self, data, request, *args, **kwargs):
+    def paginate(self, data):
         """
         Invoked by ``process``.
 
@@ -421,13 +421,13 @@ class BaseHandler(HandlerControlFlow):
         containing extra pagination data. If data is not paginable, or invalid
         pagination data has been given, returns (data, {})
         """
-        page = request.GET.get('page', None)
+        page = self.request.GET.get('page', None)
         if page:
-            return self.paginate_data(data, page, request, *args, **kwargs)
+            return self.paginate_data(data, page)
 
         return data, {}
 
-    def paginate_data(self, data, page, request, *args, **kwargs):
+    def paginate_data(self, data, page):
         """
         Invoked by ``paginate``.
 
@@ -445,7 +445,7 @@ class ModelHandler(BaseHandler):
     # Override to define the handler's model
     model = None
 
-    def get(self, request, *args, **kwargs):
+    def get(self):
         """
         Invoked by ``dispatch``.
 
@@ -453,9 +453,9 @@ class ModelHandler(BaseHandler):
 
         Raises ``exceptions.Gone``        
         """
-        return self.get_data(request, *args, **kwargs)
+        return self.get_data()
 
-    def post(self, request, *args, **kwargs):
+    def post(self):
         """
         Invoked by ``dispatch``
 
@@ -467,14 +467,14 @@ class ModelHandler(BaseHandler):
         """
         # TODO: What kind of errors do I contemplate for here? How do I handle
         # them?
-        if isinstance(request.data, self.model):
-            request.data.save(force_insert=True)
+        if isinstance(self.request.data, self.model):
+            self.request.data.save(force_insert=True)
         else:
-            for instance in request.data:
+            for instance in self.request.data:
                 instance.save(force_insert=True)
-        return request.data            
+        return self.request.data            
 
-    def put(self, request, *args, **kwargs):
+    def put(self):
         """
         Invoked by ``dispatch``
         
@@ -482,14 +482,14 @@ class ModelHandler(BaseHandler):
         """
         # TODO: What kind of errors do I contemplate for here? How do I handle
         # them?
-        if isinstance(request.data, self.model):
-            request.data.save(force_update=True)
+        if isinstance(self.request.data, self.model):
+            self.request.data.save(force_update=True)
         else:
-            for instance in request.data:
+            for instance in self.request.data:
                 instance.save(force_update=True)
-        return request.data
+        return self.request.data
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self):
         """
         Invoked by ``dispatch``
 
@@ -497,9 +497,9 @@ class ModelHandler(BaseHandler):
         query. We still want to keep the data intact, in order to output them
         in the response. Method ``finalize`` does so.
         """
-        return self.get_data(request, *args, **kwargs)
+        return self.get_data()
 
-    def get_data(self, request, *args, **kwargs):
+    def get_data(self):
         """
         Invoked by ``get``.
 
@@ -509,14 +509,14 @@ class ModelHandler(BaseHandler):
         Raises ``exceptions.Gone``
         """
         try:
-            data = self.get_data_item(request, *args, **kwargs)
+            data = self.get_data_item()
         except exceptions.Gone:
             raise
         if data is None:
-            data = self.get_data_set(request, *args, **kwargs)
+            data = self.get_data_set()
         return data
 
-    def get_data_item(self, request, *args, **kwargs):
+    def get_data_item(self):
         """
         Invoked by ``get_data``. 
 
@@ -525,29 +525,35 @@ class ModelHandler(BaseHandler):
 
         Raises ``exceptions.Gone``
         """
-        for field in kwargs.keys():
+        # TODO: Instead of trying to do a selection based on each field in
+        # kwargs, isnt it more correct if I do one based on all? Besides if I
+        # have a url like /users/<name>/<email>/<id>, whatever, all the kwargs
+        # together(and not one of them) should uniquely identify the user. 
+        # so I guess I should have self.get_working_set(...).get(**kwargs)
+
+        for field in self.kwargs.keys():
             if self.model._meta.get_field(field).unique:
-                value = kwargs.get(field)
+                value = self.kwargs.get(field)
                 if value is not None:
                     try:
-                        return self.get_working_set(self, request, *args, **kwargs).get(**{field: value})
+                        return self.get_working_set().get(**{field: value})
                     except (self.model.DoesNotExist, ValueError, TypeError):
                         raise exceptions.Gone
 
-    def get_data_set(self, request, *args, **kwargs):        
+    def get_data_set(self):        
         """
         Invoked by ``get_data``.
 
         Returns the dataset for plural operations. To do so, it uses methods
         ``get_working_set``, ``filter_data`` and ``order``.
         """
-        data = self.get_working_set(request, *args, **kwargs)
-        filtered_data = self.filter_data(data, request, *args, **kwargs)
-        ordered_data = self.order(filtered_data, request, *args, **kwargs)
+        data = self.get_working_set()
+        filtered_data = self.filter_data(data)
+        ordered_data = self.order(filtered_data)
 
         return ordered_data
 
-    def get_working_set(self, request, *args, **kwargs):
+    def get_working_set(self):
         """
         Invoked by ``get_data_set``.
 
@@ -556,7 +562,7 @@ class ModelHandler(BaseHandler):
         """
         return self.model.objects.all()
 
-    def validate(self, request, *args, **kwargs):
+    def validate(self):
         """
         Invoked by ``preprocess``.
 
@@ -566,44 +572,47 @@ class ModelHandler(BaseHandler):
         ``request.data``(which at this point are python data structures) to
         ``self.model`` instances, and validate them.
         """
-        if request.method.upper() == 'POST':
-            if isinstance(request.data, dict):
-                request.data = self.model(**request.data)
+        if self.request.method.upper() == 'POST':
+            if isinstance(self.request.data, dict):
+                self.request.data = self.model(**self.request.data)
 
-            elif isinstance(request.data, list):
-                request.data = map(lambda item: self.model(**item), request.data)                    
+            elif isinstance(self.request.data, list):
+                self.request.data = map(lambda item: self.model(**item), self.request.data)                    
                 
 
-        elif request.method.upper() == 'PUT':
+        elif self.request.method.upper() == 'PUT':
             # Find the relevant dataset on which the ``update`` will be applied
-            dataset = self.get_data(request, *args, **kwargs)            
+            dataset = self.get_data()            
 
             # Now update it/them
             if isinstance(dataset, self.model):
-                for key, value in request.data.items():
+                for key, value in self.request.data.items():
                     setattr(dataset, key, value)
             else:
                 def update(instance):
-                    for key, value in request.data.items():
+                    for key, value in self.request.data.items():
                         setattr(instance, key, value)
 
                 [update(instance) for instance in dataset]
             
-            request.data = dataset
+            self.request.data = dataset
 
         try:
-            self.clean_models(request, *args, **kwargs)        
+            self.clean_models()        
         except exceptions.BadRequest:
             raise
 
-    def clean_models(self, request, *args, **kwargs):
+    def clean_models(self):
         """
         Invoked by ``preprocess``
 
         Calls full_clean() on the model instances in ``request.data``. Raises
         a ``exceptions.BadRequest`` exception at the first error.
         """
-        for element in isinstance(request.data, self.model) and [request.data] or request.data:
+        # TODO: Add the exclude parameter in the signature of the method.
+        # Call full_clean with ``exclude``, so that we can exclude any models
+        # we want from the validation.
+        for element in isinstance(self.request.data, self.model) and [self.request.data] or self.request.data:
             try:
                 element.full_clean()
             except ValidationError, e:  
@@ -614,7 +623,7 @@ class ModelHandler(BaseHandler):
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
 
-    def paginate_data(self, data, page, request, *args, **kwargs):
+    def paginate_data(self, data, page):
         """
         Invoked by ``paginate``.
 
@@ -623,7 +632,7 @@ class ModelHandler(BaseHandler):
         Returns data_page, {'pages': <total pages>, 'items': <total items>}
         If for some reason we can't paginate data, returns (data, {})
         """
-        ipp = request.GET.get('ipp', None) or self.items_per_page
+        ipp = self.request.GET.get('ipp', None) or self.items_per_page
         try:
             ipp = int(ipp)
         except ValueError:
