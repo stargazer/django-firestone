@@ -22,13 +22,13 @@ class Proxy(object):
         for handler in self.handlers:
             h = handler()
 
-            # I could very well mimic the behavior of Django's class based
-            # views ``as_view`` method, which assigns request, args, kwargs to
-            # the view/handler instance. But there really is no reason, since I
-            # pass them to every method as arguments.
-            # h.request = request
-            # h.args = args
-            # h.kwargs = kwargs
+            # Mimicking what Django's class bades views ``as_view`` method
+            # does. The benefit is that I don't have to pass them as input args
+            # to any handler methods.
+            h.request = request
+            h.args = args
+            h.kwargs = kwargs
+
             if h.authentication.is_authenticated(request, *args, **kwargs):
                 return h
 
@@ -37,8 +37,8 @@ class Proxy(object):
     def __call__(self, request, *args, **kwargs):
         h = self.choose_handler(request, *args, **kwargs)
         if h:
-            return h.dispatch(request, *args, **kwargs)
+            return h.dispatch()
 
         # This is the only HttpResponse returned outside of the handler.
         return http.HttpResponseForbidden()
-                        
+
