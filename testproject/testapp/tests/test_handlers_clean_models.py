@@ -11,18 +11,28 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from model_mommy import mommy
 
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestCleanModelsSingleModel(TestCase):
     def setUp(self):
-       mommy.make(User, 10)
+        request = RequestFactory().post('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
+        mommy.make(User, 10)
 
     def test_correct(self):
-        handler = ModelHandler()
-        handler.model = User
+        handler = self.handler
+        handler.request.data = User.objects.get(id=1)
 
-        request = RequestFactory().post('/')
-        request.data = User.objects.get(id=1)
-
-        handler.clean_models(request)
+        handler.clean_models()
 
     def test_invalid_field_values(self):
         """
@@ -31,25 +41,21 @@ class TestCleanModelsSingleModel(TestCase):
         Are errors raised by model.clean_fields() handled correctly?
         They should raise a ``exceptions.BadRequest`` exception
         """
-        handler = ModelHandler()
-        handler.model = User
-        
-        request = RequestFactory().post('/')
-        request.data = User.objects.get(id=1)
+        handler = self.handler
+        handler.request.data = User.objects.get(id=1)
 
         # I set some invalid values for some fields
-        request.data.username = ''
-        request.data.password = ''
+        handler.request.data.username = ''
+        handler.request.data.password = ''
         # Does ``clean_models`` raise the correct exception?
         self.assertRaises(
             exceptions.BadRequest,
             handler.clean_models,
-            request,
         )
 
         # Does the exception ``errors`` attribute include a dictionary with the correct keys?
         try:
-            handler.clean_models(request)
+            handler.clean_models()
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
             self.assertItemsEqual(e.errors.keys(), ('username', 'password'))
@@ -64,26 +70,22 @@ class TestCleanModelsSingleModel(TestCase):
         They should raise a ``exceptions.BadRequest`` exception.
         """
         old_clean = User.clean
-        def clean(self):
+        def new_clean(self):
             raise ValidationError('Error string')
-        User.clean = clean
+        User.clean = new_clean
 
-        handler = ModelHandler()
-        handler.model = User
-        
-        request = RequestFactory().post('/')
-        request.data = User.objects.get(id=1)
+        handler = self.handler
+        handler.request.data = User.objects.get(id=1)
         
         # Does ``clean_models`` raise the correct exception?
         self.assertRaises(
             exceptions.BadRequest,
             handler.clean_models,
-            request,
         )
         # Does the exception ``errors`` attribute include a dictionary of the
         # correct form?
         try:
-            handler.clean_models(request)
+            handler.clean_models()
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
             self.assertEqual(e.errors[NON_FIELD_ERRORS][0], 'Error string')
@@ -98,16 +100,19 @@ class TestCleanModelsQueryset(TestCase):
     case of a single model instance.
     """
     def setUp(self):
+        request = RequestFactory().post('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
         mommy.make(User, 10)
 
     def test_correct(self):
-        handler = ModelHandler()
-        handler.model = User
+        handler = self.handler
+        handler.request.data = User.objects.all()
 
-        request = RequestFactory().post('/')
-        request.data = User.objects.all()
-
-        handler.clean_models(request)
+        handler.clean_models()
+        assert(True)
 
     def test_invalid_field_values(self):
         """
@@ -116,14 +121,11 @@ class TestCleanModelsQueryset(TestCase):
         Are errors raised by model.clean_fields() handled correctly?
         They should raise a ``exceptions.BadRequest`` exception
         """
-        handler = ModelHandler()
-        handler.model = User
-        
-        request = RequestFactory().post('/')
-        request.data = User.objects.all()
+        handler = self.handler
+        handler.request.data = User.objects.all()
 
         # I set some invalid values for some fields of every instance
-        for item in request.data:
+        for item in handler.request.data:
             item.username = ''
             item.password = ''
 
@@ -131,12 +133,11 @@ class TestCleanModelsQueryset(TestCase):
         self.assertRaises(
             exceptions.BadRequest,
             handler.clean_models,
-            request,
         )
 
         # Does the exception ``errors`` attribute include a dictionary with the correct keys?
         try:
-            handler.clean_models(request)
+            handler.clean_models()
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
             self.assertItemsEqual(e.errors.keys(), ('username', 'password'))
@@ -151,26 +152,22 @@ class TestCleanModelsQueryset(TestCase):
         They should raise a ``exceptions.BadRequest`` exception.
         """
         old_clean = User.clean
-        def clean(self):
+        def new_clean(self):
             raise ValidationError('Error string')
-        User.clean = clean
+        User.clean = new_clean
 
-        handler = ModelHandler()
-        handler.model = User
-        
-        request = RequestFactory().post('/')
-        request.data = User.objects.all()
+        handler = self.handler
+        handler.request.data = User.objects.all()
         
         # Does ``clean_models`` raise the correct exception?
         self.assertRaises(
             exceptions.BadRequest,
             handler.clean_models,
-            request,
         )
         # Does the exception ``errors`` attribute include a dictionary of the
         # correct form?
         try:
-            handler.clean_models(request)
+            handler.clean_models()
         except exceptions.BadRequest, e:
             self.assertIsInstance(e.errors, dict)
             self.assertEqual(e.errors[NON_FIELD_ERRORS][0], 'Error string')

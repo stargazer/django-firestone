@@ -13,6 +13,14 @@ from model_mommy import mommy
 from random import randrange
 
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestModelHandlerSerializeToPython(TestCase):
     def setUp(self):
         # Create some persistent records
@@ -26,44 +34,43 @@ class TestModelHandlerSerializeToPython(TestCase):
             logentry.save()
 
         # Initialize a Model Handler
-        modelhandler = ModelHandler()
-        modelhandler.model = User
+        request = RequestFactory().get('/')
+        handler = init_handler(ModelHandler(), request) 
+        handler.model = User
 
-        modelhandler.content_type_template = {
+        handler.content_type_template = {
             'fields': ['id', ],
             'flat': False,
         }            
-        modelhandler.logentry_template = {
+        handler.logentry_template = {
             'fields': ['action_flag', 'content_type'],     
             'related': {
-                'content_type': modelhandler.content_type_template,
+                'content_type': handler.content_type_template,
             }
         }
-        modelhandler.template = {
+        handler.template = {
             'fields': ['id', 'username', 'first_name', 'last_name',
                        'logentry_set', 'email', 'last_login'], 
             'related': {
-                'logentry_set': modelhandler.logentry_template,
+                'logentry_set': handler.logentry_template,
             }, 
             'exclude': ['password', 'date_joined',],
             'allow_missing': True,
         }            
 
-        self.modelhandler = modelhandler
+        self.handler = handler
 
     def test_modelhandler_queryset(self):
         """
         Testing a model handler's ``serialize_to_python`` method, when
         sending a queryset to the serializer.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/')
-        handler = self.modelhandler 
+        handler = self.handler 
 
         # Queryset
         users = User.objects.all()
         # Serialize the queryset 
-        ser = handler.serialize_to_python(users, request)
+        ser = handler.serialize_to_python(users)
         
         # ** Assertions **
         # Is ``ser`` a list?
@@ -96,15 +103,13 @@ class TestModelHandlerSerializeToPython(TestCase):
         sending a queryset to the serializer, and request level field selection
         is used.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
-        # Initialize the class handler
-        handler = self.modelhandler
+        handler = self.handler
+        handler.request = RequestFactory().get('/?field=id&field=username&field=logentry_set')
 
         # Queryset
         users = User.objects.all()
         # Serialize to python
-        ser = handler.serialize_to_python(users, request)
+        ser = handler.serialize_to_python(users)
 
         # ** Assertions **
         # Is ``ser`` a list?
@@ -136,15 +141,12 @@ class TestModelHandlerSerializeToPython(TestCase):
         Testing a model handler's ``serialize_to_python`` method, when
         sending a model to the serializer.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/')
-        # Initialize the handler
-        handler = self.modelhandler
+        handler = self.handler
         
         # Retrieve the model
         user = User.objects.get(id=1)
         # Serialize the model
-        ser = handler.serialize_to_python(user, request)
+        ser = handler.serialize_to_python(user)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -168,15 +170,13 @@ class TestModelHandlerSerializeToPython(TestCase):
         sending a queryset to the serializer, and request level field selection
         is used.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/?field=id&field=username&field=logentry_set')
-        # Initialize the handler
-        handler = self.modelhandler
+        handler = self.handler
+        handler.request = RequestFactory().get('/?field=id&field=username&field=logentry_set')
 
         # Queryset
         users = User.objects.get(id=1)
         # Serialize to python
-        ser = handler.serialize_to_python(users, request)
+        ser = handler.serialize_to_python(users)
         # ** Assertions **
         # Is ``ser`` a dict?
         self.assertEquals(type(ser), dict)
@@ -199,36 +199,34 @@ class TestBaseHandlerSerializeToPython(TestCase):
         mommy.make(User, 10)
 
         # Initialize a basehandler
-        basehandler = BaseHandler()
+        request = RequestFactory().get('/')
+        handler = init_handler(BaseHandler(), request)
 
-        basehandler.user_template = {
+        handler.user_template = {
             'fields': ['id', 'username', 'email']
         }        
-        basehandler.template = {
+        handler.template = {
             'fields': ['dic', 'list', 'user'],
             'related': {
-                'user': basehandler.user_template    
+                'user': handler.user_template    
             }
         }
 
-        self.basehandler = basehandler
+        self.handler = handler
                                 
     def test_basehandler_dict(self):
         """
         Testing a base handler's ``serialize_to_python`` method, when
         giving it a dictionary (it will follow the ``template``s directions.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/')
-        # Initialize the handler
-        handler = self.basehandler
+        handler = self.handler
         
         data = {
             'dic': {'a': 1, 'b': 2, 'c': 3},
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = handler.serialize_to_python(data, request)
+        ser = handler.serialize_to_python(data)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -250,17 +248,15 @@ class TestBaseHandlerSerializeToPython(TestCase):
         Testing a base handler's ``serialize_to_python`` method, when
         giving it a dictionary, and request level field selection is used
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/?field=dic&field=list')
-        # Initialize the handler
-        handler = self.basehandler
+        handler = self.handler
+        handler.request = RequestFactory().get('/?field=dic&field=list')
         
         data = {
             'dic': {'a': 1, 'b': 2, 'c': 3},
             'list': [1, 2, 3],
             'user': User.objects.get(id=1)
         }
-        ser = handler.serialize_to_python(data, request)
+        ser = handler.serialize_to_python(data)
         
         # ** Assertions **
         # Is ``ser`` a dict?
@@ -276,10 +272,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
         structure, it will follow the template's rules. For other data types,
         it will jusat output them as they are.
         """
-        request = RequestFactory()
-        request = request.get('whateverpath/')
-        # Initialize the handler
-        handler = self.basehandler
+        handler = self.handler
         
         data = [
             {
@@ -300,7 +293,7 @@ class TestBaseHandlerSerializeToPython(TestCase):
             3
         ]
 
-        ser = handler.serialize_to_python(data, request)
+        ser = handler.serialize_to_python(data)
         
         # ** Assertions **
         # Is ``ser`` a list?

@@ -8,10 +8,19 @@ from django.test import RequestFactory
 from django.contrib.admin.models import LogEntry
 from model_mommy import mommy
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestBaseHandlerFinalize(TestCase):
     def setUp(self):
-        self.handler = BaseHandler()
-        self.request = RequestFactory().delete('/')
+        request = RequestFactory().delete('/')
+        handler = init_handler(BaseHandler(), request)
+        self.handler = handler
 
         self.logentries = mommy.make(LogEntry, 10)
 
@@ -20,61 +29,72 @@ class TestBaseHandlerFinalize(TestCase):
         Do the data indeed get deleted?
         """
         data = LogEntry.objects.all()
-        self.handler.finalize(data, self.request)
+        handler = self.handler
+        handler.finalize(data)
         
         self.assertEqual(LogEntry.objects.count(), 0)
 
     def test_query_count(self):
+        handler = self.handler
         data = LogEntry.objects.all()
         self.assertNumQueries(
             1,
             self.handler.finalize,
-            data, self.request,
+            data,
         )
 
 
 class TestModelHandlerFinalizeSingular(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = LogEntry
-        self.request = RequestFactory().delete('/')
+        request = RequestFactory().delete('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = LogEntry
+        self.handler = handler
 
         self.logentry = mommy.make(LogEntry)
 
     def test_result(self):
+        handler = self.handler
+        handler.kwargs = {'id': self.logentry.id}
         data = self.logentry
-        self.handler.finalize(data, self.request, id=self.logentry.id)
+        handler.finalize(data)
 
         self.assertEqual(LogEntry.objects.count(), 0)
 
     def test_query_count(self):
+        handler = self.handler
+        handler.kwargs = {'id': self.logentry.id}
+
         data = self.logentry
         self.assertNumQueries(
             1,
             self.handler.finalize,
-            data, self.request, id=self.logentry.id,
+            data
         )
 
 
 class TestModelHandlerFinalizePlural(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = LogEntry
-        self.request = RequestFactory().delete('/')
+        request = RequestFactory().delete('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = LogEntry
+        self.handler = handler
 
         self.logentries = mommy.make(LogEntry, 10)
 
     def test_result(self):
+        handler = self.handler
         data = LogEntry.objects.all()
-        self.handler.finalize(data, self.request)
+        handler.finalize(data)
 
         self.assertEqual(LogEntry.objects.count(), 0)
 
     def test_query_count(self):
+        handler = self.handler
         data = LogEntry.objects.all()
         self.assertNumQueries(
             1,
             self.handler.finalize,
-            data, self.request
+            data,
         )
 

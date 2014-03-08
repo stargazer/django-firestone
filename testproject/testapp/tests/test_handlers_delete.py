@@ -10,28 +10,38 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from model_mommy import mommy
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestBaseHandlerDelete(TestCase):
     def test_delete(self):
-        handler = BaseHandler()
         request = RequestFactory().delete('/')
+        handler = init_handler(BaseHandler(), request)
 
         self.assertRaises(
             exceptions.NotImplemented,
             handler.delete,
-            request
         )
 
 class TestModelHandlerSingularDelete(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = User
+        request = RequestFactory().delete('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
 
-        self.request = RequestFactory().delete('/')
         self.user = mommy.make(User)
 
     def test_return_value(self):
+        handler = self.handler
+        handler.kwargs = {'id': self.user.id}
         self.assertEqual(
-            self.handler.delete(self.request, id=self.user.id), 
+            handler.delete(), 
             self.user
         )
 
@@ -39,7 +49,9 @@ class TestModelHandlerSingularDelete(TestCase):
         """
         Test that the data object has not been deleted yet
         """
-        self.handler.delete(self.request, id=self.user.id)
+        handler = self.handler
+        handler.kwargs = {'id': self.user.id}
+        handler.delete()
         try:
             User.objects.get(id=self.user.id)
         except User.DoesNotExist:
@@ -50,30 +62,34 @@ class TestModelHandlerSingularDelete(TestCase):
     def test_num_queries(self):
         """
         The only query that has been executed, is a SELECT for retrieving the
-        data item.
+        data item.       
         """
+        handler = self.handler
+        handler.kwargs = {'id': self.user.id}
         self.assertNumQueries(
             1,
             self.handler.delete,
-            self.request, id=self.user.id
         )
 
 class TestModelHandlerPluralDelete(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = User
-        self.request = RequestFactory().delete('/')
+        request = RequestFactory().delete('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
 
         mommy.make(User, 10)
 
     def test_return_value(self):
+        handler = self.handler
         self.assertItemsEqual(
-            self.handler.delete(self.request),
+            handler.delete(),
             User.objects.all(),
         )                
 
     def test_not_deleted(self):
-        self.handler.delete(self.request)
+        handler = self.handler
+        handler.delete()
         self.assertEqual(
             User.objects.count(),
             10,
@@ -84,8 +100,8 @@ class TestModelHandlerPluralDelete(TestCase):
         Here, no query should be executed. Not even the one retrieving the
         data, since it returns a QuerySet, which is a lazy data structure.
         """
+        handler = self.handler
         self.assertNumQueries(
             0,
-            self.handler.delete,
-            self.request
+            handler.delete,
         )

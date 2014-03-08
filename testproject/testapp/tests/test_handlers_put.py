@@ -10,64 +10,74 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from model_mommy import mommy
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestBaseHandlerPut(TestCase):
     def test_put(self):
-        handler = BaseHandler()       
         request = RequestFactory().put('/')
+        handler = init_handler(BaseHandler(), request)
 
         self.assertRaises(
             exceptions.NotImplemented,
             handler.put,
-            request
         )
 
 
 class TestModelHandlerSinglePut(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = User
+        request = RequestFactory().put('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
 
-        self.request = RequestFactory().put('/')
         self.user = mommy.make(User)
         self.user.username = 'other_username'
-        self.request.data = self.user
+        self.handler.request.data = self.user
 
     def test_ret_value(self):
         """
         Test returned value of put method
         """
-        self.assertEqual(self.handler.put(self.request), self.user)
+        self.assertEqual(self.handler.put(), self.user)
 
     def test_updated(self):
         """
         Test that the put method has indeed updated the model instance
         """
-        res = self.handler.put(self.request)
+        res = self.handler.put()
         self.assertEqual(User.objects.get(id=res.id).username, 'other_username')
 
     def test_num_queries(self):
         """
         Test that only one DB query was performed
         """
-        self.assertNumQueries(1, self.handler.put, self.request)
+        self.assertNumQueries(1, self.handler.put)
+
 
 class TestModelHandlerPluralPut(TestCase):
     def setUp(self):
-        self.handler = ModelHandler()
-        self.handler.model = User
+        request = RequestFactory().put('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
 
-        self.request = RequestFactory().put('/')
         self.users = mommy.make(User, 10)
         for user in self.users:
             user.username = 'username%s' % user.id
 
-        self.request.data = self.users            
+        self.handler.request.data = self.users            
 
     def test_ret_value(self):
-        self.assertItemsEqual(self.handler.put(self.request), self.users)
+        self.assertItemsEqual(self.handler.put(), self.users)
 
     def test_updated(self):
-        res = self.handler.put(self.request)
+        res = self.handler.put()
         for i in range(10):
             self.assertEqual(
                 User.objects.get(id=i+1).username, 
@@ -75,6 +85,6 @@ class TestModelHandlerPluralPut(TestCase):
             )
 
     def test_num_queries(self):
-        self.assertNumQueries(10, self.handler.put, self.request)
+        self.assertNumQueries(10, self.handler.put)
 
 

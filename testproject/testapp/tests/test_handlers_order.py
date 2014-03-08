@@ -9,49 +9,63 @@ from django.contrib.auth.models import User
 from model_mommy import mommy
 
 
-class TestBaseHandlerOrder(TestCase):
-    def test_no_ordering(self):
-        handler = BaseHandler()
-        request = RequestFactory().get('/')
-        data = 'whatever'
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
 
+
+class TestBaseHandlerOrder(TestCase):
+    def setUp(self):
+        request = RequestFactory().get('/')
+        handler = init_handler(BaseHandler(), request)
+        self.handler = handler
+
+    def test_no_ordering(self):
+        handler = self.handler
+
+        data = 'whatever'
         self.assertEqual(
-            handler.order(data, request),
+            handler.order(data),
             data
         )
 
     def test_ordering(self):
-        handler = BaseHandler()
-        request = RequestFactory().get('/?order=someordering')
+        handler = self.handler
         data = 'whatever'
 
         self.assertEqual(
-            handler.order(data, request),
+            handler.order(data),
             data
         )
 
 class TestModelHandlerOrder(TestCase):
     def setUp(self):
+        request = RequestFactory().get('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
         mommy.make(User, 100)
-        self.handler = ModelHandler()
-        self.handler.model = User
-        self.request = RequestFactory().get('/')
 
     def test_order_default(self):
         data = User.objects.all()
         self.assertEqual(
-            self.handler.order(data, self.request),
+            self.handler.order(data),
             data,
         )
 
     def test_order_descending(self):
-        def order(data, request, *args, **kwargs):
+        def order(data):
             " Descending order"
             return data.order_by('-id')
-        self.handler.order = order
+        handler = self.handler
+        handler.order = order
 
         data = User.objects.all()
-        ordered_data = self.handler.order(data, self.request)
+        ordered_data = handler.order(data)
 
         # Check if indeed the order of ``ordered_data`` is descending.
         self.assertEqual(ordered_data[0], User.objects.get(id=100))

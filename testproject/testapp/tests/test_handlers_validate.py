@@ -9,37 +9,46 @@ from django.contrib.auth.models import User
 from model_mommy import mommy
 
 
+def init_handler(handler, request, *args, **kwargs):
+    # Mimicking the initialization of the handler instance
+    handler.request = request
+    handler.args = args
+    handler.kwargs = kwargs
+    return handler
+
+
 class TestModelHandlerPOST(TestCase):
+    def setUp(self):
+        request = RequestFactory().post('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
     def test_dict(self):
         """
         ``request.data`` is a dictionary
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        request = RequestFactory().post('/')
-        request.data = {
+        handler = self.handler
+        handler.request.data = {
             'username': 'user',
             'password': 'pass',
             'first_name': 'name',
         }                
 
-        handler.validate(request)
+        handler.validate()
 
-        self.assertIsInstance(request.data, handler.model)
-        self.assertEqual(request.data.username, 'user')
-        self.assertEqual(request.data.first_name, 'name')
+        self.assertIsInstance(handler.request.data, handler.model)
+        self.assertEqual(handler.request.data.username, 'user')
+        self.assertEqual(handler.request.data.first_name, 'name')
 
     def test_dict_error(self):
         """
         ``request.data`` is a dictionary. 
         Mandatory parameters are missing
         """
-        handler = ModelHandler()
-        handler.model = User
+        handler = self.handler
 
-        request = RequestFactory().post('/')
-        request.data = {
+        handler.request.data = {
             'username': 'user',
             'first_name': 'name',
         }                
@@ -47,18 +56,14 @@ class TestModelHandlerPOST(TestCase):
         self.assertRaises(
             exceptions.BadRequest,                
             handler.validate,
-            request
         )
 
     def test_list(self):
         """
         ``request.data`` is a list of dictionaries
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        request = RequestFactory().post('/')
-        request.data = [
+        handler = self.handler
+        handler.request.data = [
             {
                 'username': 'user0',
                 'password': 'pass0',
@@ -76,24 +81,21 @@ class TestModelHandlerPOST(TestCase):
             },
         ]
 
-        handler.validate(request)
+        handler.validate()
 
-        self.assertEqual(len(request.data), 3)
+        self.assertEqual(len(handler.request.data), 3)
         for i in range(3):
-            self.assertIsInstance(request.data[i], handler.model)
-            self.assertEqual(request.data[i].username, 'user%s' % i)
-            self.assertEqual(request.data[i].first_name, 'name%s' % i)
+            self.assertIsInstance(handler.request.data[i], handler.model)
+            self.assertEqual(handler.request.data[i].username, 'user%s' % i)
+            self.assertEqual(handler.request.data[i].first_name, 'name%s' % i)
 
     def test_list_error(self):
         """
         ``request.data`` is a list of dictionaries.
         Mandatory parameter missing from 2nd dictionary.
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        request = RequestFactory().post('/')
-        request.data = [
+        handler = self.handler
+        handler.request.data = [
             {
                 'username': 'user0',
                 'password': 'pass0',
@@ -113,69 +115,60 @@ class TestModelHandlerPOST(TestCase):
         self.assertRaises(
             exceptions.BadRequest,
             handler.validate,
-            request
         )
 
 
 class TestModelHandlerPUT(TestCase):
+    def setUp(self):
+        request = RequestFactory().put('/')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
+        mommy.make(User, 10)
+
     def test_single_model(self):
         """
         dataset is a single model instance
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        mommy.make(User, 10)
-        
-        request = RequestFactory().put('/')
-        request.data = {
+        handler = self.handler
+        handler.request.data = {
             'username': 'user',            
             'first_name': 'name',
         }                
+        handler.kwargs = {'id': 1}
 
-        handler.validate(request, id=1)
-
-        self.assertIsInstance(request.data, handler.model)
-        self.assertEqual(request.data.username, 'user')
-        self.assertEqual(request.data.first_name, 'name')         
+        handler.validate()
+        self.assertIsInstance(handler.request.data, handler.model)
+        self.assertEqual(handler.request.data.username, 'user')
+        self.assertEqual(handler.request.data.first_name, 'name')         
 
     def test_single_model_error(self):
         """
         dataset is a single model instance. We set invalid field value
         """
-        handler = ModelHandler()
-        handler.model = User
+        handler = self.handler
+        handler.request.data = {'username': ''}
+        handler.kwargs = {'id': 1}
         
-        mommy.make(User, 10)
-        request = RequestFactory().put('/')
-        request.data = {'username': ''}
-
         # Raises correct exception?
         self.assertRaises(
             exceptions.BadRequest,
             handler.validate,
-            request,
-            id=1,
         )
 
     def test_queryset(self):
         """
         dataset is a queryset
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        mommy.make(User, 10)
-
-        request = RequestFactory().put('/')
-        request.data = {
+        handler = self.handler
+        handler.request.data = {
             'first_name': 'name',
             'last_name': 'surname',
         }
 
-        handler.validate(request)
-
-        for user in request.data:
+        handler.validate()
+        for user in handler.request.data:
             self.assertIsInstance(user, handler.model)
             self.assertEqual(user.first_name, 'name')
             self.assertEqual(user.last_name, 'surname')
@@ -184,18 +177,12 @@ class TestModelHandlerPUT(TestCase):
         """
         dataset is a queryset. We set invalid field values
         """
-        handler = ModelHandler()
-        handler.model = User
-
-        mommy.make(User, 10)
-
-        request = RequestFactory().put('/')
-        request.data = {'username': ''}
+        handler = self.handler
+        handler.request.data = {'username': ''}
+        handler.kwargs = {'id': 1}
 
         # Raises correct exception?
         self.assertRaises(
             exceptions.BadRequest,
             handler.validate,
-            request,
-            id=1,
         )
