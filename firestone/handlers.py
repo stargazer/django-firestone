@@ -490,20 +490,13 @@ class ModelHandler(BaseHandler):
         otherwise.
         Raises ``exceptions.Gone``
         """
-        # TODO: Instead of trying to do a selection based on each field in
-        # kwargs, isnt it more correct if I do one based on all? Besides if I
-        # have a url like /users/<name>/<email>/<id>, whatever, all the kwargs
-        # together(and not one of them) should uniquely identify the user. 
-        # so I guess I should have self.get_working_set(...).get(**kwargs)
+        if self.kwargs:
+            try:
+                return self.get_working_set().get(**self.kwargs)
+            except (self.model.DoesNotExist, ValueError, TypeError):
+                raise exceptions.Gone
 
-        for field in self.kwargs.keys():
-            if self.model._meta.get_field(field).unique:
-                value = self.kwargs.get(field)
-                if value is not None:
-                    try:
-                        return self.get_working_set().get(**{field: value})
-                    except (self.model.DoesNotExist, ValueError, TypeError):
-                        raise exceptions.Gone
+        return None
 
     def get_data_set(self):        
         """

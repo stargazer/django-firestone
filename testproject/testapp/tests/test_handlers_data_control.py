@@ -44,6 +44,14 @@ class testModelHandlerDataControl(TestCase):
             User.objects.get(id=1),
         )
 
+        # Instance selection based on 2 fields
+        user = User.objects.get(id=1)
+        handler.kwargs = {'id': user.id, 'first_name': user.first_name}
+        self.assertEquals(
+            handler.get_data_item(),
+            user,
+        )
+
         handler.kwargs = {'id': 10}
         self.assertEquals(
             handler.get_data_item(),
