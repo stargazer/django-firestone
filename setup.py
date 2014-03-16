@@ -12,7 +12,7 @@ setup(
     keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
         'Django==1.5.4',
-        'django-preserialize==1.0.5',
+        'django-preserialize==1.0.7',
     ),
     zip_safe=False,
     classifiers=(
