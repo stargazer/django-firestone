@@ -27,6 +27,7 @@ class DataHandler(BaseHandler):
     def get(self):
         return "aaa"
 
+
 class UserHandlerSessionAuth(ModelHandler):
     model = User
     http_methods = ['get', 'delete']
@@ -50,13 +51,13 @@ class UserHandlerSessionAuth(ModelHandler):
     }
     template = {
         'fields': ['id', 'username', 'first_name', 'last_name',
-                   'logentry_set', 'email', 'last_login'], 
+                   'logentry_set', 'email', 'last_login', 'nickname'], 
         'related': {
             'logentry_set': logentry_template,
         }, 
         'exclude': ['password', 'date_joined',],
         'allow_missing': True,
-    }            
+    }
 
     def filter_id(self, data):
         ids = self.request.GET.getlist('id')
@@ -69,7 +70,13 @@ class UserHandlerSessionAuth(ModelHandler):
         if names:
             data = data.filter(first_name__in=names)
         return data
-                    
+    
+    def inject_data_hook(self, data):
+        for user in isinstance(data, self.model) and [data] or data:
+            user.nickname = 'whatever'
+    
+        return data            
+
 
 class UserHandlerNoAuth(ModelHandler):
     model = User

@@ -28,6 +28,10 @@ that I came across using other frameworks.
   using a different authentication mechanism.
 * Ordering, slicing, filtering   
 * ModelHahdler should be able to output fake fields
+* Fake fields on ModelHandler's response. Static model related data can be
+  added by using properties. More dynamic model related data can be added by
+  using the handler's ``inject_data_hook`` method, which, since is a handler
+  method, is aware of the request context.
 
 ### TODO
 * Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
