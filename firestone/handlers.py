@@ -205,7 +205,7 @@ class HandlerControlFlow(object):
     def postprocess(self, data, pagination):
         """
         Invoked by ``dispatch``.
-        @param data         : Result of the handler's action
+        @param data         : Result of action
         @param pagination   : Dictionary with pagination data
         Postprocesses the data result of the operation.
         Returns the tuple (serialized, headers), where ``serialized`` is the
@@ -213,6 +213,7 @@ class HandlerControlFlow(object):
         ``headers`` is a dictionary of headers to be passed to the HTTPResponse
         object.
         """
+        self.inject_data_hook(data)
         # Serialize ``data`` to python data structures
         python_data = self.serialize_to_python(data)   
         # finalize any pending data processing
@@ -226,6 +227,16 @@ class HandlerControlFlow(object):
         )
         
         return serialized, headers
+
+    def inject_data_hook(self, data):
+        """
+        Invoked by ``postprocess``
+        @param data         : Result of action
+        Hook that adds extra fields or data to ``data``. Override to add
+        functionality.
+        Returns the modified ``data``.
+        """
+        return data
 
     def serialize_to_python(self, data):
         """
@@ -470,7 +481,7 @@ class ModelHandler(BaseHandler):
 
     def get_data(self):
         """
-        Invoked by ``get``.
+        Invoked by ``get``, ``delete``, and ``validate``
         Returns the data of the current operation. To do so, it uses methods
         ``get_data_item`` and ``get_data_set``. 
         Raises ``exceptions.Gone``
@@ -565,7 +576,7 @@ class ModelHandler(BaseHandler):
         """
         # TODO: Add the exclude parameter in the signature of the method.
         # Call full_clean with ``exclude``, so that we can exclude any models
-        # we want from the validation.
+        # fields we want from the validation.
         for element in isinstance(self.request.data, self.model) and [self.request.data] or self.request.data:
             try:
                 element.full_clean()
