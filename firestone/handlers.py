@@ -72,12 +72,11 @@ class HandlerControlFlow(object):
     # Allowed request body fields for POST and PUT requests
     post_body_fields = put_body_fields = []    
 
-    # Filters, declared as strings. Each string indicate the method name of
-    # each filter. Every method accepts parameters:
-    #   ``(self, data, request, *args, **kwargs)``
-    # It should define all its logic, and return a subset of ``data``.
-    # This generic scheme, requires that we write some code for every filter,
-    # but is very flexible and powerful.
+    # Filters, declared as strings. Each string indicates the method name of
+    # each filter. Every method's signature is ``(self, data, request, *args, **kwargs)``
+    # The method should define all its logic, and return a subset of ``data``.
+    # This generic scheme, requires that we write some code for every filter
+    # method, but is very flexible and powerful.
     filters = []
 
     # Default item per page, when pagination is requested
@@ -85,11 +84,12 @@ class HandlerControlFlow(object):
 
     def dispatch(self):
         """
-        Entry point. Coordinates pre and post processing actions, as well as
+        Handler's entry point. Coordinates pre and post processing actions, as well as
         selects and calls the main action method.
-        It needs to return an http.HttpResponse object.
+        I would advice against overriding this method.
 
-        Don't override this method.
+        Returns:
+            http.HttpResponse object.
         """
         try:
             self.preprocess()
@@ -107,8 +107,13 @@ class HandlerControlFlow(object):
         """
         Invoked by ``dispatch``.
         Preprocesses the request.
-        Returns None.
-        Raises exceptions.UnsupportedMediaType, exceptions.BadRequest.
+
+        Returns:
+            None
+        Raises:
+            exceptions.MethodNotAllowed: if request method is not allowed
+            exceptions.UnsupportedMediaType: if content-type is not supported
+            exceptions.BadRequest: if request body is not valid according to content-type
         """
         self.authentication_hook()
 
@@ -138,15 +143,21 @@ class HandlerControlFlow(object):
         object. For example, on a handler with SignatureAuthentication, it
         could set the ``request.user`` parameter according to some querystring
         parameter.
-        Returns None
+
+        Returns:
+            None
         """
         pass
 
     def is_method_allowed(self):
         """
-        Invoked by ``preprocess``.
-        Returns True, if the request method is allowed.
-        Raises exceptions.MethodNotAllowed.
+        Invoked by ``preprocess``. 
+        Checks whether the handler allowed the request's HTTP method.
+
+        Returns: 
+            True
+        Raises:
+            exceptions.MethodNotAllowed: if request method is not allowed
         """
         if self.request.method.upper() not in self.http_methods:
             raise exceptions.MethodNotAllowed(self.http_methods)
@@ -158,8 +169,12 @@ class HandlerControlFlow(object):
         If the request body is valid, according to ``Content-type`` header,
         it is deserialized to python data structures, and assigned to
         ``request.data``.
-        Returns None.
-        Raises exceptions.UnsupportedMediaType, exceptions.BadRequest.
+
+        Returns:
+            None
+        Raises:
+            exceptions.UnsupportedMediaType: if content-type is not supported
+            exceptions.BadRequest: If request body is not valid according to content-type
         """
         try:
             self.request.data = deserializers.deserialize_request_body(self.request, *self.args, **self.kwargs)
@@ -170,7 +185,10 @@ class HandlerControlFlow(object):
         """
         Invoked by ``preprocess``.
         Scans request body and only lets the allowed fields go through.
-        Returns None.
+
+
+        Returns:
+            None
         """
         if self.request.method.upper() == 'POST':
             if isinstance(self.request.data, dict):
@@ -194,9 +212,11 @@ class HandlerControlFlow(object):
         Invoked by ``dispatch``.
         Calls the method that corresponds to the HTTP method, computes the
         result, and returns.
-        Returns the tuple ``data, pagination``, where ``pagination`` is a
-        dictionary with some pagination data. If no pagination was performed,
-        ``pagination`` is {}.
+
+        Returns:
+            (data, pagination): ``data`` is the result of the operation
+            and ``pagination`` is a dictionary with some pagination data. 
+            If no pagination was performed, ``pagination`` is {}.
         """
         data = getattr(self, self.request.method.lower())()
         data, pagination = self.paginate(data)
@@ -205,13 +225,16 @@ class HandlerControlFlow(object):
     def postprocess(self, data, pagination):
         """
         Invoked by ``dispatch``.
-        @param data         : Result of action
-        @param pagination   : Dictionary with pagination data
         Postprocesses the data result of the operation.
-        Returns the tuple (serialized, headers), where ``serialized`` is the
-        serialized response, ready to be passed to the HTTPResponse object, and
-        ``headers`` is a dictionary of headers to be passed to the HTTPResponse
-        object.
+
+        Args:
+            data: Result of operation
+            pagination: Dictionary with pagination data
+        Returns:
+            (serialized, headers): ``serialized`` is the
+            serialized response, ready to be passed to the HTTPResponse object, and
+            ``headers`` is a dictionary of headers to be passed to the HTTPResponse
+            object.
         """
         self.inject_data_hook(data)
         # Serialize ``data`` to python data structures
@@ -231,21 +254,27 @@ class HandlerControlFlow(object):
     def inject_data_hook(self, data):
         """
         Invoked by ``postprocess``
-        @param data         : Result of action
         Hook that adds extra fields or data to ``data``. Override to add
         functionality.
-        Returns the modified ``data``.
+        
+        Args:
+            data: Result of operation
+        Returns:
+            Modified ``data``.
         """
         return data
 
     def serialize_to_python(self, data):
         """
         Invoked by ``postprocess``.
-        @param data   : Result of the handler's action
         Serializes ``data`` to python data structures, according to the
         handler's ``template`` attribute, or request-level field selection
         defined by querystring parameter ``field``.
-        Returns the serialized data.
+
+        Args:
+            data: Result of the handler's operation
+        Returns:
+            Serialized data.
         """
         # NOTE: The request level field selection doesn not work if the
         # handler's ``template`` attribute uses ``django-preserialize``'s
@@ -264,8 +293,14 @@ class HandlerControlFlow(object):
     def package(self, data, pagination):
         """
         Invoked by ``postprocess``.
-        @param pagination   : Dictionary with pagination data
-        Returns the ``data`` packed in a dictionary along with other metadata
+        Wraps the ``data`` and ``pagiantion`` data a dictionary. 
+
+        Args:
+            data: Data result of the handler's operation, serialized in python
+            data structures
+            pagination: Dictionary with pagination data
+        Returns:
+            Dictionary
         """
         count = 1
         if isinstance(data, (dict, list, tuple, set)):
@@ -276,25 +311,29 @@ class HandlerControlFlow(object):
         if pagination:
             ret['pagination'] = pagination
         if settings.DEBUG:
-            ret['debug'] = self.debug_data(data)
+            ret['debug'] = self.debug_data()
         return ret
 
     def finalize(self, data):
         """
         Invoked by ``postprocess``
-        @data: Result of the handler's action
-        Deletes the data, in case of DELETE requests.
-        Returns None
+        Performs any pending DELETE operations, in case of DELETE requests.
+        Override to add functionality.
+
+        Args:
+            Result of the handler's action
+        Returns:
+            None
         """
         if self.request.method.upper() == 'DELETE':
             data.delete()
 
-    def debug_data(self, data):
+    def debug_data(self):
         """
-        Invoked by ``package``
-        @data: Data dictionary.
-        Returns the ``data`` dictionary enriched with debugging data or stats
-        about this request.
+        Invoked by ``package``.
+        
+        Returns:
+            Dictionary of debugging data about this request.
         """
         time_per_query = [float(dic['time']) for dic in connection.queries if 'time' in dic]
         
@@ -315,10 +354,13 @@ class HandlerControlFlow(object):
     def response(self, data, headers={}):
         """
         Invoked by ``dispatch``
-        @param data: Serialized data into text
-        @param headers: Dictionary of key-value pairs, that will be used as
-        response headers.
-        Returns an ``http.HttpResponse`` object
+
+        Args:
+            data: Data serialized in text
+            headers: Dictionary of key-value pairs, that will be used as
+            response headers.
+        Returns:
+            http.HttpResponse object.
         """
         res = http.HttpResponse(data)
         for key, value in headers.items():
@@ -332,47 +374,55 @@ class BaseHandler(HandlerControlFlow):
     """
     def get(self):
         """
-        Invoked by ``dispatch``
-        Action method for GET requests
+        Invoked by ``dispatch``.
+        Action method for GET requests. Override to add functionality.
         """
         raise exceptions.NotImplemented
     
     def post(self):
         """
-        Invoked by ``dispatch``
-        Action method for POST requests
+        Invoked by ``dispatch``.
+        Action method for POST requests. Override to add functionality.
         """
         raise exceptions.NotImplemented
 
     def put(self):
         """
-        Invoked by ``dispatch``
-        Action method for PUT requests
+        Invoked by ``dispatch``.
+        Action method for PUT requests. Override to add funcionality.
         """
         raise exceptions.NotImplemented
 
     def delete(self):
         """
-        Invoked by ``dispatch``
-        Action method for DELETE requests
+        Invoked by ``dispatch``.
+        Action method for DELETE requests. Override to add functionality.
         """
         raise exceptions.NotImplemented
 
     def validate(self):
         """
+        Invoked by ``preprocess``.
         Simple hook for extra request body validations.
-        Returns None.
+        
+        Returns:
+            None.
         """
         pass
 
     def filter_data(self, data):
         """
-        Invoked by  ``ModelHandler.get_data_set``. 
-        On a ``BaseHandler`` it should be called explicitly. 
-        I have defined it here, since it's generic enough to be 
-        used by any type of handler.
-        Applies all the filters declared in ``self.filters``, and returns the
+        Invoked by  ``get_data_set``, which only exists for the ``ModelHandler``
+        class. On a ``BaseHandler`` it should be called explicitly. 
+        It is defined it here, since it's generic enough to be used by any type
+        of handler. Applies all the filters declared in ``self.filters``, and returns the
         result.
+
+        Args:
+            data: Initial working set of the handler
+        Returns:
+            Result of all filter applications
+
         """
         for f in self.filters:
             data = getattr(self, f)(data)
@@ -380,9 +430,14 @@ class BaseHandler(HandlerControlFlow):
 
     def order(self, data):
         """
-        Invoked by ``get_data_set``.
+        Invoked by ``get_data_set``, which only exists for the ``ModelHandler``
+        class. On a ``BaseHandler`` it should be called explicitly.
         Typically ordering is indicated by the ``order`` querystring parameter.
-        Returns the ordered data.
+        
+        Args:
+            data: Filtered working set of the handler
+        Returns:
+            Ordered data.
         """
         order = self.request.GET.get('order', None)
         if order:
@@ -393,8 +448,12 @@ class BaseHandler(HandlerControlFlow):
     def order_data(self, data, order):
         """
         Invoked by ``order``
-        @param order: ``order`` parameter value
         Override to specify ordering logic.
+
+        Args:
+            order: Value of querystring parameter ``order``
+        Returns:
+            Ordered data
         """
         return data
 
@@ -404,9 +463,14 @@ class BaseHandler(HandlerControlFlow):
         Typically pagination is indicated by the ``page`` and ``ipp``
         querystring parameters. ``page`` indicates the requested page, and
         ``ipp`` indicates the items per page (default is ``self.items_per_page``).
-        Returns (data_page, total_dict). ``total_dict`` is a dictionary
-        containing extra pagination data. If data is not paginable, or invalid
-        pagination data has been given, returns (data, {})
+        
+        Args:
+            data: Result of the handler's data operation
+        Returns:
+            (data_page, total_dict), where ``data_page`` is the page returned
+            and ``total_dict`` is a dictionary containing extra pagination data. 
+            If data is not paginable, or invalid pagination data has been given,
+            it returns (data, {})
         """
         page = self.request.GET.get('page', None)
         if page:
@@ -417,8 +481,13 @@ class BaseHandler(HandlerControlFlow):
     def paginate_data(self, data, page):
         """
         Invoked by ``paginate``.
-        @param page: ``page`` parameter value
         Override to specify paging logic.
+
+        Args:
+            data: Result of the handler's data operation
+            page: Value of querystring parameter ``page``
+        Returns:
+            (data, {})
         """
         return data, {}
 
@@ -434,7 +503,11 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``.
         Action method for GET requests.
-        Raises ``exceptions.Gone``        
+        
+        Returns:
+            Model instance or queryset
+        Raises:
+            Raises exceptions.Gone
         """
         return self.get_data()
 
@@ -442,6 +515,11 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``
         Action method for POST requests. 
+
+        Returns:
+            Model instance or list of model instances
+        Raises:
+            TODO
         """
         # For Bulk POST requests, I could have used ``bulk_create``. 
         # This has many drawbacks though
@@ -460,6 +538,11 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``
         Action method for PUT requests.
+
+        Returns:
+            Model instance or list of model instances
+        Raises:
+            TODO
         """
         # TODO: What kind of errors do I contemplate for here? How do I handle
         # them?
@@ -475,16 +558,24 @@ class ModelHandler(BaseHandler):
         Invoked by ``dispatch``
         Action method for DELETE requests. It doesn't perform the actual delete
         query. We still want to keep the data intact, in order to output them
-        in the response. Method ``finalize`` does so.
+        in the response. Method ``finalize`` performs the delete action.
+
+        Returns:
+            Model instance or queryset
+        Raises:
+            exceptions.Gone
         """
         return self.get_data()
 
     def get_data(self):
         """
         Invoked by ``get``, ``delete``, and ``validate``
-        Returns the data of the current operation. To do so, it uses methods
-        ``get_data_item`` and ``get_data_set``. 
-        Raises ``exceptions.Gone``
+        
+        Returns:
+            Dataset of the current operation. To do so, it uses methods
+            ``get_data_item`` and ``get_data_set``. 
+        Raises:
+            exceptions.Gone
         """
         try:
             data = self.get_data_item()
@@ -496,10 +587,13 @@ class ModelHandler(BaseHandler):
 
     def get_data_item(self):
         """
-        Invoked by ``get_data``. 
-        Returns a model instance, if indicated correctly by kwargs, or None
-        otherwise.
-        Raises ``exceptions.Gone``
+        Invoked by ``get_data``.
+
+        Returns:
+            A model instance, if indicated correctly by kwargs, or None
+            otherwise.
+        Raises:
+            exceptions.Gone
         """
         if self.kwargs:
             try:
@@ -512,8 +606,10 @@ class ModelHandler(BaseHandler):
     def get_data_set(self):        
         """
         Invoked by ``get_data``.
-        Returns the dataset for plural operations. To do so, it uses methods
-        ``get_working_set``, ``filter_data`` and ``order``.
+        
+        Returns:
+            Dataset for plural operations. To do so, it uses methods
+            ``get_working_set``, ``filter_data`` and ``order``.
         """
         data = self.get_working_set()
         filtered_data = self.filter_data(data)
@@ -524,8 +620,10 @@ class ModelHandler(BaseHandler):
     def get_working_set(self):
         """
         Invoked by ``get_data_set``.
-        Returns the default queryset for the ModelHandler, on top of which other filters
-        should be chained, in order to limit the data view.
+        
+        Returns:
+            Default queryset for the ModelHandler, on top of which other filters
+            should be chained, in order to limit the data view.
         """
         return self.model.objects.all()
 
@@ -535,8 +633,11 @@ class ModelHandler(BaseHandler):
         Extra request body validation step. It should map the contents of
         ``request.data``(which at this point are python data structures) to
         ``self.model`` instances, and validate them.
-        Returns None.
-        Raises ``exceptions.BadRequest``
+        
+        Returns:
+            None
+        Raises:
+            exceptions.BadRequest
         """
         if self.request.method.upper() == 'POST':
             if isinstance(self.request.data, dict):
@@ -568,11 +669,15 @@ class ModelHandler(BaseHandler):
 
     def clean_models(self):
         """
-        Invoked by ``preprocess``
-        Calls full_clean() on the model instances in ``request.data``. Raises
-        a ``exceptions.BadRequest`` exception at the first error.
-        Returns None.
-        Raises exceptions.BadRequest
+        Invoked by ``validate``
+        Calls ``full_clean()`` on all model instances in ``request.data``. 
+        
+        Returns:
+            None
+        Raises:
+            exceptions.BadRequest: When ``full_clean`` first throws a
+            ValidationError. The exceptions.BadRequest exception is raised at
+            the very first time that we encounter a ValidationError.
         """
         # TODO: Add the exclude parameter in the signature of the method.
         # Call full_clean with ``exclude``, so that we can exclude any models
@@ -591,9 +696,12 @@ class ModelHandler(BaseHandler):
     def paginate_data(self, data, page):
         """
         Invoked by ``paginate``.
-        @param page: ``page`` parameter value
-        Returns data_page, {'pages': <total pages>, 'items': <total items>}
-        If for some reason we can't paginate data, returns (data, {})
+
+        Args:
+            page: Value of querystring parameter ``page``
+        Returns:
+            (data_page, {'pages': <total pages>, 'items': <total items>})
+            If for some reason we can't paginate data, returns (data, {})
         """
         ipp = self.request.GET.get('ipp', None) or self.items_per_page
         try:
