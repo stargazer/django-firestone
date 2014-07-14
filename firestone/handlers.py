@@ -721,7 +721,8 @@ class ModelHandler(BaseHandler):
 
 
 """
-Example of BaseHandler
+# Example of BaseHandler
+# handlers.py
 class RandomHandler(BaseHandler):
     user_template = {
         'fields': ['id', 'domain', 'email'],
@@ -747,9 +748,12 @@ class RandomHandler(BaseHandler):
             'nouncy': nouncy_template,
         }
     }            
-"""
-"""
-Example of ModelHandler
+
+# urls.py
+
+    
+# Example of ModelHandler
+# handpers.py
 class ContactHandler(ModelHandler):
     model = Contact
 
@@ -762,4 +766,7 @@ class ContactHandler(ModelHandler):
             'media': media_template,
         },
     }
+
+# urls.py
+
 """
