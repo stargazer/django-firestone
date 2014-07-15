@@ -400,6 +400,42 @@ class BaseHandler(HandlerControlFlow):
         """
         raise exceptions.NotImplemented
 
+    def get_data(self):
+        """
+        (Should be) Invoked by ``get``, ``delete``, and ``validate``
+        
+        Returns:
+            Dataset of the current operation. To do so, it uses methods
+            ``get_data_item`` and ``get_data_set``. 
+        Raises:
+            exceptions.Gone
+        """
+        try:
+            data = self.get_data_item()
+        except exceptions.Gone:
+            raise
+        if data is None:
+            data = self.get_data_set()
+        return data
+
+    def get_data_item(self):
+        """
+        Invoked by ``get_data``.
+        
+        It should return the data item for the operation if such exists, None otherwise.
+        Override to add functionality.
+        """
+        raise exceptions.NotImplemented
+
+    def get_data_set(self):
+        """
+        Invoked by ``get_data``.
+        
+        It should return returns the data set for operation.
+        Override to add functionality.
+        """
+        raise exceptions.NotImplemented
+
     def validate(self):
         """
         Invoked by ``preprocess``.
@@ -566,24 +602,6 @@ class ModelHandler(BaseHandler):
             exceptions.Gone
         """
         return self.get_data()
-
-    def get_data(self):
-        """
-        Invoked by ``get``, ``delete``, and ``validate``
-        
-        Returns:
-            Dataset of the current operation. To do so, it uses methods
-            ``get_data_item`` and ``get_data_set``. 
-        Raises:
-            exceptions.Gone
-        """
-        try:
-            data = self.get_data_item()
-        except exceptions.Gone:
-            raise
-        if data is None:
-            data = self.get_data_set()
-        return data
 
     def get_data_item(self):
         """
