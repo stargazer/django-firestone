@@ -76,6 +76,7 @@ class TestModelHandlerPluralDelete(TestCase):
         request = RequestFactory().delete('/')
         handler = init_handler(ModelHandler(), request)
         handler.model = User
+        handler.http_methods = ('PLURAL_DELETE',)
         self.handler = handler
 
         mommy.make(User, 10)

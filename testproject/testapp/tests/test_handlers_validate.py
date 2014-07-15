@@ -162,6 +162,8 @@ class TestModelHandlerPUT(TestCase):
         dataset is a queryset
         """
         handler = self.handler
+        # Plural request, so we need to explicitly allow ``PLURAL_PUT`` requests
+        handler.http_methods = ('PLURAL_PUT',)
         handler.request.data = {
             'first_name': 'name',
             'last_name': 'surname',
@@ -178,8 +180,8 @@ class TestModelHandlerPUT(TestCase):
         dataset is a queryset. We set invalid field values
         """
         handler = self.handler
-        handler.request.data = {'username': ''}
         handler.kwargs = {'id': 1}
+        handler.request.data = {'username': ''}
 
         # Raises correct exception?
         self.assertRaises(

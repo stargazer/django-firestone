@@ -63,6 +63,7 @@ class HandlerControlFlow(object):
     template = {}     
 
     # List of allowed HTTP methods.
+    # GET, POST, PUT, PLURAL_PUT, DELETE, PLURAL_DELETE
     http_methods = []
 
     # authentication method: Should be an instance of any of the classes in the
@@ -409,15 +410,37 @@ class BaseHandler(HandlerControlFlow):
             ``get_data_item`` and ``get_data_set``. 
         Raises:
             exceptions.Gone
+            exceptions.MethodNotAllowed
         """
         try:
             data = self.get_data_item()
         except exceptions.Gone:
             raise
         if data is None:
+            # Since we are here, we know that it's definitely a plural request.
+            # First check whether it is allowed.
+            if self.is_catastrophic():
+                raise exceptions.MethodNotAllowed(self.http_methods)
+            # And then retrieve the actual data.
             data = self.get_data_set()
-        return data
 
+        return data           
+
+    def is_catastrophic(self):
+        """
+        Invoked by ``get_data``.
+        Checks whether dangerous methods (Plural PUT, PLURAL DELETE) are
+        allowed.
+
+        Returns:
+            True if method is catastrophic and not allowed
+            False if allowed.
+        """
+        if (self.request.method.upper() == 'PUT' and 'PLURAL_PUT' not in self.http_methods) or\
+           (self.request.method.upper() == 'DELETE' and 'PLURAL_DELETE' not in self.http_methods):
+               return True
+        return False
+                                          
     def get_data_item(self):
         """
         Invoked by ``get_data``.
