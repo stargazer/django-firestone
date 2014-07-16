@@ -13,8 +13,8 @@ class Contact(models.Model):
     def clean_fields(self, exclude=None):
         try:
             validate_email(self.email)
-        except ValidationError:
-            raise
+        except ValidationError, e:
+            raise ValidationError({'email': e.messages})
 
         super(Contact, self).clean_fields(exclude)
 

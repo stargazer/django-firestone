@@ -1,3 +1,4 @@
+from testproject.testapp.models import Contact
 from firestone.handlers import ModelHandler, BaseHandler
 from firestone.authentication import SessionAuthentication
 from django.contrib.auth.models import User
@@ -87,3 +88,36 @@ class UserHandlerNoAuth(ModelHandler):
     def get(self):
         return []
 
+
+class ContactHandlerSessionAuth(ModelHandler):
+    model = Contact
+    http_methods = ['GET', 'POST', 'DELETE', 'PUT']
+    authentication = SessionAuthentication
+    post_body_fields = ['name', 'email']
+    put_body_fields = ['name',]
+
+    user_template = {
+        'fields': ['username',],
+        'flat': False
+    }            
+    template = {
+        'fields': ['id', 'user', 'name', 'email'],
+        'related': {
+            'user': user_template
+        },
+    }
+
+    def get_working_set(self):
+        return super(ContactHandlerSessionAuth, self).get_working_set().\
+            filter(user=self.request.user)                
+
+    def clean_models(self):
+        """
+        On POST requests, assign ``user`` parameter to model instances, according to
+        ``request.user``.
+        """
+        if self.request.method.upper() == 'POST':
+            for contact in isinstance(self.request.data, self.model) and [self.request.data] or self.request.data:
+                contact.user = self.request.user
+        
+        super(ContactHandlerSessionAuth, self).clean_models()
