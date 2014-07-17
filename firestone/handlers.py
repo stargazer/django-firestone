@@ -291,6 +291,20 @@ class HandlerControlFlow(object):
 
         return preserializer.serialize(data, **self.template)
  
+    def finalize_pending(self, data):
+        """
+        Invoked by ``postprocess``
+        Performs any pending DELETE operations, in case of DELETE requests.
+        Override to add functionality.
+
+        Args:
+            Result of the handler's action
+        Returns:
+            None
+        """
+        if self.request.method.upper() == 'DELETE':
+            data.delete()
+
     def package(self, data, pagination):
         """
         Invoked by ``postprocess``.
@@ -314,21 +328,7 @@ class HandlerControlFlow(object):
         if settings.DEBUG:
             ret['debug'] = self.debug_data()
         return ret
-
-    def finalize(self, data):
-        """
-        Invoked by ``postprocess``
-        Performs any pending DELETE operations, in case of DELETE requests.
-        Override to add functionality.
-
-        Args:
-            Result of the handler's action
-        Returns:
-            None
-        """
-        if self.request.method.upper() == 'DELETE':
-            data.delete()
-
+    
     def debug_data(self):
         """
         Invoked by ``package``.
