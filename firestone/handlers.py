@@ -137,6 +137,50 @@ class HandlerControlFlow(object):
         # Validate request body
         self.validate()
 
+    def process(self):
+        """
+        Invoked by ``dispatch``.
+        Calls the method that corresponds to the HTTP method, computes the
+        result, and returns.
+
+        Returns:
+            (data, pagination): ``data`` is the result of the operation
+            and ``pagination`` is a dictionary with some pagination data. 
+            If no pagination was performed, ``pagination`` is {}.
+        """
+        data = getattr(self, self.request.method.lower())()
+        data, pagination = self.paginate(data)
+        return data, pagination
+
+    def postprocess(self, data, pagination):
+        """
+        Invoked by ``dispatch``.
+        Postprocesses the data result of the operation.
+
+        Args:
+            data: Result of operation
+            pagination: Dictionary with pagination data
+        Returns:
+            (serialized, headers): ``serialized`` is the
+            serialized response, ready to be passed to the HTTPResponse object, and
+            ``headers`` is a dictionary of headers to be passed to the HTTPResponse
+            object.
+        """
+        self.inject_data_hook(data)
+        # Serialize ``data`` to python data structures
+        python_data = self.serialize_to_python(data)   
+        # finalize any pending data processing
+        self.finalize_pending(data)
+        # Package the python_data to a dictionary
+        pack = self.package(python_data, pagination)
+        # Return serialized response plus any http headers, like
+        # ``content-type`` that need to be passed in the HttpResponse instance.
+        serialized, headers = serializers.serialize_response_data(
+            pack, self.request, self.args, self.kwargs
+        )
+        
+        return serialized, headers
+
     def authentication_hook(self):
         """
         Invoked by ``preprocess``
@@ -207,50 +251,6 @@ class HandlerControlFlow(object):
             for key in self.request.data.keys():
                 if key not in self.put_body_fields:
                     self.request.data.pop(key)
-
-    def process(self):
-        """
-        Invoked by ``dispatch``.
-        Calls the method that corresponds to the HTTP method, computes the
-        result, and returns.
-
-        Returns:
-            (data, pagination): ``data`` is the result of the operation
-            and ``pagination`` is a dictionary with some pagination data. 
-            If no pagination was performed, ``pagination`` is {}.
-        """
-        data = getattr(self, self.request.method.lower())()
-        data, pagination = self.paginate(data)
-        return data, pagination
-
-    def postprocess(self, data, pagination):
-        """
-        Invoked by ``dispatch``.
-        Postprocesses the data result of the operation.
-
-        Args:
-            data: Result of operation
-            pagination: Dictionary with pagination data
-        Returns:
-            (serialized, headers): ``serialized`` is the
-            serialized response, ready to be passed to the HTTPResponse object, and
-            ``headers`` is a dictionary of headers to be passed to the HTTPResponse
-            object.
-        """
-        self.inject_data_hook(data)
-        # Serialize ``data`` to python data structures
-        python_data = self.serialize_to_python(data)   
-        # finalize any pending data processing
-        self.finalize(data)
-        # Package the python_data to a dictionary
-        pack = self.package(python_data, pagination)
-        # Return serialized response plus any http headers, like
-        # ``content-type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serializers.serialize_response_data(
-            pack, self.request, self.args, self.kwargs
-        )
-        
-        return serialized, headers
 
     def inject_data_hook(self, data):
         """
