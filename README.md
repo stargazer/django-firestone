@@ -32,12 +32,22 @@ that I came across using other frameworks.
   added by using properties. More dynamic model related data can be added by
   using the handler's ``inject_data_hook`` method, which, since is a handler
   method, is aware of the request context.
+* Enable/disable Plural-PUT and Plural-DELETE explicitly. 
 
 ### TODO
-* Enable/disable BULK-POST, Plural-PUT and Plural-DELETE explicitly
+* Emails upon crashes
+* Error messages in exceptions and responses. Make sure they make sense and
+  have the correct format. For example, when raising BadRequest('string'), the http response contains the string (not some json). Is this a problem though? Contant-type is application/json though. 
+* Authorization header decorator that django-piston used to have. What is it
+  exactly?  
 * CSRF protection
-* Recognize more content-type
+* Recognize more content-types
 * More serialization formats for responses
+* Check all TODOs in the code
+* Make sure code is succinct and it's flow is understandable.
+* Flexible way to add headers and specify status codes to responses
+* Correct status code for CRUD requests
+* http://pycallgraph.slowchop.com/en/master/index.html
 
 ## Design decisions
 

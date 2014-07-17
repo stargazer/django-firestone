@@ -23,7 +23,6 @@ class Authentication:
 
 class NoAuthentication(Authentication):
     def is_authenticated(self, request, *args, **kwargs):
-        request.user = AnonymousUser()
         return True
 
 class SessionAuthentication(Authentication):    
