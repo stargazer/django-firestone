@@ -16,8 +16,7 @@ setup(
         'django-extensions', # Required to interact easily with the testproject
     ),
     tests_require=(
-        'model-mommy',
-        'coverage',
+        'model-mommy==1.0',
     ),
     test_suite='runtests.runtests',
     zip_safe=False,
