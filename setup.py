@@ -13,7 +13,12 @@ setup(
     install_requires=(
         'Django==1.5.4',
         'django-preserialize==1.0.7',
+        'django-extensions', # Required to interact easily with the testproject
     ),
+    tests_require=(
+        'model-mommy',
+    ),
+    test_suite='runtests.runtests',
     zip_safe=False,
     classifiers=(
         'Programming Language :: Python',
