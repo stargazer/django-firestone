@@ -17,6 +17,7 @@ setup(
     ),
     tests_require=(
         'model-mommy',
+        'coverage',
     ),
     test_suite='runtests.runtests',
     zip_safe=False,
