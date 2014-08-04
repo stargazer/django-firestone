@@ -3,6 +3,12 @@ omit =
  eggs/* 
  develop-eggs* 
  parts/*
+ build/*
+ dist/*
+ django_firestone.egg-info/*
  testproject/*
  bin/*
  firestone/__init__.py
+ manage.py
+ runtests.py
+
