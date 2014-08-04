@@ -11,16 +11,15 @@ setup(
     url='http://github.com/stargazer/django-firestone',
     keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
-        'Django',
+        'Django>=1.5.4',
         'django-preserialize',
         'django-extensions', # Required to interact easily with the testproject
         'model-mommy',       # Required for the tests
         'coverage',          # Required for test coverage on Travis C.I.
     ),
-    # Kept it empty and instead moved all dependencies on
-    # ``install_requires``, which makes for way better dependency
-    # resolution.    
-    test_requires=(),
+    test_requires=(),       # Kept it empty and instead moved all dependencies on
+                            # ``install_requires``, which makes for way better dependency
+                            # resolution.    
     test_suite='runtests.runtests',
     zip_safe=False,
     classifiers=(
