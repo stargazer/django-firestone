@@ -8,6 +8,7 @@ omit =
  dist/*
  django_firestone.egg-info/*
  */site-packages/*
+ */python*/
  testproject/*
  bin/*
  firestone/__init__.py
