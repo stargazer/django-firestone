@@ -139,15 +139,15 @@ created/deleted/updated.
 
 ## How to install
 
-### For development or playing
+### For development or experimenting on a virtual environment
 
-    virtualenv whatever --no-site-packages
-    cd whatever
+    virtualenv folder --no-site-packages
+    cd folder
     git clone git@github.com:stargazer/django-firestone.git
     cd django-firestone
     python setup.py install
 
-#### Run the test suite 
+#### Run the test suite by
 
     python setup.py test
 
@@ -155,9 +155,12 @@ created/deleted/updated.
 
     ./.manage.py <command>
 
-### As a dependency 
+### As a dependency on another project
+either run:
 
-Simply include in the requirements of your project ``django-firestone``
+    pip install django-firestone
+
+or include in the requirements of your project ``django-firestone``
 
 ## How to use
 
