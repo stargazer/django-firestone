@@ -5,6 +5,9 @@ develop-eggs/
 dist/
 django_firestone.egg-info/
 htmlcov/
+build/
+Sphinx*/
+model_mommy*/
 *.swp
 *.pyc
 .installed.cfg
