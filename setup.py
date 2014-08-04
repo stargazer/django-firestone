@@ -17,7 +17,7 @@ setup(
         'model-mommy',       # Required for the tests
         'coverage',          # Required for test coverage on Travis C.I.
     ),
-    test_requires=(),       # Kept it empty and instead moved all dependencies on
+    tests_require=(),       # Kept it empty and instead moved all dependencies on
                             # ``install_requires``, which makes for way better dependency
                             # resolution.    
     test_suite='runtests.runtests',
