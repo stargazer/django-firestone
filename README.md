@@ -139,7 +139,21 @@ created/deleted/updated.
 
 ## How to install
 
-Clone github repository, or install from PyPI
+### For development or playing
+virtualenv whatever --no-site-packages
+cd whatever
+git clone git@github.com:stargazer/django-firestone.git
+cd django-firestone
+python setup.py install
+
+#### Run the test suite
+pythons setup.py test
+
+#### Play with the testing project ``testproject``
+./.manage.py <command>
+
+### As a dependency 
+Simply include in the requirements of your project ``django-firestone``
 
 ## How to use
 
