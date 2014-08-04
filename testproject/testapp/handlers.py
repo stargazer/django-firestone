@@ -108,8 +108,8 @@ class ContactHandlerSessionAuth(ModelHandler):
     }
 
     def get_working_set(self):
-        return super(ContactHandlerSessionAuth, self).get_working_set().\
-            filter(user=self.request.user)                
+        return super(ContactHandlerSessionAuth, self).get_working_set() \
+                                                     .filter(user=self.request.user)
 
     def clean_models(self):
         """
