@@ -14,9 +14,13 @@ setup(
         'Django',
         'django-preserialize',
         'django-extensions', # Required to interact easily with the testproject
-        'model-mommy',
-        'coverage',
+        'model-mommy',       # Required for the tests
+        'coverage',          # Required for test coverage on Travis C.I.
     ),
+    # Kept it empty and instead moved all dependencies on
+    # ``install_requires``, which makes for way better dependency
+    # resolution.    
+    test_requires=(),
     test_suite='runtests.runtests',
     zip_safe=False,
     classifiers=(
