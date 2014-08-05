@@ -206,16 +206,13 @@ The ``testproject`` package contains a mini Django application built on top of
 ``django-firestone``. The test project is mainly used to initiate
 ``django-firestone``'s test suite
 
-	python bootstrap.py 
-	bin/buildout
-
 In order to run the tests:
 
-	bin/test
+    python setup.py test
 
 In order to run the tests and get a test coverate report, run:
 
-    bin/createcoverage
+    coverage html
 
 You will get an HTML report in ``htmlcov/index.html`` with all details.
 
