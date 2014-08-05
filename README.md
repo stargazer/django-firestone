@@ -135,11 +135,11 @@ Careful, for requests like a plural DELETE, plural PUT, or bulk POST, pagination
 confusing, since it could hide part of the resources that have been
 created/deleted/updated.
 
-## How to install
+## How to install ``django-firestone``
 
 ### For development or experimenting 
 
-#### Create a virtuan environment and clone ``django-firestone``
+#### Create a virtual environment and clone ``django-firestone``
 
     virtualenv folder --no-site-packages
     cd folder
@@ -155,6 +155,10 @@ created/deleted/updated.
 
     python setup.py test
 
+#### Generate test coverage report    
+
+    coverage html
+
 #### Play with the test project ``testproject``
 
     ./manage.py <management command>
@@ -165,6 +169,27 @@ either run:
     pip install django-firestone
 
 or include in the requirements of your project ``django-firestone``
+
+## Tests
+
+The ``testproject`` package contains a mini Django application built on top of
+``django-firestone``. The test project is mainly used to initiate
+``django-firestone``'s test suite
+
+### Run the full testing suite
+
+Clone django-firestone
+    
+    git clone git@github.com:stargazer/django-firestone.git    
+
+Install tox and run
+
+    pip install tox
+    cd django-firestone
+    tox
+
+This will run the whole testing suite, accounting for all combinations of
+Python and Django versions
 
 ## How to use
 
@@ -198,21 +223,6 @@ or include in the requirements of your project ``django-firestone``
         url(r'^users/$', userhandler_proxy),
     )
 
-## Tests
-
-The ``testproject`` package contains a mini Django application built on top of
-``django-firestone``. The test project is mainly used to initiate
-``django-firestone``'s test suite
-
-In order to run the tests:
-
-    python setup.py test
-
-In order to run the tests and get a test coverate report, run:
-
-    coverage html
-
-You will get an HTML report in ``htmlcov/index.html`` with all details.
 
 ## Resources
 
