@@ -7,6 +7,7 @@ django_firestone.egg-info/
 htmlcov/
 build/
 .tox/
+*.egg
 *.swp
 *.pyc
 .installed.cfg
