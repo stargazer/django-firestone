@@ -139,21 +139,27 @@ created/deleted/updated.
 
 ## How to install
 
-### For development or experimenting on a virtual environment
+### For development or experimenting 
+
+#### Create a virtuan environment and clone ``django-firestone``
 
     virtualenv folder --no-site-packages
     cd folder
+    source bin/activate
     git clone git@github.com:stargazer/django-firestone.git
     cd django-firestone
+
+#### Install it
+
     python setup.py install
 
-#### Run the test suite by
+#### Run test suite
 
     python setup.py test
 
-#### Play with the testing project ``testproject``
+#### Play with the test project ``testproject``
 
-    ./.manage.py <command>
+    ./manage.py <management command>
 
 ### As a dependency on another project
 either run:
