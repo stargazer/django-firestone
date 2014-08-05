@@ -11,7 +11,7 @@ setup(
     url='http://github.com/stargazer/django-firestone',
     keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
-        'Django>=1.5.4',
+        'Django',
         'django-preserialize',
         'django-extensions', # Required to interact easily with the testproject
         'model-mommy',       # Required for the tests
