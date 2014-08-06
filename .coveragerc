@@ -2,7 +2,7 @@
 source = firestone
 omit = 
  eggs/* 
- develop-eggs* 
+ develop-eggs/* 
  parts/*
  build/*
  dist/*
@@ -11,7 +11,8 @@ omit =
  */distutils/*
  testproject/*
  bin/*
- firestone/__init__.py
+ *.egg/*
  manage.py
  runtests.py
+ setup.py
 
