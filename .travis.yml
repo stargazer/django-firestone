@@ -1,11 +1,16 @@
 language: python
-python: 
- - 2.7
+
+env:
+ - TOXENV=py27-1.5.x 
+ - TOXENV=py27-1.6.x 
+
 install:
- - python setup.py install
+ - pip install tox
+
 script:
- - python setup.py test
+ - tox
  - coverage run setup.py test
+
 after_success:
  - pip install coveralls
  - coveralls
