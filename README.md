@@ -184,11 +184,11 @@ Clone django-firestone
 
 Install tox and run
 
-    pip install tox
+    pip install tox coverage
     cd django-firestone
     tox
 
-This will run the whole testing suite, accounting for all combinations of
+This will run the whole testing suite, accounting for various combinations of
 Python and Django versions
 
 ## How to use
