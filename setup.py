@@ -20,7 +20,7 @@ setup(
     tests_require=(),       # Kept it empty and instead moved all dependencies on
                             # ``install_requires``, which makes for way better dependency
                             # resolution.    
-    test_suite='runtests.runtests',
+    test_suite='runtests.run',
     zip_safe=False,
     classifiers=(
         'Programming Language :: Python',

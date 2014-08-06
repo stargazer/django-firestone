@@ -7,12 +7,14 @@ from django.test.utils import get_runner
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
-def runtests():
+def run():
     TestRunner = get_runner(settings)
     test_runner = TestRunner(verbosity=1, interactive=True)
     try:
+        # Django 1.5
         failures = test_runner.run_tests(['testapp',])
     except ImportError:
+        # Django 1.6
         failures = test_runner.run_tests(['testproject.testapp',])
     sys.exit(failures)
 
