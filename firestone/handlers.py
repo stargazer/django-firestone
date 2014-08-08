@@ -50,10 +50,11 @@ class HandlerMetaClass(type):
 class HandlerControlFlow(object):
     """
     This class describes the basic control flow and outer shell operations of any handler. 
-    Basically the generic behavior is set here, whereas more specific behavior
-    that corresponds to HTTP methods are  described in its subclasses.
+    Basically the very generic high-level behavior layout is defined here. Its
+    more fine-grained parts are defined in classes ``BaseHandler`` and
+    ``ModelHandler``.
     
-    Don't subclass it.
+    Don't instantiate this class.
     """
     __metaclass__ = HandlerMetaClass
 
@@ -181,6 +182,12 @@ class HandlerControlFlow(object):
         
         return serialized, headers
 
+
+class BaseHandler(HandlerControlFlow):
+    """
+    This class describes a Base handler's operation.
+    """
+    
     def authentication_hook(self):
         """
         Invoked by ``preprocess``
@@ -354,7 +361,8 @@ class HandlerControlFlow(object):
 
     def response(self, data, headers={}):
         """
-        Invoked by ``dispatch``
+        Invoked by ``dispatch``. Wraps data and headers in an HttpResponse
+        object. Override to add more headers.
 
         Args:
             data: Data serialized in text
@@ -368,11 +376,6 @@ class HandlerControlFlow(object):
             res[key] = value
         return res
 
-
-class BaseHandler(HandlerControlFlow):
-    """
-    This class describes a base handler's real operation.
-    """
     def get(self):
         """
         Invoked by ``dispatch``.
@@ -555,6 +558,7 @@ class ModelHandler(BaseHandler):
     """
     This class describes a Model handler's operation.
     """
+
     # Override to define the handler's model
     model = None
 
