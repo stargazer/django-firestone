@@ -54,35 +54,8 @@ class HandlerControlFlow(object):
     more fine-grained parts are defined in classes ``BaseHandler`` and
     ``ModelHandler``.
     
-    Don't instantiate this class.
+    Don't subclass directly in a concrete handler class.
     """
-    __metaclass__ = HandlerMetaClass
-
-    # Override to define the handler's output representation. It should follow
-    # the syntax of ``django-preserialize`` templates.
-    # See <https://github.com/bruth/django-preserialize#conventions>
-    template = {}     
-
-    # List of allowed HTTP methods.
-    # GET, POST, PUT, PLURAL_PUT, DELETE, PLURAL_DELETE
-    http_methods = []
-
-    # authentication method: Should be an instance of any of the classes in the
-    # ``authentication`` module, other than ``Authentication``
-    authentication = None
-
-    # Allowed request body fields for POST and PUT requests
-    post_body_fields = put_body_fields = []    
-
-    # Filters, declared as strings. Each string indicates the method name of
-    # each filter. Every method's signature is ``(self, data, request, *args, **kwargs)``
-    # The method should define all its logic, and return a subset of ``data``.
-    # This generic scheme, requires that we write some code for every filter
-    # method, but is very flexible and powerful.
-    filters = []
-
-    # Default item per page, when pagination is requested
-    items_per_page = 10
 
     def dispatch(self):
         """
@@ -187,6 +160,33 @@ class BaseHandler(HandlerControlFlow):
     """
     This class describes a Base handler's operation.
     """
+    __metaclass__ = HandlerMetaClass
+
+    # Override to define the handler's output representation. It should follow
+    # the syntax of ``django-preserialize`` templates.
+    # See <https://github.com/bruth/django-preserialize#conventions>
+    template = {}     
+
+    # List of allowed HTTP methods.
+    # GET, POST, PUT, PLURAL_PUT, DELETE, PLURAL_DELETE
+    http_methods = []
+
+    # authentication method: Should be an instance of any of the classes in the
+    # ``authentication`` module, other than ``Authentication``
+    authentication = None
+
+    # Allowed request body fields for POST and PUT requests
+    post_body_fields = put_body_fields = []    
+
+    # Filters, declared as strings. Each string indicates the method name of
+    # each filter. Every method's signature is ``(self, data, request, *args, **kwargs)``
+    # The method should define all its logic, and return a subset of ``data``.
+    # This generic scheme, requires that we write some code for every filter
+    # method, but is very flexible and powerful.
+    filters = []
+
+    # Default item per page, when pagination is requested
+    items_per_page = 10
     
     def authentication_hook(self):
         """
