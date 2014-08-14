@@ -14,17 +14,27 @@ class TestAPIExceptionInstantiation(TestCase):
     def test_method_not_allowed(self):
         e = exceptions.MethodNotAllowed([])
         self.assertEqual(e.status, 405)
-        self.assertIsInstance(e.http_response, http.HttpResponseNotAllowed)
 
-    def test_method_bad_request(self):
+
+        response, headers = e.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponseNotAllowed)
+        self.assertItemsEqual(headers, {})
+
+    def test_bad_request(self):
         e = exceptions.BadRequest()
         self.assertEqual(e.status, 400)
-        self.assertIsInstance(e.http_response, http.HttpResponseBadRequest)
+
+        response, headers = e.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponseBadRequest)
+        self.assertItemsEqual(headers, {})
 
     def test_gone(self):
         e = exceptions.Gone()
         self.assertEqual(e.status, 410)
-        self.assertIsInstance(e.http_response, http.HttpResponseGone)
+        
+        response, headers = e.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponseGone)
+        self.assertItemsEqual(headers, {})
 
     def test_unprocessable(self):
         e = exceptions.Unprocessable()
@@ -44,10 +54,12 @@ class TestAPIExceptionInstantiation(TestCase):
         try:
             raise TypeError()
         except Exception, e:
-            exp = exceptions.OtherException(e, request)
-
+            exp = exceptions.OtherException(request)
         self.assertEqual(exp.status, 500)
-        self.assertIsInstance(exp.http_response, http.HttpResponseServerError)
+        
+        response, headers = exp.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponseServerError)
+        self.assertEqual(headers, {})
 
 
 class TestHandleException(TestCase):
@@ -63,17 +75,18 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.MethodNotAllowed(allowed_methods)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 405)
-        self.assertEqual(res['Allow'], '')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response['Allow'], '')
+        self.assertItemsEqual(headers, {})
         
         allowed_methods = ('GET', 'POST')
         try:
             raise exceptions.MethodNotAllowed(allowed_methods)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 405)
-        self.assertEqual(res['Allow'], ', '.join(allowed_methods))
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response['Allow'], ', '.join(allowed_methods))
 
     def test_bad_request(self):
         request = RequestFactory().get('/')
@@ -81,27 +94,29 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.BadRequest
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 400) 
-        self.assertEqual(res.content, '')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 400) 
+        self.assertEqual(response.content, '')
+        self.assertItemsEqual(headers, {})
+
 
         content = 'some error here'
         try:
             raise exceptions.BadRequest(content)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 400) 
-        self.assertJSONEqual(res.content, json.dumps(content))
-        self.assertEqual(res['content-type'], 'application/json')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 400) 
+        self.assertJSONEqual(response.content, json.dumps(content))
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
         content = {'error1': 'description', 'error2': 'description'}
         try:
             raise exceptions.BadRequest(content)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 400) 
-        self.assertJSONEqual(res.content, json.dumps(content))
-        self.assertEqual(res['content-type'], 'application/json')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 400) 
+        self.assertJSONEqual(response.content, json.dumps(content))
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
     def test_gone(self): 
         request = RequestFactory().get('/')
@@ -109,8 +124,9 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.Gone
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 410) 
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 410) 
+        self.assertItemsEqual(headers, {})
 
     def test_unprocessable(self): 
         request = RequestFactory().get('/')
@@ -118,27 +134,28 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.Unprocessable
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 422)
-        self.assertEqual(res.content, '')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content, '')
+        self.assertItemsEqual(headers, {})
 
         content = 'some error here'
         try:
             raise exceptions.Unprocessable(content)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 422) 
-        self.assertJSONEqual(res.content, json.dumps(content))
-        self.assertEqual(res['content-type'], 'application/json')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 422) 
+        self.assertJSONEqual(response.content, json.dumps(content))
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
         
         content = {'error1': 'description', 'error2': 'description'}
         try:
             raise exceptions.Unprocessable(content)
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 422) 
-        self.assertJSONEqual(res.content, json.dumps(content))
-        self.assertEqual(res['content-type'], 'application/json')
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 422) 
+        self.assertJSONEqual(response.content, json.dumps(content))
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
     def test_unsupported_media_type(self):
         request = RequestFactory().get('/')
@@ -146,8 +163,9 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.UnsupportedMediaType
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 415)            
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 415)
+        self.assertItemsEqual(headers, {})
 
     def test_not_implemented(self):
         request = RequestFactory().get('/')
@@ -155,8 +173,9 @@ class TestHandleException(TestCase):
         try:
             raise exceptions.NotImplemented
         except Exception, e:
-            res = exceptions.handle_exception(e, request)
-        self.assertEqual(res.status_code, 501)            
+            response, headers = exceptions.handle_exception(e, request)
+        self.assertEqual(response.status_code, 501)            
+        self.assertItemsEqual(headers, {})
 
     def test_other_exception_debug_false(self):
         # With settings.DEBUG = False, the response should be empty
@@ -166,11 +185,11 @@ class TestHandleException(TestCase):
         try:
             raise TypeError
         except TypeError, e:
-            res = exceptions.handle_exception(e, request)
+            response, headers = exceptions.handle_exception(e, request)
 
-        self.assertEqual(res.status_code, 500)
-        self.assertFalse(res.content)
-        self.assertEqual(res['content-type'], 'text/html; charset=utf-8')
+        self.assertEqual(response.status_code, 500)
+        self.assertFalse(response.content)
+        self.assertItemsEqual(headers, {})
 
     def test_other_exception_debug_true(self):
         # With settings.DEBUG = False, the response should be non empty
@@ -180,10 +199,10 @@ class TestHandleException(TestCase):
         try:
             raise TypeError
         except TypeError, e:
-            res = exceptions.handle_exception(e, request)
+            response, headers = exceptions.handle_exception(e, request)
 
-        self.assertEqual(res.status_code, 500)
-        self.assertTrue(res.content)
-        self.assertEqual(res['content-type'], 'text/html; charset=utf-8')
+        self.assertEqual(response.status_code, 500)
+        self.assertTrue(response.content)
+        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
 

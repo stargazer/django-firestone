@@ -22,7 +22,7 @@ from test_handlers_is_catastrophic import *
 from test_handlers_post import *
 from test_handlers_put import *
 from test_handlers_delete import *
-from test_handlers_response import *
+from test_handlers_patch_response import *
 from test_handlers_authentication_hook import *
 from test_handlers_filter_data import *
 from test_handlers_order import *

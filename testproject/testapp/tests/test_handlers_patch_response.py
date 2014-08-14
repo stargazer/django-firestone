@@ -4,6 +4,7 @@ This module tests the ``firestone.HandlerControlFlow.response`` method
 from firestone.handlers import BaseHandler
 from django.test import TestCase
 from django.test import RequestFactory
+from django import http
 
 
 class TestResponse(TestCase):
@@ -11,7 +12,8 @@ class TestResponse(TestCase):
         handler = BaseHandler()
         request = RequestFactory().get('/')
 
-        res = handler.response('', {})
+        res = http.HttpResponse()
+        handler.patch_response(res, {})
 
         self.assertEqual(res.content, '')
         self.assertEqual(res.status_code, 200)
@@ -21,7 +23,8 @@ class TestResponse(TestCase):
         handler = BaseHandler()
         request = RequestFactory().get('/')
 
-        res = handler.response('data', {})
+        res = http.HttpResponse('data')
+        handler.patch_response(res, {})
 
         self.assertEqual(res.content, 'data')
         self.assertEqual(res.status_code, 200)
@@ -31,7 +34,8 @@ class TestResponse(TestCase):
         handler = BaseHandler()
         request = RequestFactory().get('/')
 
-        res = handler.response('data', {'content-type': 'application/json'})
+        res = http.HttpResponse('data')
+        handler.patch_response(res, {'content-type': 'application/json'})
 
         self.assertEqual(res.content, 'data')
         self.assertEqual(res.status_code, 200)
@@ -41,8 +45,9 @@ class TestResponse(TestCase):
         handler = BaseHandler()
         request = RequestFactory().get('/')
 
-        res = handler.response(
-            'data', 
+        res = http.HttpResponse('data')
+        handler.patch_response(
+            res,  
             {
                 'content-disposition': 'attachment; filename="foo.xls"',
                 'content-type': 'application/vnd.ms-excel',

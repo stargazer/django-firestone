@@ -1,6 +1,7 @@
 from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import SessionAuthentication
+from preserialize import serialize as preserializer
 import serializers 
 import deserializers
 import exceptions
@@ -11,7 +12,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from preserialize import serialize as preserializer
 
 
 class HandlerMetaClass(type):
@@ -69,14 +69,21 @@ class HandlerControlFlow(object):
         try:
             self.preprocess()
             data, pagination = self.process()
-            response_data, headers = self.postprocess(
+            dic = self.postprocess(
                 data, pagination,
             )
-        except Exception, e:
-            # If exception, return the appropriate http.HttpResponse object
-            return exceptions.handle_exception(e, self.request)
 
-        return self.response(response_data, headers)
+        except Exception, e:
+            # handle exception
+            response, headers = self.handle_exception(e)
+
+        else:
+            serialized_data, headers = serializers.serialize_response_data(
+                dic, self.request, self.args, self.kwargs
+            ) 
+            response = http.HttpResponse(serialized_data)            
+
+        return self.patch_response(response, headers)
 
     def preprocess(self):
         """
@@ -135,10 +142,7 @@ class HandlerControlFlow(object):
             data: Result of operation
             pagination: Dictionary with pagination data
         Returns:
-            (serialized, headers): ``serialized`` is the
-            serialized response, ready to be passed to the HTTPResponse object, and
-            ``headers`` is a dictionary of headers to be passed to the HTTPResponse
-            object.
+            Whole response data dictionary
         """
         self.inject_data_hook(data)
         # Serialize ``data`` to python data structures
@@ -146,7 +150,7 @@ class HandlerControlFlow(object):
         # finalize any pending data processing
         self.finalize_pending(data)
         # Package the python_data to a dictionary
-        pack = self.package(python_data, pagination)
+        return self.package(python_data, pagination)
         # Return serialized response plus any http headers, like
         # ``content-type`` that need to be passed in the HttpResponse instance.
         serialized, headers = serializers.serialize_response_data(
@@ -154,6 +158,25 @@ class HandlerControlFlow(object):
         )
         
         return serialized, headers
+
+    def handle_exception(self, e):
+        """
+        Invoked by ``dispatch``
+        Handles any exceptions that might have been raised
+
+        Args:
+            e: Exception instance
+        Returns:
+            (http_response, headers): ``http_response`` is an HttpResponse
+            instance. ``headers`` is a dictionary of key-value pairs to be used
+            as headers on the HttpResponse object.
+        """
+        if isinstance(e, exceptions.APIException):
+            return e.get_http_response_and_headers()
+        else:
+            exc = exceptions.OtherException(self.request)
+            return exc.get_http_response_and_headers()
+
 
 
 class BaseHandler(HandlerControlFlow):
@@ -359,10 +382,10 @@ class BaseHandler(HandlerControlFlow):
             'query_log': connection.queries,
         }
 
-    def response(self, data, headers={}):
+    def patch_response(self, response, headers={}):
         """
         Invoked by ``dispatch``. Wraps data and headers in an HttpResponse
-        object. Override to add more headers.
+        object. Override to add more headers or modify any response attribute.
 
         Args:
             data: Data serialized in text
@@ -371,10 +394,9 @@ class BaseHandler(HandlerControlFlow):
         Returns:
             http.HttpResponse object.
         """
-        res = http.HttpResponse(data)
         for key, value in headers.items():
-            res[key] = value
-        return res
+            response[key] = value
+        return response
 
     def get(self):
         """
