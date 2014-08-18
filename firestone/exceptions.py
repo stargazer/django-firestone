@@ -116,18 +116,3 @@ class OtherException(Exception):
         headers = {'content-type': 'text/html; charset=utf-8'}
         return http_response, headers
 
-
-# TODO: This function is obsolete, since the
-# HandlerControlFlow.handle_exception is used instead. Delete it,and remove its
-# corresponding tests.
-def handle_exception(e, request):
-    # If exception ``e`` is of type APIException, we simply return the
-    # corresponding HttpResponse object.
-    if isinstance(e, APIException):
-        return e.get_http_response_and_headers()
-
-    # Else, we make it an OtherException, and return a HttpResponse 500 object
-    else:
-        exc = OtherException(request)
-        return exc.get_http_response_and_headers()
-

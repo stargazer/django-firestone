@@ -30,3 +30,4 @@ from test_handlers_order_data import *
 from test_handlers_paginate import *
 from test_handlers_paginate_data import *
 from test_handlers_inject_data_hook import *
+from test_handlers_handle_exception import *
