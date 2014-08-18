@@ -33,7 +33,7 @@ class TestAPIExceptionInstantiation(TestCase):
 
         response, headers = e.get_http_response_and_headers()
         self.assertIsInstance(response, http.HttpResponseBadRequest)
-        self.assertItemsEqual(headers, {})
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
     def test_gone(self):
         e = exceptions.Gone()

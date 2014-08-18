@@ -14,6 +14,7 @@ from serializers import serialize
 from django import http
 from django.conf import settings
 from django.views.debug import ExceptionReporter   
+from django.core.exceptions import NON_FIELD_ERRORS
 import sys
 
 
@@ -37,9 +38,26 @@ class MethodNotAllowed(APIException):
 
 class BadRequest(APIException):
     def __init__(self, errors=None):
+        """
+        Parameter self.errors will always be a dictionary, of:
+        { 
+                <field1>: <error>,
+                <field2>: <error>,
+        }
+
+        or
+        {
+                __all__: <error>
+        }
+        """
         self.status = 400
+
+        # If it's a string, make it a dictionary
+        if not isinstance(errors, dict):
+            errors = {NON_FIELD_ERRORS: errors}
         self.errors = errors
-        self.body, self.headers = errors and serialize(errors) or ('', {})
+
+        self.body, self.headers = serialize(self.errors)
 
     def get_http_response_and_headers(self):
         return http.HttpResponseBadRequest(self.body), self.headers

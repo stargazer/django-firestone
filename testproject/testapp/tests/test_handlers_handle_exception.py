@@ -7,6 +7,7 @@ from firestone import exceptions
 from django.test import TestCase
 from django.test import RequestFactory
 from django.conf import settings
+from django.core.exceptions import NON_FIELD_ERRORS
 import json
 
 
@@ -56,12 +57,12 @@ class TestHandleException(TestCase):
         handler = init_handler(BaseHandler(), request)
         
         try:
-            raise exceptions.BadRequest
+            raise exceptions.BadRequest('')
         except Exception, e:
             response, headers = handler.handle_exception(e)
         self.assertEqual(response.status_code, 400) 
-        self.assertEqual(response.content, '')
-        self.assertItemsEqual(headers, {})
+        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: ''}))
+        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
 
     def test_bad_request_2(self):
@@ -74,7 +75,7 @@ class TestHandleException(TestCase):
         except Exception, e:
             response, headers = handler.handle_exception(e)
         self.assertEqual(response.status_code, 400) 
-        self.assertJSONEqual(response.content, json.dumps(content))
+        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: content}))
         self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
 
