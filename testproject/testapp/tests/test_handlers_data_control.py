@@ -18,7 +18,8 @@ def init_handler(handler, request, *args, **kwargs):
     handler.kwargs = kwargs
     return handler
 
-class testModelHandlerDataControl(TestCase):
+
+class TestModelHandlerGetDataItem(TestCase):
     def setUp(self):
         request = RequestFactory().get('whateverpath/')
 
@@ -29,8 +30,7 @@ class testModelHandlerDataControl(TestCase):
         # Create some model instances
         users = mommy.make(User, 10)
 
-    def test_get_data_item(self):
-        # Testing ``ModelHandler.get_data_item``
+    def test_get_data_item_single_field_selection(self):
         handler = self.handler
         
         self.assertEquals(
@@ -38,13 +38,17 @@ class testModelHandlerDataControl(TestCase):
             None,
         )
 
+        # Item selection based on 1 field
         handler.kwargs = {'id':1}
         self.assertEquals(
             handler.get_data_item(),
             User.objects.get(id=1),
         )
 
-        # Instance selection based on 2 fields
+    def test_get_data_item_double_field_selection(self):
+        handler = self.handler
+
+        # Item selection based on 2 fields
         user = User.objects.get(id=1)
         handler.kwargs = {'id': user.id, 'first_name': user.first_name}
         self.assertEquals(
@@ -52,11 +56,8 @@ class testModelHandlerDataControl(TestCase):
             user,
         )
 
-        handler.kwargs = {'id': 10}
-        self.assertEquals(
-            handler.get_data_item(),
-            User.objects.get(id=10),
-        )
+    def test_get_data_item_object_does_not_exist(self):
+        handler = self.handler
 
         # ObjectDoesNotExist becomes exceptions.Gone
         handler.kwargs = {'id': 1000}
@@ -65,6 +66,9 @@ class testModelHandlerDataControl(TestCase):
             handler.get_data_item,
         )
 
+    def test_get_data_item_value_error(self):
+        handler = self.handler
+
         # ValueError becomes exceptions.Gone
         handler.kwargs = {'id': 'string'}
         self.assertRaises(
@@ -72,12 +76,27 @@ class testModelHandlerDataControl(TestCase):
             handler.get_data_item,
         )
 
+    def test_get_data_item_type_error(self):
+        handler = self.handler
+
         # TypeError becomes exceptions.Gone
         handler.kwargs = {'id': {'key': 'value'}}
         self.assertRaises(
             exceptions.Gone,
             handler.get_data_item,
         )
+
+
+class TestModelHandlerGetDataSet(TestCase):
+    def setUp(self):
+        request = RequestFactory().get('whateverpath/')
+
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
+        # Create some model instances
+        users = mommy.make(User, 10)
 
     def test_get_data_set(self):        
         # Testing ``ModelHandler.get_data_set``
@@ -88,6 +107,18 @@ class testModelHandlerDataControl(TestCase):
             User.objects.all(),
         )
 
+
+class TestModelHandlerGetWorkingSet(TestCase):
+    def setUp(self):
+        request = RequestFactory().get('whateverpath/')
+
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
+        # Create some model instances
+        users = mommy.make(User, 10)
+
     def test_get_working_set(self):        
         # Testing ``ModelHandler.get_working_set``
         handler = self.handler
@@ -96,6 +127,19 @@ class testModelHandlerDataControl(TestCase):
             handler.get_working_set(),
             User.objects.all(),
         )
+
+
+class TestModelHandlerGetData(TestCase):
+    def setUp(self):
+        request = RequestFactory().get('whateverpath/')
+
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        self.handler = handler
+
+        # Create some model instances
+        users = mommy.make(User, 10)
+
 
     def test_get_data(self):        
         # Testing ``ModelHandler.get_data``
@@ -106,17 +150,27 @@ class testModelHandlerDataControl(TestCase):
             User.objects.all(),
         )
 
+    def test_get_data_single_field_selection(self):
+        handler = self.handler
+
         handler.kwargs = {'id': 1}
         self.assertEquals(
             handler.get_data(),
             User.objects.get(id=1),
         )
 
-        handler.kwargs = {'id': 10}
+    def test_get_data_double_field_selection(self):
+        handler = self.handler
+        
+        user = User.objects.get(id=1)
+        handler.kwargs = {'id': user.id, 'first_name': user.first_name}
         self.assertEquals(
             handler.get_data(),
-            User.objects.get(id=10),
+            user,
         )
+
+    def test_get_data_gone(self):
+        handler = self.handler
 
         handler.kwargs = {'id': 1000}
         self.assertRaises(
