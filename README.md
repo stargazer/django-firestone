@@ -33,12 +33,16 @@ that I came across using other frameworks.
 * Enable/disable Plural-PUT and Plural-DELETE explicitly. 
 
 ### TODO
+* Rename methods that should be renamed. Methods that return something should
+  be named ``get-<something>``. Others should be named ``set-<something>``.
+* Be able to exclude model fields from validation and cleaning
 * Emails upon crashes
 * Error messages in exceptions and responses. Make sure they make sense and
   have the correct format. For example, when raising BadRequest('string'), the http response contains the string (not some json). Is this a problem though? Contant-type is application/json though. 
 * Authorization header decorator that django-piston used to have. What is it
   exactly?  
-* CSRF protection
+* CSRF protection - Make sure that default behavior exempts
+  view(Proxy.__call__) from CSRF check
 * Recognize more content-types
 * More serialization formats for responses
 * Check all TODOs in the code
