@@ -11,6 +11,13 @@ import json
 
 class TestAPIExceptionInstantiation(TestCase):
 
+    def test_method_api_exception(self):
+        e = exceptions.APIException()
+
+        response, headers = e.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponse)
+        self.assertItemsEqual(headers, {})
+
     def test_method_not_allowed(self):
         e = exceptions.MethodNotAllowed([])
         self.assertEqual(e.status, 405)
