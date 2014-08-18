@@ -94,7 +94,6 @@ class OtherException(Exception):
         """
         self.status = 500
         self.request = request
-        self.headers = {}
 
     def get_http_response_and_headers(self):
         exc_type, exc_value, traceback = sys.exc_info()
@@ -109,14 +108,13 @@ class OtherException(Exception):
         if settings.DEBUG:
             http_response = http.HttpResponseServerError(
                 html,
-                content_type='text/html; charset=utf-8'
             )
-            self.headers['content-type'] = 'text/html; charset=utf-8'
         else:
             http_response = http.HttpResponseServerError()
             # TODO: and send email
 
-        return http_response, self.headers
+        headers = {'content-type': 'text/html; charset=utf-8'}
+        return http_response, headers
 
 
 # TODO: This function is obsolete, since the

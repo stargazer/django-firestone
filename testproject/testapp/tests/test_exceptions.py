@@ -59,7 +59,7 @@ class TestAPIExceptionInstantiation(TestCase):
         
         response, headers = exp.get_http_response_and_headers()
         self.assertIsInstance(response, http.HttpResponseServerError)
-        self.assertEqual(headers, {})
+        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
 
 class TestHandleException(TestCase):
@@ -189,7 +189,7 @@ class TestHandleException(TestCase):
 
         self.assertEqual(response.status_code, 500)
         self.assertFalse(response.content)
-        self.assertItemsEqual(headers, {})
+        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
     def test_other_exception_debug_true(self):
         # With settings.DEBUG = False, the response should be non empty
