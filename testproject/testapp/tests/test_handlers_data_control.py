@@ -178,4 +178,14 @@ class TestModelHandlerGetData(TestCase):
             handler.get_data,
         )
 
+    def test_get_data_method_not_allowed(self):
+        # Plural DELETE method, raises ``MethodNotAllowed`` exception
+        handler = self.handler
+        handler.request = RequestFactory().delete('/')
+
+        self.assertRaises(
+            exceptions.MethodNotAllowed,
+            handler.get_data,
+        )
+
 
