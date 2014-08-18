@@ -160,7 +160,8 @@ created/deleted/updated.
     python setup.py test
 
 #### Generate test coverage report    
-
+    
+    coverage run setup.py test
     coverage html
 
 #### Play with the test project ``testproject``
