@@ -18,13 +18,9 @@ def init_handler(handler, request, *args, **kwargs):
 
 
 class TestBaseHandlerOrder(TestCase):
-    def setUp(self):
+    def test_no_ordering(self):
         request = RequestFactory().get('/')
         handler = init_handler(BaseHandler(), request)
-        self.handler = handler
-
-    def test_no_ordering(self):
-        handler = self.handler
 
         data = 'whatever'
         self.assertEqual(
@@ -33,9 +29,10 @@ class TestBaseHandlerOrder(TestCase):
         )
 
     def test_ordering(self):
-        handler = self.handler
-        data = 'whatever'
+        request = RequestFactory().get('/?order=someorder')
+        handler = init_handler(BaseHandler(), request)
 
+        data = 'whatever'
         self.assertEqual(
             handler.order(data),
             data
@@ -43,26 +40,30 @@ class TestBaseHandlerOrder(TestCase):
 
 class TestModelHandlerOrder(TestCase):
     def setUp(self):
+        mommy.make(User, 100)
+
+    def test_no_ordering(self):
         request = RequestFactory().get('/')
         handler = init_handler(ModelHandler(), request)
         handler.model = User
-        self.handler = handler
 
-        mommy.make(User, 100)
-
-    def test_order_default(self):
         data = User.objects.all()
         self.assertEqual(
-            self.handler.order(data),
+            handler.order(data),
             data,
         )
 
     def test_order_descending(self):
-        def order(data):
+        def order_data(data, order):
             " Descending order"
-            return data.order_by('-id')
-        handler = self.handler
-        handler.order = order
+            if order == 'id':
+                return data.order_by('-id')
+            return data
+        
+        request = RequestFactory().get('/?order=id')
+        handler = init_handler(ModelHandler(), request)
+        handler.model = User
+        handler.order_data = order_data
 
         data = User.objects.all()
         ordered_data = handler.order(data)
