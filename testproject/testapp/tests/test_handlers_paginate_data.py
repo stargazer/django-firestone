@@ -63,9 +63,9 @@ class ModelHandlerTestPaginateData(TestCase):
         self.assertEqual(metadata['total_items'], 100)
 
     def test_valid_paging_no_metadata(self):
-        # handler.metadata_upon_pagination=False
+        # handler.pagination_metadata=False
         handler = self.handler
-        handler.metadata_upon_pagination = False
+        handler.pagination_metadata = False
 
         data = User.objects.all()
         page = 1

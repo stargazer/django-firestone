@@ -212,9 +212,9 @@ class BaseHandler(HandlerControlFlow):
     # Default item per page, when pagination is requested
     items_per_page = 10
 
-    # Defines whether metadata should be returned when response data are
-    # paginated. Generating metadata can, at times, perform costly queries.
-    metadata_upon_pagination = True
+    # Defines whether metadata should be returned when pagination is used.
+    # Generating metadata can, at times, perform costly queries.
+    pagination_metadata = True
     
     def authentication_hook(self):
         """
@@ -774,7 +774,7 @@ class ModelHandler(BaseHandler):
         Returns:
             (data_page, {'total_pages': <total pages>, 'total_items': <total items>})
             If for some reason we can't paginate data, or
-            ``metadata_upon_pagination`` is ``False``, returns (data, {})
+            ``pagination_metadata`` is ``False``, returns (data, {})
         """
         ipp = self.request.GET.get('ipp', None) or self.items_per_page
         try:
@@ -782,7 +782,7 @@ class ModelHandler(BaseHandler):
         except ValueError:
             ipp = self.items_per_page
 
-        if not self.metadata_upon_pagination:
+        if not self.pagination_metadata:
             paginator = LazyPaginator(data, ipp)
         else:
             paginator = Paginator(data, ipp)
