@@ -42,21 +42,25 @@ class ModelHandlerTestPaginateData(TestCase):
         
         mommy.make(User, 100)
 
-    def test_valid_paging(self):
+    def test_valid_paging_1(self):
         handler = self.handler
 
         data = User.objects.all()
         page = 1
-        data_page, pagination = handler.paginate_data(data, page)
+        data_page, metadata = handler.paginate_data(data, page)
         self.assertItemsEqual(data_page, User.objects.filter(id__lte=10))
-        self.assertEqual(pagination['total_pages'], 10)
-        self.assertEqual(pagination['total_items'], 100)
+        self.assertEqual(metadata['total_pages'], 10)
+        self.assertEqual(metadata['total_items'], 100)
 
+    def test_valid_paging_2(self):
+        handler = self.handler
+        
+        data = User.objects.all()
         page = 10
-        data_page, pagination = handler.paginate_data(data, page)
+        data_page, metadata = handler.paginate_data(data, page)
         self.assertItemsEqual(data_page, User.objects.filter(id__in=range(91,101)))
-        self.assertEqual(pagination['total_pages'], 10)
-        self.assertEqual(pagination['total_items'], 100)
+        self.assertEqual(metadata['total_pages'], 10)
+        self.assertEqual(metadata['total_items'], 100)
 
     def test_valid_paging_single_model_instance(self):
         handler = self.handler
@@ -69,7 +73,7 @@ class ModelHandlerTestPaginateData(TestCase):
             (data, {}),
         )
 
-    def test_invalid_paging(self):
+    def test_invalid_paging_1(self):
         handler = self.handler
         # Data is unpaginable, so returns as is
         data = User.objects.all()
@@ -78,7 +82,10 @@ class ModelHandlerTestPaginateData(TestCase):
             handler.paginate_data(data, page),
             (data, {}),
         )
-            
+
+    def test_invalid_paging_2(self):
+        handler = self.handler
+
         data = User.objects.all()
         page = 'invalid'
         self.assertEqual(
@@ -86,6 +93,8 @@ class ModelHandlerTestPaginateData(TestCase):
             (data, {}),
         )
 
+    def test_invalid_paging_3(self):
+        handler = self.handler 
         data = User.objects.all()
         page = None
         self.assertEqual(
@@ -99,10 +108,10 @@ class ModelHandlerTestPaginateData(TestCase):
         page = 2
         handler.request = RequestFactory().get('/?ipp=50')
         
-        data_page, pagination = self.handler.paginate_data(data, page)
+        data_page, metadata = self.handler.paginate_data(data, page)
         self.assertItemsEqual(data_page, User.objects.filter(id__range=(51, 101)))
-        self.assertEqual(pagination['total_pages'], 2)
-        self.assertEqual(pagination['total_items'], 100)
+        self.assertEqual(metadata['total_pages'], 2)
+        self.assertEqual(metadata['total_items'], 100)
 
     def test_paging_with_invalid_ipp(self):
         handler = self.handler
@@ -111,9 +120,9 @@ class ModelHandlerTestPaginateData(TestCase):
         page = 1
         handler.request = RequestFactory().get('/?ipp=invalid')
 
-        data, pagination = handler.paginate_data(data, page)
+        data, metadata = handler.paginate_data(data, page)
 
         self.assertItemsEqual(data, User.objects.filter(id__in=range(1, 11)))
-        self.assertEqual(pagination['total_pages'], 10)
-        self.assertEqual(pagination['total_items'], 100)
+        self.assertEqual(metadata['total_pages'], 10)
+        self.assertEqual(metadata['total_items'], 100)
         
