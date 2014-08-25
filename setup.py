@@ -13,6 +13,7 @@ setup(
     install_requires=(
         'Django',
         'django-preserialize',
+        'django-endless-pagination',
         'django-extensions', # Required to interact easily with the testproject
         'model-mommy',       # Required for the tests
         'coverage',          # Required for test coverage on Travis C.I.

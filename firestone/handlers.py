@@ -12,6 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from endless_pagination.paginators import LazyPaginator
 
 
 class HandlerMetaClass(type):
@@ -775,24 +776,27 @@ class ModelHandler(BaseHandler):
             If for some reason we can't paginate data, or
             ``metadata_upon_pagination`` is ``False``, returns (data, {})
         """
-        data_page = data
-        metadata = {}
-        
         ipp = self.request.GET.get('ipp', None) or self.items_per_page
         try:
             ipp = int(ipp)
         except ValueError:
             ipp = self.items_per_page
 
-        paginator = Paginator(data, ipp)
+        if not self.metadata_upon_pagination:
+            paginator = LazyPaginator(data, ipp)
+        else:
+            paginator = Paginator(data, ipp)
+
         try:
             data_page = paginator.page(page)
         except (EmptyPage, PageNotAnInteger, TypeError):
             # TypeError: in case ``data`` is a single model instance
-            pass
-        else:
-            if self.metadata_upon_pagination:
-                metadata = {'total_pages': paginator.num_pages, 'total_items': paginator.count}
+            return data, {}
+        
+        try:
+            metadata = {'total_pages': paginator.num_pages, 'total_items': paginator.count}
+        except NotImplementedError:
+            metadata = {}
 
         return data_page, metadata
 
