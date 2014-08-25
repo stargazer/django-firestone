@@ -62,6 +62,17 @@ class ModelHandlerTestPaginateData(TestCase):
         self.assertEqual(metadata['total_pages'], 10)
         self.assertEqual(metadata['total_items'], 100)
 
+    def test_valid_paging_no_metadata(self):
+        # handler.metadata_upon_pagination=False
+        handler = self.handler
+        handler.metadata_upon_pagination = False
+
+        data = User.objects.all()
+        page = 1
+        data_page, metadata = handler.paginate_data(data, page)
+        self.assertItemsEqual(data_page, User.objects.filter(id__lte=10))
+        self.assertEqual(metadata, {})
+
     def test_valid_paging_single_model_instance(self):
         handler = self.handler
         # Data is unpaginable, so returns as is

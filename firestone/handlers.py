@@ -210,6 +210,10 @@ class BaseHandler(HandlerControlFlow):
 
     # Default item per page, when pagination is requested
     items_per_page = 10
+
+    # Defines whether metadata should be returned when response data are
+    # paginated. Generating metadata can, at times, perform costly queries.
+    metadata_upon_pagination = True
     
     def authentication_hook(self):
         """
@@ -551,8 +555,8 @@ class BaseHandler(HandlerControlFlow):
         Args:
             data: Result of the handler's data operation
         Returns:
-            (data_page, total_dict), where ``data_page`` is the page returned
-            and ``total_dict`` is a dictionary containing extra pagination data. 
+            (data_page, metadata), where ``data_page`` is the page returned
+            and ``metadata`` is a dictionary containing extra pagination data. 
             If data is not paginable, or invalid pagination data has been given,
             it returns (data, {})
         """
@@ -767,9 +771,13 @@ class ModelHandler(BaseHandler):
         Args:
             page: Value of querystring parameter ``page``
         Returns:
-            (data_page, {'pages': <total pages>, 'items': <total items>})
-            If for some reason we can't paginate data, returns (data, {})
+            (data_page, {'total_pages': <total pages>, 'total_items': <total items>})
+            If for some reason we can't paginate data, or
+            ``metadata_upon_pagination`` is ``False``, returns (data, {})
         """
+        data_page = data
+        metadata = {}
+        
         ipp = self.request.GET.get('ipp', None) or self.items_per_page
         try:
             ipp = int(ipp)
@@ -777,14 +785,16 @@ class ModelHandler(BaseHandler):
             ipp = self.items_per_page
 
         paginator = Paginator(data, ipp)
-
         try:
             data_page = paginator.page(page)
         except (EmptyPage, PageNotAnInteger, TypeError):
             # TypeError: in case ``data`` is a single model instance
-            return data, {}
+            pass
+        else:
+            if self.metadata_upon_pagination:
+                metadata = {'total_pages': paginator.num_pages, 'total_items': paginator.count}
 
-        return data_page, {'total_pages': paginator.num_pages, 'total_items': paginator.count}
+        return data_page, metadata
 
 
 """
