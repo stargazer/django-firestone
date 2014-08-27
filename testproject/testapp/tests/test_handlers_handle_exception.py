@@ -61,7 +61,7 @@ class TestHandleException(TestCase):
         except Exception, e:
             response, headers = handler.handle_exception(e)
         self.assertEqual(response.status_code, 400) 
-        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: ''}))
+        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: ['']}))
         self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
 
@@ -75,7 +75,7 @@ class TestHandleException(TestCase):
         except Exception, e:
             response, headers = handler.handle_exception(e)
         self.assertEqual(response.status_code, 400) 
-        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: content}))
+        self.assertJSONEqual(response.content, json.dumps({NON_FIELD_ERRORS: [content,]}))
         self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
 

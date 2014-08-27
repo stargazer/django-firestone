@@ -39,22 +39,27 @@ class MethodNotAllowed(APIException):
 class BadRequest(APIException):
     def __init__(self, errors=None):
         """
-        Parameter self.errors will always be a dictionary, of:
-        { 
-                <field1>: <error>,
-                <field2>: <error>,
-        }
-
-        or
-        {
-                __all__: <error>
-        }
+        Entering here, ``errors`` might be:
+            1) Dictionary:
+            {
+                    <field1>: <error>,
+                    <field2>: <error>,
+                    ...
+                    '__all__': [<error>,]
+            }
+            or String:
+                    '<error>'
+        
+        We process it and make sure it's always a dictionary. So the latter
+        case would become:
+            {
+                    '__all__': ['<error>']
+            }
         """
         self.status = 400
-
         # If it's a string, make it a dictionary
-        if not isinstance(errors, dict):
-            errors = {NON_FIELD_ERRORS: errors}
+        if isinstance(errors, basestring):
+            errors = {NON_FIELD_ERRORS: (errors,)}
         self.errors = errors
 
         self.body, self.headers = serialize(self.errors)
