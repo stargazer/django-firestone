@@ -18,10 +18,9 @@ that I came across using other frameworks.
 ### Currently accomplished
 * Base and Model handlers
 * CRUD operations
-* Accepts JSON request bodies and returns JSON
+* Accepts ``application/json`` and ``application/x-www-form-urlencoded`` content-type and returns JSON
 * Request-level field selection
 * Session and Signature Authentication
-* 100% test coverage
 * Multiple handlers should be able to to serve the same resource, with each
   using a different authentication mechanism.
 * Ordering, slicing, filtering   
@@ -39,17 +38,15 @@ that I came across using other frameworks.
 * Emails upon crashes
 * Error messages in exceptions and responses. Make sure they make sense and
   have the correct format. For example, when raising BadRequest('string'), the http response contains the string (not some json). Is this a problem though? Contant-type is application/json though. 
-* Authorization header decorator that django-piston used to have. What is it
-  exactly?  
 * CSRF protection - Make sure that default behavior exempts
   view(Proxy.__call__) from CSRF check
-* Recognize more content-types
 * More serialization formats for responses
 * Check all TODOs in the code
 * Make sure code is succinct and it's flow is understandable.
 * Flexible way to add headers and specify status codes to responses
 * Correct status code for CRUD requests
 * http://pycallgraph.slowchop.com/en/master/index.html
+* 100% test coverage
 
 ## Design decisions
 
