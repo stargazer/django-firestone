@@ -5,6 +5,7 @@ structures, according to the ``Content-type`` header
 """
 import exceptions
 import json
+import urlparse
 
 
 def _json_deserializer(data):
@@ -13,10 +14,21 @@ def _json_deserializer(data):
     except ValueError:
         raise
 
+def _form_encoded_data_deserializer(data):
+    # param ``data`` is a string (querystring format)
+    try:
+        # dic is in the form ``key: [value]``
+        dic = urlparse.parse_qs(data, strict_parsing=True)
+    except ValueError:
+        raise
 
+    # I transform ``dic`` it in the form ``key: value``, by taking only the first value
+    # of each key.
+    return {key: value[0] for key, value in dic.iteritems()}
 
 MAPPER = {
     'application/json': _json_deserializer,
+    'application/x-www-form-urlencoded': _form_encoded_data_deserializer,
 }        
 def _get_deserializer(content_type):
     """
@@ -44,7 +56,7 @@ def deserialize(data, content_type):
     try:
         return ds(data)
     except ValueError:
-        raise exceptions.BadRequest
+        raise exceptions.BadRequest('Invalid data')
 
 def deserialize_request_body(request, *args, **kwargs):
     """
@@ -52,7 +64,7 @@ def deserialize_request_body(request, *args, **kwargs):
     """
     try:
         return deserialize(request.body, request.META.get('CONTENT_TYPE', None)) 
-    except exceptions.UnsupportedMediaType:
+    except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
         raise
 
 
