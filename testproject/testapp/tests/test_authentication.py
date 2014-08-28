@@ -15,23 +15,26 @@ class TestNoAuthentication(TestCase):
     def test_authenticated(self):
         request = RequestFactory().get('/')
         auth = NoAuthentication()
+        auth.request = request
 
-        self.assertTrue(auth.is_authenticated(request))
+        self.assertTrue(auth.is_authenticated())
         
 
 class TestSessionAuthentication(TestCase):
     def test_not_authenticated(self):
         request = RequestFactory().get('/')
         auth = SessionAuthentication()
+        auth.request = request
 
-        self.assertFalse(auth.is_authenticated(request))
+        self.assertFalse(auth.is_authenticated())
 
     def test_authenticated(self):
         request = RequestFactory().get('/')
         request.user = mommy.make(User)
         auth = SessionAuthentication()
+        auth.request = request
 
-        self.assertTrue(auth.is_authenticated(request))
+        self.assertTrue(auth.is_authenticated())
 
 
 class TestSignatureAuthentication(TestCase):
@@ -54,9 +57,10 @@ class TestSignatureAuthentication(TestCase):
            self.url, self.method, self.params, self.max_age  
         )              
         request = RequestFactory().post(url)
+        self.auth.request = request
         
         # Is request valid?
-        self.assertTrue(self.auth.is_authenticated(request))
+        self.assertTrue(self.auth.is_authenticated())
 
     def test_missing_signature(self):
         # Update params dictionary, with signature and max_age        
@@ -68,8 +72,10 @@ class TestSignatureAuthentication(TestCase):
         
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
+
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
     def test_tampered_signature(self):
         # Update params dictionary, with signature and max_age        
@@ -81,8 +87,9 @@ class TestSignatureAuthentication(TestCase):
         
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
     def test_tampered_querystring(self):
         self.auth._update_params(
@@ -93,8 +100,10 @@ class TestSignatureAuthentication(TestCase):
         
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
+
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
     def test_tampered_max_age(self):
         """
@@ -109,8 +118,10 @@ class TestSignatureAuthentication(TestCase):
 
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
+
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
     def test_expired_signature(self):
         self.auth._update_params(
@@ -119,8 +130,10 @@ class TestSignatureAuthentication(TestCase):
         
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
+
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
     def test_invalid_max_age(self):
         self.auth._update_params(
@@ -129,7 +142,9 @@ class TestSignatureAuthentication(TestCase):
 
         url = '%s?%s' % (self.url, urllib.urlencode(self.params))
         request = RequestFactory().post(url)
+        self.auth.request = request
+
         # Is request valid?
-        self.assertFalse(self.auth.is_authenticated(request))
+        self.assertFalse(self.auth.is_authenticated())
 
 

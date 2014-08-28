@@ -19,15 +19,24 @@ import time
 
 
 class Authentication:
+    """
+    Any of the subclasses of this class, can defined in the ``authentication``
+    parameter of the API handlers, therefore defining the handler's
+    authentication method.
+    The handler's metaclass makes sure that the ``authentication`` class is set
+    as a superclass for the handler, therefore inheriting its functionality.
+    """
     pass
 
+
 class NoAuthentication(Authentication):
-    def is_authenticated(self, request, *args, **kwargs):
+    def is_authenticated(self):
         return True
+
 
 class SessionAuthentication(Authentication):    
     """
-    Requires that the following Djanoo middlewares are enabled:
+    Requires that the following Django middlewares are enabled:
     * ``django.contrib.sessions.middleware.SessionMiddleWare``
     * ``django.contrib.auth.middleware.AuthenticationMiddleWare``
 
@@ -40,9 +49,9 @@ class SessionAuthentication(Authentication):
 
     So, all we have to do here is check whether the ``request.user`` is authenticated.
     """
-    def is_authenticated(self, request, *args, **kwargs):
-        if hasattr(request, 'user'):
-            return request.user.is_authenticated()        
+    def is_authenticated(self):
+        if hasattr(self.request, 'user'):
+            return self.request.user.is_authenticated()        
         return False
 
 class SignatureAuthentication(Authentication):
@@ -63,7 +72,7 @@ class SignatureAuthentication(Authentication):
         self.sig_param = sig_param
         self.max_age_param = max_age_param
 
-    def is_authenticated(self, request, *args, **kwargs):
+    def is_authenticated(self):
         """
         Strictly speaking, this is not an authentication check, since we don't
         really check whether the request is from who it claims to be. We check
@@ -72,18 +81,18 @@ class SignatureAuthentication(Authentication):
         Returns True if request signature is valid, else False
         """
         # url, without querystring
-        url = request.build_absolute_uri().split('?')[0]
-        method = request.method.upper()
-        signature = request.GET.get(self.sig_param, '')
+        url = self.request.build_absolute_uri().split('?')[0]
+        method = self.request.method.upper()
+        signature = self.request.GET.get(self.sig_param, '')
         # max_age parameter
         try:
-            max_age = int(request.GET.get(self.max_age_param, 0))
+            max_age = int(self.request.GET.get(self.max_age_param, 0))
         except ValueError:
             max_age = 0
 
         # Building the string that generated the signature, by constructing the
         # request url without the signature parameter
-        query_params = {key: value for key, value in request.GET.items() if key != self.sig_param}
+        query_params = {key: value for key, value in self.request.GET.items() if key != self.sig_param}
         qs = self._dict_to_ordered_qs(query_params)
         full_url = '%s?%s' % (url, qs)
         string = self._get_string(method, full_url)

@@ -30,8 +30,14 @@ class TestHandlerMetaClass(TestCase):
             ['GET', 'POST', 'DELETE'],
         )
 
-        # test``authentication``
-        self.assertTrue(isinstance(base_handler.authentication, NoAuthentication))
+        # The class we have set the ``authentication`` parameter to, becomes a
+        # superclass of the handler class
+        self.assertTrue(NoAuthentication in BaseHandlerExample.__bases__)
+        # Whereas the ``authentication`` attribute is dissed
+        self.assertRaises(
+            AttributeError,
+            base_handler.authentication,
+        )
 
         # Have these 2 parameters been transformed to sets?
         self.assertIsInstance(base_handler.post_body_fields, set)
@@ -43,9 +49,16 @@ class TestHandlerMetaClass(TestCase):
             ['POST', 'DELETE'],
         )
 
-        # test``authentication``
-        self.assertTrue(isinstance(model_handler.authentication, SessionAuthentication))
-
+        # The class we have set the ``authentication`` parameter to, becomes a
+        # superclass of the handler class
+        self.assertTrue(SessionAuthentication in ModelHandlerExample.__bases__)
+        # Whereas the ``authentication`` attribute is dissed
+        self.assertRaises(
+            AttributeError,
+            model_handler.authentication,
+        )
+        
+        
         # Have these 2 parameters been transformed to sets?
         self.assertIsInstance(model_handler.post_body_fields, set)
         self.assertIsInstance(model_handler.put_body_fields, set)

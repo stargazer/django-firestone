@@ -21,15 +21,14 @@ class Proxy(object):
         """
         for handler in self.handlers:
             h = handler()
+            h.request = request
+            h.args = args
+            h.kwargs = kwargs
 
-            if h.authentication.is_authenticated(request, *args, **kwargs):
+            if h.is_authenticated():
                 # Mimicking what Django's class bades views ``as_view`` method
                 # does. The benefit is that I don't have to pass them as input args
                 # to any handler methods.
-                h.request = request
-                h.args = args
-                h.kwargs = kwargs
-
                 return h
 
         return None

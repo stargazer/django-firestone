@@ -21,19 +21,23 @@ class HandlerMetaClass(type):
         Metaclass magic for preprocessing some of the handler class's
         parameters.
         """
+        # The handler class's ``authentication`` parameter is a class. Here we
+        # make sure that this class becomes a superclass for the handler, so
+        # that the handler will inherit its functionality, and will therefore
+        # be able to use its ``is_authenticated`` method.
+        if name not in ('BaseHandler', 'ModelHandler'):
+            authentication = attrs.pop('authentication', None)
+            if not authentication:
+                bases += (NoAuthentication,)
+            elif isinstance(authentication, Authentication):
+                bases += (authentication,)
+            else:
+                bases += (authentication,)
+        
         cls = type.__new__(meta, name, bases, attrs)
 
         # Uppercase all HTTP methods
         cls.http_methods = [method.upper() for method in cls.http_methods]
-
-        # Making sure that the handler's ``authentication`` parameter is
-        # initialized correctly
-        if not cls.authentication:
-            cls.authentication = NoAuthentication()
-        elif isinstance(cls.authentication, Authentication):
-            pass
-        else:
-            cls.authentication = cls.authentication()
 
         # Transform to sets
         cls.post_body_fields = set(cls.post_body_fields)
