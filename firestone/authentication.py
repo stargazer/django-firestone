@@ -12,6 +12,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.signing import BadSignature
 from django.core.signing import SignatureExpired
 from django.utils import timezone
+from oauth2_provider.views.generic import ProtectedResourceView
 from collections import OrderedDict
 from datetime import datetime
 import urllib
@@ -162,11 +163,16 @@ class SignatureAuthentication(Authentication):
         return '%s:%s' % (parts[1], parts[2])
 
 
-class TokenAuthentication(Authentication):
-    """
-    Token included in ``Authentication``, indicates a token which belongs to a
-    User. Parameter ``request.user`` is set accordingly.
-    """
-    pass
+class OAuthAuthentication(Authentication, ProtectedResourceView):
+    # TODO: Check if all apps/middlewares/models are installed correctly.
 
-
+    def is_authenticated(self):
+        """
+        Sets the ``self.request.user`` to the user who carries the
+        Authorization token.
+        """
+        valid, r = self.verify_request(self.request)
+        if valid:
+            self.request.user = r.user
+            return True
+        return False
