@@ -14,6 +14,7 @@ setup(
         'Django',
         'django-preserialize',
         'django-endless-pagination',
+        'django_oauth_toolkit',
         'django-extensions', # Required to interact easily with the testproject
         'model-mommy',       # Required for the tests
         'coverage',          # Required for test coverage on Travis C.I.
