@@ -4,11 +4,14 @@ This module tests the behavior of the ``firestone.authentication`` module
 from firestone.authentication import NoAuthentication
 from firestone.authentication import SessionAuthentication
 from firestone.authentication import SignatureAuthentication
+from firestone.authentication import OAuthAuthentication
+from oauth2_provider.models import AccessToken
 from firestone.handlers import BaseHandler
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
 from model_mommy import mommy
+import datetime
 import urllib
 
 
@@ -20,6 +23,9 @@ class HandlerSessionAuth(BaseHandler):
 
 class HandlerSignatureAuth(BaseHandler):
     authentication = SignatureAuthentication
+
+class HandlerOAuth(BaseHandler):
+    authentication = OAuthAuthentication
 
 def init_handler(handler, request, *args, **kwargs):
     handler = handler()
@@ -210,5 +216,65 @@ class TestSignatureAuthentication(TestCase):
 
         # Is request valid?
         self.assertFalse(handler.is_authenticated())
+
+
+class TestOAuthAuthentication(TestCase):
+    
+    def test_valid_token(self):
+        # Create token that expires in 24 hours
+        access_token = mommy.make(
+            AccessToken, 
+            expires=datetime.datetime.now() + datetime.timedelta(days=1)
+        )
+        # Request carries the ``authorization`` header
+        request = RequestFactory().get(
+            '/', Authorization='Bearer %s' % access_token.token
+        )
+        handler = init_handler(HandlerOAuth, request)
+
+        # Returns True?
+        self.assertTrue(handler.is_authenticated())
+        # request.user is set to the user pointed to by the access_token?
+        self.assertTrue(request.user == access_token.user)
+
+    def test_invalid_token(self):
+        request = RequestFactory().get(
+            '/', Authorization='Beared invalid-token',
+        )
+        handler = init_handler(HandlerOAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_expired_token(self):
+        # Create expired token
+        access_token = mommy.make(
+            AccessToken,
+            expires=datetime.datetime.now() - datetime.timedelta(hours=1)
+        )
+        # Request carries the ``authorization`` header
+        request = RequestFactory().get(
+            '/', Authorization='Bearer %s' % access_token.token
+        )
+        handler = init_handler(HandlerOAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_no_token(self):
+        request = RequestFactory().get(
+            '/', Authorization='',
+        )                
+        handler = init_handler(HandlerOAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_no_authorization_header(self):
+        request = RequestFactory().get(
+            '/',
+        )                
+        handler = init_handler(HandlerOAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+
 
 
