@@ -6,12 +6,10 @@
 
 # django-firestone
 
-[_Gatorade me bitch_](http://www.youtube.com/watch?v=wNvk4DD1fCU)
-
-## Say what?
-
 REST API Framework. Modular, extendible and addressing lots of the limitations
 that I came across using other frameworks.
+
+
 
 ## Goals
 
@@ -20,13 +18,12 @@ that I came across using other frameworks.
 * CRUD operations
 * Accepts ``application/json`` and ``application/x-www-form-urlencoded`` content-type and returns JSON
 * Request-level field selection
-* Session and Signature Authentication
+* Multiple authentication methods
 * Multiple handlers should be able to to serve the same resource, with each
-  using a different authentication mechanism.
+  using a different authentication method.
 * Ordering, slicing, filtering   
-* ModelHahdler should be able to output fake fields
-* Fake fields on ModelHandler's response. Static model related data can be
-  added by using properties. More dynamic model related data can be added by
+* ModelHahdler should be able to output fake fields. Static model related data can be
+  added by using properties. Dynamic model related data can be added by
   using the handler's ``inject_data_hook`` method, which, since is a handler
   method, is aware of the request context.
 * Enable/disable Plural-PUT and Plural-DELETE explicitly. 
@@ -36,17 +33,15 @@ that I came across using other frameworks.
   be named ``get-<something>``. Others should be named ``set-<something>``.
 * Be able to exclude model fields from validation and cleaning
 * Emails upon crashes
-* Error messages in exceptions and responses. Make sure they make sense and
-  have the correct format. For example, when raising BadRequest('string'), the http response contains the string (not some json). Is this a problem though? Contant-type is application/json though. 
-* CSRF protection - Make sure that default behavior exempts
-  view(Proxy.__call__) from CSRF check
 * More serialization formats for responses
 * Check all TODOs in the code
 * Make sure code is succinct and it's flow is understandable.
 * Flexible way to add headers and specify status codes to responses
-* Correct status code for CRUD requests
 * http://pycallgraph.slowchop.com/en/master/index.html
 * 100% test coverage
+* Rate limiting
+
+
 
 ## Design decisions
 
@@ -63,8 +58,7 @@ that I came across using other frameworks.
 * Every handler specifies the representation of its own response, including
   that of nested fields, regardless of how deep they appear.
 
-* For now, only *content-type: application/json* is accepted in the request
-  body, only ``application/json`` responses are returned. 
+
 
 ## A few words on Django's class-based views (CVBs).
 
@@ -93,10 +87,14 @@ Need to expose a model resource, using multiple authentication methods? You'd
 then need create as many handlers, with each one responsible for each
 authentication method.
 
+
+
 ## Requirements
 
 * Python 2.7
-* Django 1.5.4
+* Django 1.5.4 or later
+
+
 
 ## Life Cycle of a Request
 
@@ -104,6 +102,45 @@ authentication method.
     Proxy view --> invokes the corresponding handler, based on the request's authentication method
     Handler    --> Executes the request and returns an HTTPResponse object to the proxy view
     Proxy view --> Returns the HttpResponse object
+
+
+
+## Authentication
+
+### How?
+
+The handler parameter ``authentication`` defines the authentication method used
+for that particular handler class. The authentication method can be any of the 
+mixins defined in the ``firestone.authentication`` module.
+
+While the authentication method is defined as a handler class attribute, behind the
+scenes it's set as a handler class mixin, therefore the handler class inherits
+its funcionality.
+
+### Authentication Mixins
+
+#### NoAuthentication
+The API handler is open and allows all incoming requests
+
+#### SessionAuthentication
+The API handler only allows requests with a valid session ID
+
+#### SignatureAuthentication
+The API handler only allows requests that carry a valid signature 
+
+#### OAuth2
+The API handler only allows requests that carry a valid ``Authentication:
+Bearer <access token>`` header.
+
+In order to use this mixin, the ``oauth2_provider`` application needs to be
+enabled in ``settings.INSTALLED_APPS``, of our Django application.
+
+Actually, the Authorization provider is not really relevant here. The token can
+actually be any kind of token corresponding to an application user, and not
+necessarily some OAuth token. Therefore it can be obtained in any way, even
+skipping entirely the OAuth authentication process.
+
+
 
 ## Handler specifics
 
@@ -135,6 +172,8 @@ modified/created would be hidden from the response.
 Careful, for requests like a plural DELETE, plural PUT, or bulk POST, pagination can be
 confusing, since it could hide part of the resources that have been
 created/deleted/updated.
+
+
 
 ## How to install ``django-firestone``
 
@@ -193,6 +232,8 @@ Install tox and run
 This will run the whole testing suite, accounting for various combinations of
 Python and Django versions
 
+
+
 ## How to use
 
     # handlers.py
@@ -226,14 +267,18 @@ Python and Django versions
     )
 
 
+
 ## Resources
 
 * [django-preserialize](https://github.com/bruth/django-preserialize)
 * [Classy Class Based Views](http://ccbv.co.uk/)
 * [HTTP status codes](http://www.restapitutorial.com/httpstatuscodes.html)
 
+
+
 ## Improvements compared to django-icetea
 
+* Authentication - More authentication methods
 * Errors - Clear and readable error messages
 * Serialization - Every handler is solely responsible for the representation of its own output. That includes nested data structures, no matter how deeply nested they are
 * Lots of handlers can be declared per resource, with each one responsible for one auth method. This greatly reduces control flow statements on application level
