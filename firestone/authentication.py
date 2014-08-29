@@ -7,7 +7,6 @@ is authenticated and who the authenticated user is.
 In other cases, we implement the whole logic in the authentication class.
 """
 from django.contrib.auth.models import AnonymousUser
-from django.core.signing import TimestampSigner
 from django.core.signing import BadSignature
 from django.core.signing import SignatureExpired
 from django.utils import timezone
@@ -61,17 +60,10 @@ class SignatureAuthentication(Authentication):
         * HTTP Method
         * URL with querystring parameters (including a parameter indicating the max_age
           of the signature)
-    """
-    def __init__(self, sig_param='s', max_age_param='m'):
-        """
-        @param sig_param:     Querystring parameter that carries the signature
-        @param max_age_param: Querystring parameter that carries the max_age(in
-        seconds of the signature)
-        """
-        self.signer = TimestampSigner()
-        self.sig_param = sig_param
-        self.max_age_param = max_age_param
 
+    Makes use of the handler class parameters ``signer``, ``sig_param``, and
+    ``max_age_param``        
+    """
     def is_authenticated(self):
         """
         Strictly speaking, this is not an authentication check, since we don't

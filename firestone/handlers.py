@@ -12,6 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.signing import TimestampSigner
 from endless_pagination.paginators import LazyPaginator
 
 
@@ -199,9 +200,14 @@ class BaseHandler(HandlerControlFlow):
     # GET, POST, PUT, PLURAL_PUT, DELETE, PLURAL_DELETE
     http_methods = []
 
-    # authentication method: Should be an instance of any of the classes in the
+    # authentication method: Should be an instance of any of the mixins in the
     # ``authentication`` module, other than ``Authentication``
     authentication = None
+
+    # Parameters applicable for ``SignatureAuthentication`` mixin
+    signer = TimestampSigner()  # Signing class
+    sig_param = 's'             # Signature querysting parameter
+    max_age_param = 'm'         # Max-age querystring parameter
 
     # Allowed request body fields for POST and PUT requests
     post_body_fields = put_body_fields = []    
