@@ -1,10 +1,12 @@
 """
-This module checks the authentication of incoming requests. 
+This module implements the functionality for request authentication. The
+classes here are actually mixins, and therefore are not meant to stand on their
+own. They add the authentication functionality to API handler classes.
 Where possible, like in the case of ``SessionAuthentication``, we make use of
 Django's middlewares(which have already ran), to identify whether the request
 is authenticated and who the authenticated user is.
 
-In other cases, we implement the whole logic in the authentication class.
+In other cases, we implement the whole logic in the authentication mixin.
 """
 from django.contrib.auth.models import AnonymousUser
 from django.core.signing import BadSignature
@@ -17,13 +19,15 @@ import time
 
 
 
-class Authentication:
+class Authentication(object):
     """
-    Any of the subclasses of this class, can defined in the ``authentication``
-    parameter of the API handlers, therefore defining the handler's
-    authentication method.
-    The handler's metaclass makes sure that the ``authentication`` class is set
-    as a superclass for the handler, therefore inheriting its functionality.
+    All the mixins of this module, other than ``Authentication`` can be used in
+    the ``authentication`` parameter of any API handler, therefore defining the
+    handler's authentication method.
+
+    The handler's metaclass makes sure that the ``authentication`` class is
+    used as a mixin(superclass) by the handler, therefore inheriting its
+    functionality.
     """
     pass
 
