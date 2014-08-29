@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     'django_extensions',
 
     'testproject.testapp',
+    'oauth2_provider',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
