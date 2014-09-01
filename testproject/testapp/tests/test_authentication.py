@@ -5,12 +5,17 @@ from firestone.authentication import NoAuthentication
 from firestone.authentication import SessionAuthentication
 from firestone.authentication import SignatureAuthentication
 from firestone.authentication import OAuthAuthentication
+from firestone.authentication import JWTAuthentication
 from oauth2_provider.models import AccessToken
 from firestone.handlers import BaseHandler
 from django.test import TestCase
 from django.test import RequestFactory
 from django.contrib.auth.models import User
+from django.utils import timezone
+from django.conf import settings
+from datetime import timedelta
 from model_mommy import mommy
+import jwt
 import datetime
 import urllib
 
@@ -27,12 +32,17 @@ class HandlerSignatureAuth(BaseHandler):
 class HandlerOAuth(BaseHandler):
     authentication = OAuthAuthentication
 
+class HandlerJWTAuth(BaseHandler):
+    authentication = JWTAuthentication
+
 def init_handler(handler, request, *args, **kwargs):
     handler = handler()
     handler.request = request
     handler.args = args
     handler.kwargs = kwargs
     return handler
+
+
 
 
 class TestNoAuthentication(TestCase):
@@ -228,7 +238,7 @@ class TestOAuthAuthentication(TestCase):
         )
         # Request carries the ``authorization`` header
         request = RequestFactory().get(
-            '/', Authorization='Bearer %s' % access_token.token
+            '/', HTTP_AUTHORIZATION='Bearer %s' % access_token.token
         )
         handler = init_handler(HandlerOAuth, request)
 
@@ -239,7 +249,7 @@ class TestOAuthAuthentication(TestCase):
 
     def test_invalid_token(self):
         request = RequestFactory().get(
-            '/', Authorization='Beared invalid-token',
+            '/', HTTP_AUTHORIZATION='Beared invalid-token',
         )
         handler = init_handler(HandlerOAuth, request)
 
@@ -253,7 +263,7 @@ class TestOAuthAuthentication(TestCase):
         )
         # Request carries the ``authorization`` header
         request = RequestFactory().get(
-            '/', Authorization='Bearer %s' % access_token.token
+            '/', HTTP_AUTHORIZATION='Bearer %s' % access_token.token
         )
         handler = init_handler(HandlerOAuth, request)
 
@@ -261,7 +271,7 @@ class TestOAuthAuthentication(TestCase):
 
     def test_no_token(self):
         request = RequestFactory().get(
-            '/', Authorization='',
+            '/', HTTP_AUTHORIZATION='',
         )                
         handler = init_handler(HandlerOAuth, request)
 
@@ -275,6 +285,122 @@ class TestOAuthAuthentication(TestCase):
 
         self.assertFalse(handler.is_authenticated())
 
+
+class TestJWTAuthentication(TestCase):
+    def setUp(self):
+        mommy.make(User, 10)
+
+        # Generate a valid token
+        payload = {
+            'iss': 1,
+            'iat': timezone.now(),
+            'exp': timezone.now() + timedelta(days=1),
+        }    
+        self.token = jwt.encode(
+            payload=payload, 
+            key=settings.SECRET_KEY,
+        )
+
+    def test_valid_authorization_header(self):
+        request = RequestFactory().get(
+            '/', 
+            HTTP_AUTHORIZATION='JWT %s' % self.token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertTrue(handler.is_authenticated())
+
+    def test_malformed_header_1(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='%s' % self.token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_malformed_header_2(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='Token %s' % self.token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_invalid_token_1(self):
+        # modify a character off the encoded header
+        self.token = self.token[1:]
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='JWT %s' % self.token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_invalid_token_2(self):
+        # modify a character off the signature
+        self.token = self.token[:-1]
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='JWT %s' % self.token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_no_user(self):
+        # ``iss`` parameter does not exist
+        payload = {'iat': timezone.now(), 'exp': timezone.now() + timedelta(days=1)}
+        token = jwt.encode(
+            payload=payload, 
+            key=settings.SECRET_KEY,
+        )
+
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='JWT %s' % token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+
+
+    def test_invalid_user(self):
+        # Payload will refer to non-existing user
+        # Generate a valid token
+        payload = {'iss': 100, 'iat': timezone.now(), 'exp': timezone.now() + timedelta(days=1)}
+        token = jwt.encode(
+            payload=payload, 
+            key=settings.SECRET_KEY,
+        )
+
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='JWT %s' % token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+    def test_expired_token(self):
+        payload = {'iss': 1, 'iat': timezone.now(), 'exp': timezone.now() - timedelta(days=10)}
+
+        token = jwt.encode(
+            payload=payload, 
+            key=settings.SECRET_KEY,
+        )
+        request = RequestFactory().get(
+            '/',
+            HTTP_AUTHORIZATION='JWT %s' % token,
+        )
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
+
+                
 
 
 

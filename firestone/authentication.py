@@ -12,6 +12,8 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.signing import BadSignature
 from django.core.signing import SignatureExpired
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+User = get_user_model()
 from oauth2_provider.views.generic import ProtectedResourceView
 from collections import OrderedDict
 from datetime import datetime
@@ -176,3 +178,58 @@ class OAuthAuthentication(Authentication, ProtectedResourceView):
             self.request.user = r.user
             return True
         return False
+class JWTAuthentication(Authentication):
+    def is_authenticated(self):
+        """
+        Extend this method, so that it takes the payload, and:
+            - if it refers to a valid User:
+                - Set request.user
+                - Return True
+            - Else
+                - Return False
+        """
+        auth = self.request.META.get('HTTP_AUTHORIZATION', '')
+        if not auth:
+            return False
+
+        try:
+            type, token = auth.split()
+        except ValueError:
+            return False
+
+        if type != 'JWT':
+            return False
+
+        import jwt
+        from django.conf import settings
+        try:
+            payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, verify=True, verify_expiration=True, )
+        except (jwt.DecodeError, jwt.ExpiredSignature):
+            return False
+
+        user = self.verify_user(payload)
+        if not user:
+            return False
+
+        return True
+
+    def verify_user(self, payload):
+        """
+        Reads the payload and sets ``self.request.user`` and returns the user
+        instance, or returns False
+
+        Override this method if the payload will be different
+        """
+        user_id = payload.get('iss', None)
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return None
+            else:
+                self.request.user = user.id
+                return user
+        return None                
+
+                    
+
