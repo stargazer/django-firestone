@@ -165,19 +165,6 @@ class SignatureAuthentication(Authentication):
         return '%s:%s' % (parts[1], parts[2])
 
 
-class OAuthAuthentication(Authentication, ProtectedResourceView):
-    # TODO: Check if all apps/middlewares/models are installed correctly.
-
-    def is_authenticated(self):
-        """
-        Sets the ``self.request.user`` to the user who carries the
-        Authorization token.
-        """
-        valid, r = self.verify_request(self.request)
-        if valid:
-            self.request.user = r.user
-            return True
-        return False
 class JWTAuthentication(Authentication):
     def is_authenticated(self):
         """
@@ -232,4 +219,12 @@ class JWTAuthentication(Authentication):
         return None                
 
                     
+
+
+
+
+# TODO
+# class ApiKeyAuthentication?
+# Or something similar that actually signs requests. Study the Amazon AWS
+# authentication scheme.
 

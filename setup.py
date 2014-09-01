@@ -14,7 +14,6 @@ setup(
         'Django',
         'django-preserialize',
         'django-endless-pagination',
-        'django_oauth_toolkit',
         'pyJWT',
         'django-extensions', # Required to interact easily with the testproject
         'model-mommy',       # Required for the tests
