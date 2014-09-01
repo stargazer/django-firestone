@@ -12,14 +12,15 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.signing import BadSignature
 from django.core.signing import SignatureExpired
 from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth import get_user_model
 User = get_user_model()
 from oauth2_provider.views.generic import ProtectedResourceView
 from collections import OrderedDict
 from datetime import datetime
+import jwt
 import urllib
 import time
-
 
 
 class Authentication(object):
@@ -168,32 +169,27 @@ class SignatureAuthentication(Authentication):
 class JWTAuthentication(Authentication):
     def is_authenticated(self):
         """
-        Extend this method, so that it takes the payload, and:
-            - if it refers to a valid User:
-                - Set request.user
-                - Return True
-            - Else
-                - Return False
+        Retrieves the token from the ``Authorization`` header, verifies it,
+        makes sure it refers to a valid User instance, sets ``request.user``
+        accordingly.
         """
-        auth = self.request.META.get('HTTP_AUTHORIZATION', '')
-        if not auth:
+        # Retrieve token from request header
+        token = self._get_token()
+        if not token:
             return False
 
+        # Decode and verify
         try:
-            type, token = auth.split()
-        except ValueError:
-            return False
-
-        if type != 'JWT':
-            return False
-
-        import jwt
-        from django.conf import settings
-        try:
-            payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, verify=True, verify_expiration=True, )
+            payload = jwt.decode(
+                jwt=token, 
+                key=settings.SECRET_KEY, 
+                verify=True, 
+                verify_expiration=True,
+            )
         except (jwt.DecodeError, jwt.ExpiredSignature):
             return False
-
+        
+        # Make sure it points to a valid User instance
         user = self.verify_user(payload)
         if not user:
             return False
@@ -202,10 +198,12 @@ class JWTAuthentication(Authentication):
 
     def verify_user(self, payload):
         """
-        Reads the payload and sets ``self.request.user`` and returns the user
-        instance, or returns False
+        @param payload: Decrypted payload
 
-        Override this method if the payload will be different
+        This method assumes that the ``iss`` payload parameter contains the
+        User id, and sets the ``self.request.user`` to that corresponding User
+        instance.
+        Override in the handler class if the ``payload`` contains different data.
         """
         user_id = payload.get('iss', None)
         if user_id:
@@ -214,9 +212,30 @@ class JWTAuthentication(Authentication):
             except User.DoesNotExist:
                 return None
             else:
-                self.request.user = user.id
+                self.request.user = user
                 return user
-        return None                
+        return None     
+
+    def _get_token(self):
+        """
+        Returns the token from the ``Authorization: JWT <token>`` header
+        """
+        authorization = self.request.META.get('HTTP_AUTHORIZATION', '')
+        if not authorization:
+            return None
+
+        try:
+            type, token = authorization.split()
+        except ValueError:
+            return None
+
+        if type != 'JWT':
+            return None
+
+        return token
+
+
+
 
                     
 

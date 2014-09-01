@@ -304,8 +304,6 @@ class TestJWTAuthentication(TestCase):
 
         self.assertFalse(handler.is_authenticated())
 
-
-
     def test_invalid_user(self):
         # Payload will refer to non-existing user
         # Generate a valid token
