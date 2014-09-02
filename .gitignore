@@ -6,6 +6,7 @@ dist/
 django_firestone.egg-info/
 htmlcov/
 build/
+docs/_build
 .tox/
 *.egg
 *.swp
