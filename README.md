@@ -40,6 +40,8 @@ that I came across using other frameworks.
 * http://pycallgraph.slowchop.com/en/master/index.html
 * 100% test coverage
 * Rate limiting
+* View that handles login with username/password and returns JWT token
+* Excel serialization
 
 
 
@@ -128,18 +130,26 @@ The API handler only allows requests with a valid session ID
 #### SignatureAuthentication
 The API handler only allows requests that carry a valid signature 
 
-#### OAuth2
-The API handler only allows requests that carry a valid ``Authentication:
-Bearer <access token>`` header.
+#### JWTAuthentication (JSON Web Token Authentication)
+The API handler only allows requests that carry a valid ``Authentication: JWT
+<token>`` header.
 
-In order to use this mixin, the ``oauth2_provider`` application needs to be
-enabled in ``settings.INSTALLED_APPS``, of our Django application.
+A Token can be issued using the ``pyJWT`` libraryJWT, upon correct user
+login. You can directly use the
+``firestone.example_handlers.ObtainJWTHandler``, or even modify/extend it.
 
-Actually, the Authorization provider is not really relevant here. The token can
-actually be any kind of token corresponding to an application user, and not
-necessarily some OAuth token. Therefore it can be obtained in any way, even
-skipping entirely the OAuth authentication process.
+Once you login and obtain a JWT token, you can use the token in the
+``Authorization`` request header for any handler that uses JWT Authentication, as:
 
+    Authorization: JWT <token>
+
+In case you'd like to modify how a user is identified and the ``request.user``
+parameter is set, for handlers using JWT Authentication, override handler
+method ``verify_request_user(payload)``.
+
+Provide a few links that explain it well. 
+How to customize behavior.
+Which HTTPS it's rock solid, and has many benefits compared to sesssions.
 
 
 ## Handler specifics
