@@ -5,7 +5,6 @@ from firestone.authentication import NoAuthentication
 from firestone.authentication import SessionAuthentication
 from firestone.authentication import SignatureAuthentication
 from firestone.authentication import JWTAuthentication
-from oauth2_provider.models import AccessToken
 from firestone.handlers import BaseHandler
 from django.test import TestCase
 from django.test import RequestFactory
