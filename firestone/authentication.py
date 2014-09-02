@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
 User = get_user_model()
+from django.contrib.auth.models import AnonymousUser
 from oauth2_provider.views.generic import ProtectedResourceView
 from collections import OrderedDict
 from datetime import datetime
@@ -189,32 +190,36 @@ class JWTAuthentication(Authentication):
         except (jwt.DecodeError, jwt.ExpiredSignature):
             return False
         
-        # Make sure it points to a valid User instance
-        user = self.verify_user(payload)
-        if not user:
+        # Get the user that the JWT authenticates
+        self.request.user = self.verify_request_user(payload)
+        if not self.request.user.id:
             return False
 
         return True
 
-    def verify_user(self, payload):
+    def verify_request_user(self, payload):
         """
         @param payload: Decrypted payload
+
+        Returns:
+            User instance, if correctly identified by the JWT token
+            AnonymousUser() otherwise.
 
         This method assumes that the ``iss`` payload parameter contains the
         User id, and sets the ``self.request.user`` to that corresponding User
         instance.
         Override in the handler class if the ``payload`` contains different data.
         """
+        user = AnonymousUser()
+
         user_id = payload.get('iss', None)
         if user_id:
             try:
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
-                return None
-            else:
-                self.request.user = user
-                return user
-        return None     
+                pass
+            
+        return user            
 
     def _get_token(self):
         """
