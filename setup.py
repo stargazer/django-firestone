@@ -1,9 +1,10 @@
 from setuptools import setup
+from firestone import __version__
 
 setup(
     name='django-firestone',
     packages=('firestone', ),
-    version='0.4.5',
+    version=__version__,
     description='REST API Framework',
     author='C. Paschalides',
     author_email='already.late@gmail.com',
