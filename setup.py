@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
     name='django-firestone',
     packages=('firestone', ),
-    version='0.4.2',
+    version='0.4.5',
     description='REST API Framework',
     author='C. Paschalides',
     author_email='already.late@gmail.com',
