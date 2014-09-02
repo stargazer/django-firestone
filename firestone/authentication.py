@@ -103,7 +103,9 @@ class SignatureAuthentication(Authentication):
             self.signer.unsign('%s:%s' % (string, signature), max_age=max_age)
         except BadSignature, SignatureExpires:
             return False
-        return True        
+
+        self.request.user = self.verify_request_user() 
+        return True      
 
     def get_signed_url(self, url, method, params, max_age):
         """
@@ -114,6 +116,17 @@ class SignatureAuthentication(Authentication):
         """
         self._update_params(url, method, params, max_age)
         return '%s?%s' % (url, urllib.urlencode(params))
+
+    def verify_request_user(self):
+        """
+        Returns:
+            User instance, if correctly identified by the signature and
+            querystring.
+            None otherwise.
+
+        Override in the handler class to specify the logic.
+        """
+        return AnonymousUser()
 
     def _update_params(self, url, method, params, max_age):
         """
