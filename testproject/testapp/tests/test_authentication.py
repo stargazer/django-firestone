@@ -246,7 +246,16 @@ class TestJWTAuthentication(TestCase):
         )
         handler = init_handler(HandlerJWTAuth, request)
 
+        # Handler is authenticated
         self.assertTrue(handler.is_authenticated())
+        # ``request.user`` points to the User indicated by the JWT
+        self.assertEqual(request.user, User.objects.get(id=1))
+
+    def test_no_authentication_header(self):
+        request = RequestFactory().get('/')
+        handler = init_handler(HandlerJWTAuth, request)
+
+        self.assertFalse(handler.is_authenticated())
 
     def test_malformed_header_1(self):
         request = RequestFactory().get(
