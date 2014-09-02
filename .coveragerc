@@ -15,4 +15,5 @@ omit =
  manage.py
  runtests.py
  setup.py
+ firestone/example_handlers.py
 
