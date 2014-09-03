@@ -68,4 +68,20 @@ class TestAPIExceptionInstantiation(TestCase):
         self.assertIsInstance(response, http.HttpResponseServerError)
         self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
+    def test_other_exception_email_crashes(self):
+        request = RequestFactory().get('/')
+        
+        settings.DEBUG = False
+        settings.EMAIL_CRASHES = True
+
+        try:
+            raise TypeError()
+        except Exception, e:
+            exp = exceptions.OtherException(request)
+        self.assertEqual(exp.status, 500)
+
+        response, headers = exp.get_http_response_and_headers()
+        self.assertIsInstance(response, http.HttpResponseServerError)
+        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
+
 

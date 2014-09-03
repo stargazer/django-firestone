@@ -15,6 +15,7 @@ from django import http
 from django.conf import settings
 from django.views.debug import ExceptionReporter   
 from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.mail import EmailMessage
 import sys
 
 
@@ -127,14 +128,23 @@ class OtherException(Exception):
             traceback.tb_next
         )
         html = reporter.get_traceback_html()
+        http_response = http.HttpResponseServerError()
 
         if settings.DEBUG:
             http_response = http.HttpResponseServerError(
                 html,
             )
-        else:
-            http_response = http.HttpResponseServerError()
-            # TODO: and send email
+        elif getattr(settings, 'EMAIL_CRASHES', False):
+            # Send Email Crash Report
+            subject = 'django-firestone crash report'
+            message = EmailMessage(
+                subject=settings.EMAIL_SUBJECT_PREFIX + subject,
+                body=html,
+                from_email=settings.SERVER_EMAIL,
+                to=[admin[1] for admin in settings.ADMINS]
+            )
+            message.content_subtype='html'
+            message.send(fail_silently=True)
 
         headers = {'content-type': 'text/html; charset=utf-8'}
         return http_response, headers

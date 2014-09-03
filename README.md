@@ -27,12 +27,12 @@ that I came across using other frameworks.
   using the handler's ``inject_data_hook`` method, which, since is a handler
   method, is aware of the request context.
 * Enable/disable Plural-PUT and Plural-DELETE explicitly. 
+* Emails upon crashes
 
 ### TODO
 * Rename methods that should be renamed. Methods that return something should
   be named ``get-<something>``. Others should be named ``set-<something>``.
 * Be able to exclude model fields from validation and cleaning
-* Emails upon crashes
 * More serialization formats for responses
 * Check all TODOs in the code
 * Make sure code is succinct and it's flow is understandable.
