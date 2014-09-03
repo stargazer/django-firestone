@@ -11,46 +11,54 @@ from datetime import datetime
 import json
 
 
-class TestSerializers(TestCase):
-    def test_serialize_to_json(self):
+class TestSerializeToJson(TestCase):
+    def test_string(self):
         data = 'somedata'
 
         result, headers = serializers._serialize_to_json(data) 
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_list(self):
         data = [1, 2, 3]
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_dict(self):
         data = {'key': 'value'}
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_datetime(self):
         data = datetime.now()
         result, headers = serializers._serialize_to_json(data)
         self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
-    def test_get_serializer(self):
+
+class TestGetSerializer(TestCase):
+    def test_empty(self):
         self.assertEquals(
             serializers._get_serializer(),
             serializers._serialize_to_json
         )
 
+    def test_invalid(self):
         self.assertEquals(
             serializers._get_serializer('whatever'),
             serializers._serialize_to_json
         )
 
+    def test_application_json(self):        
         self.assertEquals(
             serializers._get_serializer('application/json'),
             serializers._serialize_to_json
         )
 
-    def test_get_serialization_format(self):
+class TestGetSerializationFormat(TestCase):            
+    def test_empty_header(self):
         request = RequestFactory().get('/')
 
         self.assertEquals(
@@ -58,39 +66,56 @@ class TestSerializers(TestCase):
             'application/json',
         )
 
-    def test_serialize(self):
+
+class TestSerialize(TestCase):
+    def test_empty_ser_format(self):
         data = 'somedata'
         result, headers = serializers.serialize(data)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_invalid_ser_format(self):
+        data = 'somedata'
         result, headers = serializers.serialize(data, 'whatever')
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_json_ser_format(self):
+        data = 'somedata'
         result, headers = serializers.serialize(data, 'application/json')
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
-    def test_serialize_response_data(self):
+
+class TestSerializeResponseData(TestCase):
+    def test_serialize_string(self):
         request = RequestFactory().get('/')
-        
         data = 'somedata'
+        
         result, headers = serializers.serialize_response_data(data, request) 
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_serialize_list(self):
+        request = RequestFactory().get('/')
         data = [1, 2, 3]
+        
         result, headers = serializers.serialize_response_data(data, request)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_serialize_dict(self):
+        request = RequestFactory().get('/')
         data = {'key': 'value'}
+        
         result, headers = serializers.serialize_response_data(data, request)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_serialize_datetime(self):
+        request = RequestFactory().get('/')
         data = datetime.now()
+        
         result, headers = serializers.serialize_response_data(data, request)
         self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
         self.assertEquals(headers, {'content-type': 'application/json'})
