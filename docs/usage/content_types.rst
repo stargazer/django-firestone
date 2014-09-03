@@ -1,0 +1,2 @@
+Recognized Content Types
+===========================

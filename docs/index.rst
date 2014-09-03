@@ -10,46 +10,52 @@ Welcome to django-firestone's documentation!
 .. toctree::
    :maxdepth: 2
 
+Installation
+-----------------
+.. toctree::
+        :maxdepth: 2
+
+        installation/development
+        installation/dependency
+        installation/configuration
+
 Getting Started
 ------------------
 .. toctree::
         :maxdepth: 2
 
-        intro
+        getting_started/description
 
-User Documentation
-------------------
-.. toctree::
-        :maxdepth: 2
-
-        installing
-        testing
-        how_to_use
-        authentication
-        customize_defaults
 
 Features and Design
 --------------------
 .. toctree::
         :maxdepth: 2
 
-        features
-        design_decisions
+        features_and_design/features
+        features_and_design/design_decisions
+
+Usage Documentation
+----------------------
+.. toctree::
+        :maxdepth: 2
+
+        usage/how_to_use
+        usage/authentication
+        usage/ordering
+        usage/filtering
+        usage/pagination
+        usage/content_types
+        usage/serialization
+        usage/customize_defaults
 
 Examples
 --------------------
 .. toctree::
         :maxdepth: 2
 
-        base_handler
-        model_handler
+        examples/base_handler
+        examples/model_handler
 
         
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 
