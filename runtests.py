@@ -9,7 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 def run():
     TestRunner = get_runner(settings)
-    test_runner = TestRunner(verbosity=1, interactive=True)
+    test_runner = TestRunner(verbosity=1, interactive=True, failfast=True)
     try:
         # Django 1.5
         failures = test_runner.run_tests(['testapp',])
