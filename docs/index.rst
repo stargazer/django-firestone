@@ -10,21 +10,15 @@ Welcome to django-firestone's documentation!
 .. toctree::
    :maxdepth: 2
 
-Installation
------------------
-.. toctree::
-        :maxdepth: 2
-
-        installation/development
-        installation/dependency
-        installation/configuration
-
 Getting Started
 ------------------
 .. toctree::
         :maxdepth: 2
 
         getting_started/description
+        getting_started/documentation
+        getting_started/installation
+        getting_started/configuration
 
 
 Features and Design
