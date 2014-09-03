@@ -38,6 +38,47 @@ class TestSerializeToJson(TestCase):
         self.assertEquals(headers, {'content-type': 'application/json'})
 
 
+class TestSerializeToExcel(TestCase):
+    # Of course here we can only check the headers. The content is a binary
+    # file
+    def test_string(self):
+        data = 'somedata'
+        
+        result, headers = serializers._serialize_to_excel(data) 
+        self.assertEquals(
+            headers, 
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
+
+    def test_list(self):
+        data = [1, 2, 3]
+        
+        result, headers = serializers._serialize_to_excel(data) 
+        self.assertEquals(
+            headers, 
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
+
+    def test_dict(self):
+        data = {'key': 'value'}
+        
+        result, headers = serializers._serialize_to_excel(data) 
+        self.assertEquals(
+            headers, 
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
+
+
+    def test_datetime(self):
+        data = datetime.now()
+        
+        result, headers = serializers._serialize_to_excel(data) 
+        self.assertEquals(
+            headers, 
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
+
+
 class TestGetSerializer(TestCase):
     def test_empty(self):
         self.assertEquals(
@@ -57,13 +98,52 @@ class TestGetSerializer(TestCase):
             serializers._serialize_to_json
         )
 
+    def test_application_excel(self):     
+        self.assertEquals(
+            serializers._get_serializer('application/vnd.ms-excel'),
+            serializers._serialize_to_excel,
+        )
+
 class TestGetSerializationFormat(TestCase):            
-    def test_empty_header(self):
+    def test_empty_accept_header(self):
         request = RequestFactory().get('/')
 
         self.assertEquals(
             serializers._get_serialization_format(request),
             'application/json',
+        )
+
+    def test_invalid_accept_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='whatever',
+        )
+        
+        self.assertEquals(
+            serializers._get_serialization_format(request),
+            'application/json',
+        )
+
+    def test_json_accept_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEquals(
+            serializers._get_serialization_format(request),
+            'application/json',
+        )
+
+    def test_excel_accept_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='application/vnd.ms-excel',
+        )
+
+        self.assertEquals(
+            serializers._get_serialization_format(request),
+            'application/vnd.ms-excel',
         )
 
 
@@ -86,9 +166,16 @@ class TestSerialize(TestCase):
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
+    def test_excel_ser_format(self):
+        data = 'somedata'
+        result, headers = serializers.serialize(data, 'application/vnd.ms-excel')
+        self.assertEquals(
+            headers,
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
 
 class TestSerializeResponseData(TestCase):
-    def test_serialize_string(self):
+    def test_serialize_no_accept_header(self):
         request = RequestFactory().get('/')
         data = 'somedata'
         
@@ -96,29 +183,41 @@ class TestSerializeResponseData(TestCase):
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
-    def test_serialize_list(self):
-        request = RequestFactory().get('/')
-        data = [1, 2, 3]
+    def test_serialize_invalid_accept_header(self):
+        # data: list
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='whatever'
+        )
+        data = 'somedata'
         
         result, headers = serializers.serialize_response_data(data, request)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
-    def test_serialize_dict(self):
-        request = RequestFactory().get('/')
-        data = {'key': 'value'}
+    def test_serialize_json_accept_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='application/json',
+        )
+        data = 'somedata'
         
         result, headers = serializers.serialize_response_data(data, request)
         self.assertJSONEqual(result, json.dumps(data))
         self.assertEquals(headers, {'content-type': 'application/json'})
 
-    def test_serialize_datetime(self):
-        request = RequestFactory().get('/')
-        data = datetime.now()
+    def test_serialize_excel_accept_header(self):
+        request = RequestFactory().get(
+            '/',
+            HTTP_ACCEPT='application/vnd.ms-excel',
+        )
+        data = 'somedata'
         
         result, headers = serializers.serialize_response_data(data, request)
-        self.assertJSONEqual(result, json.dumps(data, cls=DateTimeAwareJSONEncoder))
-        self.assertEquals(headers, {'content-type': 'application/json'})
+        self.assertEquals(
+            headers, 
+            {'content-type': 'application/vnd.ms-excel', 'content-disposition': 'attachment'}
+        )
 
 
 
