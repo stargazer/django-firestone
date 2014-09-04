@@ -14,34 +14,32 @@ class TestAPIExceptionInstantiation(TestCase):
     def test_method_api_exception(self):
         e = exceptions.APIException()
 
-        response, headers = e.get_http_response_and_headers()
-        self.assertIsInstance(response, http.HttpResponse)
-        self.assertItemsEqual(headers, {})
+        self.assertRaises(
+            NotImplementedError,
+            e.get_response
+        )
 
     def test_method_not_allowed(self):
         e = exceptions.MethodNotAllowed([])
         self.assertEqual(e.status, 405)
 
 
-        response, headers = e.get_http_response_and_headers()
+        response= e.get_response()
         self.assertIsInstance(response, http.HttpResponseNotAllowed)
-        self.assertItemsEqual(headers, {})
 
     def test_bad_request(self):
         e = exceptions.BadRequest()
         self.assertEqual(e.status, 400)
 
-        response, headers = e.get_http_response_and_headers()
+        response = e.get_response()
         self.assertIsInstance(response, http.HttpResponseBadRequest)
-        self.assertItemsEqual(headers, {'content-type': 'application/json'})
 
     def test_gone(self):
         e = exceptions.Gone()
         self.assertEqual(e.status, 410)
         
-        response, headers = e.get_http_response_and_headers()
+        response = e.get_response()
         self.assertIsInstance(response, http.HttpResponseGone)
-        self.assertItemsEqual(headers, {})
 
     def test_unprocessable(self):
         e = exceptions.Unprocessable()
@@ -64,9 +62,8 @@ class TestAPIExceptionInstantiation(TestCase):
             exp = exceptions.OtherException(request)
         self.assertEqual(exp.status, 500)
         
-        response, headers = exp.get_http_response_and_headers()
+        response = exp.get_response()
         self.assertIsInstance(response, http.HttpResponseServerError)
-        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
     def test_other_exception_email_crashes(self):
         request = RequestFactory().get('/')
@@ -80,8 +77,7 @@ class TestAPIExceptionInstantiation(TestCase):
             exp = exceptions.OtherException(request)
         self.assertEqual(exp.status, 500)
 
-        response, headers = exp.get_http_response_and_headers()
+        response = exp.get_response()
         self.assertIsInstance(response, http.HttpResponseServerError)
-        self.assertItemsEqual(headers, {'content-type': 'text/html; charset=utf-8'})
 
 

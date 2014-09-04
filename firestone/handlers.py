@@ -86,13 +86,12 @@ class HandlerControlFlow(object):
 
             # If you want to alter the response object, override handler's
             # ``get_response`` method
-            response = self.serialize(dic)
-            return res
+            res = self.serialize(dic)
 
         except Exception, e:
-            response, headers = self.handle_exception(e)
+            res = self.handle_exception(e)
         
-        return self.patch_response(response, headers)
+        return res
 
     def preprocess(self):
         """
@@ -174,10 +173,10 @@ class HandlerControlFlow(object):
             as headers on the HttpResponse object.
         """
         if isinstance(e, exceptions.APIException):
-            return e.get_http_response_and_headers()
+            return e.get_response()
         else:
             exc = exceptions.OtherException(self.request)
-            return exc.get_http_response_and_headers()
+            return exc.get_response()
 
 
 

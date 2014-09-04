@@ -23,8 +23,8 @@ class APIException(Exception):
     def __init__(self):
         self.headers = {}
 
-    def get_http_response_and_headers(self):
-        return http.HttpResponse(), self.headers
+    def get_response(self):
+        raise NotImplementedError
 
 
 class MethodNotAllowed(APIException):
@@ -33,8 +33,8 @@ class MethodNotAllowed(APIException):
         self.allowed_methods = allowed_methods
         self.headers = {}
 
-    def get_http_response_and_headers(self):
-        return http.HttpResponseNotAllowed(self.allowed_methods), self.headers
+    def get_response(self):
+        return http.HttpResponseNotAllowed(self.allowed_methods)
 
 
 class BadRequest(APIException):
@@ -65,8 +65,11 @@ class BadRequest(APIException):
 
         self.body, self.headers = serialize(self.errors)
 
-    def get_http_response_and_headers(self):
-        return http.HttpResponseBadRequest(self.body), self.headers
+    def get_response(self):
+        res = http.HttpResponseBadRequest(self.body)
+        for key, value in self.headers.items():
+            res[key] = value
+        return res
 
 
 class Gone(APIException):
@@ -74,8 +77,8 @@ class Gone(APIException):
         self.status = 410
         self.headers = {}
 
-    def get_http_response_and_headers(self):        
-        return http.HttpResponseGone(), self.headers
+    def get_response(self): 
+        return http.HttpResponseGone()
 
 
 class Unprocessable(APIException):
@@ -84,8 +87,11 @@ class Unprocessable(APIException):
         self.errors = errors
         self.body, self.headers = errors and serialize(errors) or ('', {})
 
-    def get_http_response_and_headers(self):
-        return http.HttpResponse(self.body, status=self.status), self.headers
+    def get_response(self):
+        res = http.HttpResponse(self.body, status=self.status)
+        for key, value in self.headers.items():
+            res[key] = value
+        return res
 
 
 class UnsupportedMediaType(APIException):
@@ -93,8 +99,8 @@ class UnsupportedMediaType(APIException):
         self.status = 415
         self.headers = {}
 
-    def get_http_response_and_headers(self):        
-        return http.HttpResponse(status=self.status), self.headers
+    def get_response(self):        
+        return http.HttpResponse(status=self.status)
 
 
 class NotImplemented(APIException):
@@ -102,8 +108,8 @@ class NotImplemented(APIException):
         self.status = 501
         self.headers = {}
     
-    def get_http_response_and_headers(self):
-        return http.HttpResponse(status=self.status), self.headers
+    def get_response(self):
+        return http.HttpResponse(status=self.status)
 
 
 class OtherException(Exception):
@@ -119,7 +125,7 @@ class OtherException(Exception):
         self.status = 500
         self.request = request
 
-    def get_http_response_and_headers(self):
+    def get_response(self):
         exc_type, exc_value, traceback = sys.exc_info()
         reporter = ExceptionReporter(
             self.request, 
@@ -131,9 +137,7 @@ class OtherException(Exception):
         http_response = http.HttpResponseServerError()
 
         if settings.DEBUG:
-            http_response = http.HttpResponseServerError(
-                html,
-            )
+            http_response = http.HttpResponseServerError(html, content_type='text/html; charset=utf-8')
         elif getattr(settings, 'EMAIL_CRASHES', False):
             # Send Email Crash Report
             subject = 'django-firestone crash report'
@@ -146,6 +150,5 @@ class OtherException(Exception):
             message.content_subtype='html'
             message.send(fail_silently=True)
 
-        headers = {'content-type': 'text/html; charset=utf-8'}
-        return http_response, headers
+        return http_response
 
