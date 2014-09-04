@@ -80,7 +80,7 @@ class HandlerControlFlow(object):
             )
 
             serialized_data, headers = serializers.serialize_response_data(
-                dic, self.request, self.args, self.kwargs
+                dic, self.request
             )
             response = http.HttpResponse(serialized_data)            
 
