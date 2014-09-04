@@ -79,16 +79,14 @@ class HandlerControlFlow(object):
                 data, pagination,
             )
 
-        except Exception, e:
-            # handle exception
-            response, headers = self.handle_exception(e)
-
-        else:
             serialized_data, headers = serializers.serialize_response_data(
                 dic, self.request, self.args, self.kwargs
-            ) 
+            )
             response = http.HttpResponse(serialized_data)            
 
+        except Exception, e:
+            response, headers = self.handle_exception(e)
+        
         return self.patch_response(response, headers)
 
     def preprocess(self):
