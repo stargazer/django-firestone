@@ -1,6 +1,7 @@
 from authentication import Authentication
 from authentication import NoAuthentication
 from authentication import SessionAuthentication
+from serializers import SerializerMixin
 from preserialize import serialize as preserializer
 import serializers 
 import deserializers
@@ -34,6 +35,10 @@ class HandlerMetaClass(type):
                 bases += (authentication,)
             else:
                 bases += (authentication,)
+
+        # Extend handler class with ``SerializerMixin`` class, so that it
+        # inherits its methods
+        bases += (SerializerMixin,)
         
         cls = type.__new__(meta, name, bases, attrs)
 
@@ -79,10 +84,10 @@ class HandlerControlFlow(object):
                 data, pagination,
             )
 
-            serialized_data, headers = serializers.serialize_response_data(
-                dic, self.request
-            )
-            response = http.HttpResponse(serialized_data)            
+            # If you want to alter the response object, override handler's
+            # ``get_response`` method
+            response = self.serialize(dic)
+            return res
 
         except Exception, e:
             response, headers = self.handle_exception(e)

@@ -7,6 +7,7 @@ from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
 from firestone.authentication import SessionAuthentication
 from firestone.authentication import NoAuthentication
+from firestone.serializers import SerializerMixin
 
 class BaseHandlerExample(BaseHandler):
     http_methods = ['gEt', 'post', 'DELETE']
@@ -39,6 +40,10 @@ class TestHandlerMetaClass(TestCase):
             base_handler.authentication,
         )
 
+        # The class ``SerializerMixin`` has become a superclass of the
+        # handler class
+        self.assertTrue(SerializerMixin in BaseHandlerExample.__bases__)
+
         # Have these 2 parameters been transformed to sets?
         self.assertIsInstance(base_handler.post_body_fields, set)
         self.assertIsInstance(base_handler.put_body_fields, set)
@@ -58,7 +63,10 @@ class TestHandlerMetaClass(TestCase):
             model_handler.authentication,
         )
         
-        
+        # The class ``SerializerMixin`` has become a superclass of the
+        # handler class
+        self.assertTrue(SerializerMixin in BaseHandlerExample.__bases__)
+
         # Have these 2 parameters been transformed to sets?
         self.assertIsInstance(model_handler.post_body_fields, set)
         self.assertIsInstance(model_handler.put_body_fields, set)

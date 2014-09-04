@@ -1,5 +1,6 @@
-import json
+from django.http import HttpResponse
 from django.core.serializers.json import DateTimeAwareJSONEncoder
+import json
 
 def _serialize_to_json(data):
     """
@@ -49,11 +50,42 @@ def serialize(data, ser_format=DEFAULT_SERIALIZATION_FORMAT):
     s = _get_serializer(ser_format)
     return s(data)
 
-def serialize_response_data(data, request):
-    """
-    Serializes ``data`` to a serialization format that ``request`` demands
+
+class SerializerMixin(object):
+    DEFAULT_SERIALIZATION_FORMAT = 'application/json'
+    MAPPER = {
+        'application/json': 'serialize_to_json',
+        'application/vnd.ms-excel': 'serialize_to_excel',
+    }
+
+    def get_serialization_format(self):
+        return _get_serialization_format(self.request)
+
+    def get_serializer(self, ser_format):
+        return getattr(self, self.MAPPER[ser_format]) 
+
+    def serialize_to_json(self, data):
+        return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'Content-Type': 'application/json'}
+        #return _serialize_to_json(data)
+
+    def serialize_to_excel(self, data):
+        pass
     
-    Returns a tuple of (serialized_data, headers_dict)
-    """
-    ser_format = _get_serialization_format(request)
-    return serialize(data, ser_format)
+    def get_response(self, data, headers):
+        r = HttpResponse(data)
+        for key, value in headers.items():
+            r[key] = value
+        return r
+
+    def serialize(self, data):
+        ser_format = self.get_serialization_format()
+        serializer = self.get_serializer(ser_format)
+        data, headers = serializer(data)
+
+        return self.get_response(data, headers)
+
+        # TODO: Return HttpResponse object. If we want additional headers,
+        # override handler's serialize method.
+
+
+# TODO: Upon handler class instantiation, set SerializerMixin as a superclass.
