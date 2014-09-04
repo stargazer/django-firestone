@@ -157,13 +157,6 @@ class HandlerControlFlow(object):
         self.finalize_pending(data)
         # Package the python_data to a dictionary
         return self.package(python_data, pagination)
-        # Return serialized response plus any http headers, like
-        # ``content-type`` that need to be passed in the HttpResponse instance.
-        serialized, headers = serializers.serialize_response_data(
-            pack, self.request, self.args, self.kwargs
-        )
-        
-        return serialized, headers
 
     def handle_exception(self, e):
         """
