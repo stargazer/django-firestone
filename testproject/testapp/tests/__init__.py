@@ -8,6 +8,8 @@ from test_exceptions import *
 
 from test_authentication import *
 
+from test_whole_flow import *
+
 from test_handlers_metaclass_magic import *
 from test_handlers_serialize_to_python import *
 from test_handlers_is_method_allowed import *
