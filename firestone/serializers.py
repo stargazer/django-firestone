@@ -45,7 +45,7 @@ class SerializerMixin(object):
         # At this point, ``data`` should have the form of 
         # {'data': <data>, 'debug': <debug>, ...}.
         # We are only interested in the data['data']
-        if not isinstance(data, dict):
+        if not isinstance(data, dict) or not 'data' in data:
             # This should never happen
             raise Unprocessable('Fatal Error. Cannot process')
 
@@ -102,17 +102,6 @@ class SerializerMixin(object):
             'Content-Disposition': 'attachment; filename=%s;' % filename
         }                          
 
-
-
-
-
-
-
-        return '', {
-            'content-type': 'application/vnd.ms-excel',
-            'content-disposition': 'attachment'
-        } 
-        
     def serialize(self, data, ser_format=''):
         """
         Serializes ``data`` and returns  tuple of:
