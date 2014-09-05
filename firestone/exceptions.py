@@ -67,7 +67,7 @@ class BadRequest(APIException):
         s = serializers.SerializerMixin()
         s.request = request
 
-        body, headers = s.serialize(self.errors)
+        body, headers = s.serialize(self.errors, s.DEFAULT_SERIALIZATION_FORMAT)
 
         res = http.HttpResponseBadRequest(body)
         for key, value in headers.items():
@@ -95,7 +95,7 @@ class Unprocessable(APIException):
             s = serializers.SerializerMixin()
             s.request = request
 
-            body, headers = s.serialize(self.errors)
+            body, headers = s.serialize(self.errors, s.DEFAULT_SERIALIZATION_FORMAT)
 
         res = http.HttpResponse(body, status=self.status)
         for key, value in headers.items():

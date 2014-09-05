@@ -71,8 +71,10 @@ class SerializerMixin(object):
     def serialize_to_excel(self, data):
         pass
     
-    def serialize(self, data):
-        ser_format = self.get_serialization_format()
+    def serialize(self, data, ser_format=''):
+        if not ser_format:
+            ser_format = self.get_serialization_format()
+
         serializer = self.get_serializer(ser_format)
         data, headers = serializer(data)
         return data, headers

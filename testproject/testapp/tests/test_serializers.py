@@ -133,6 +133,19 @@ class TestSerializerMixin(TestCase):
             (json.dumps(data, indent=4), {'Content-Type':'application/json'})
         )
         
+    def test_serialize_with_ser_format(self):
+        #accept header requests excel
+        request = RequestFactory().get('/', HTTP_ACCEPT='application/vnd.ms-excel')
+
+        s = serializers.SerializerMixin()
+        s.request = request
+
+        # But ``serialize`` is called with ``application/json``
+        data = [1, 2, 3, 'a', 'b']
+        self.assertItemsEqual(
+            s.serialize(data, 'application/json'),
+            (json.dumps(data, indent=4), {'Content-Type': 'application/json'})
+        )
 
 
     
