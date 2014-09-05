@@ -35,6 +35,7 @@ Usage Documentation
         :maxdepth: 2
 
         usage/how_to_use
+        usage/handlers
         usage/authentication
         usage/ordering
         usage/filtering

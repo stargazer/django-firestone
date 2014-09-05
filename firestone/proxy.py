@@ -26,7 +26,7 @@ class Proxy(object):
             h.kwargs = kwargs
 
             if h.is_authenticated():
-                # Mimicking what Django's class bades views ``as_view`` method
+                # Mimicking what Django's class based views ``as_view`` method
                 # does. The benefit is that I don't have to pass them as input args
                 # to any handler methods.
                 return h
