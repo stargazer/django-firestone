@@ -34,7 +34,7 @@ setup(
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: Freely Distributable',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
     ),
 )                                                    
 
