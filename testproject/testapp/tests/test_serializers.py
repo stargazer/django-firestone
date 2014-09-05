@@ -12,8 +12,10 @@ from datetime import datetime
 import json
 
 
-class TestSerializerMixin(TestCase):
-    def test_get_serialization_format_no_accept_header(self):
+class TestSerializerMixinGetSerializationFormat(TestCase):
+    # Method get_serialization_format
+
+    def test_no_accept_header(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -23,7 +25,7 @@ class TestSerializerMixin(TestCase):
             s.DEFAULT_SERIALIZATION_FORMAT,    
         )
 
-    def test_get_serialization_format_json(self):
+    def test_json(self):
         request = RequestFactory().get('/', HTTP_ACCEPT='application/json')
         s = serializers.SerializerMixin()
         s.request = request
@@ -33,7 +35,7 @@ class TestSerializerMixin(TestCase):
             'application/json',    
         )
 
-    def test_get_serialization_format_excel(self):
+    def test_excel(self):
         request = RequestFactory().get('/', HTTP_ACCEPT='application/vnd.ms-excel')
         s = serializers.SerializerMixin()
         s.request = request
@@ -43,7 +45,11 @@ class TestSerializerMixin(TestCase):
             'application/vnd.ms-excel',    
         )
 
-    def test_get_serializer_json(self):
+
+class TestSerializerMixinGetSerializer(TestCase):
+    # Method get_serializer
+
+    def test_json(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -53,7 +59,7 @@ class TestSerializerMixin(TestCase):
             s.serialize_to_json 
         )
 
-    def test_get_serializer_excel(self):
+    def test_excel(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -63,7 +69,11 @@ class TestSerializerMixin(TestCase):
             s.serialize_to_excel
         )
 
-    def test_serialize_to_json_string(self):
+
+class TestSerializerMixinSerializeToJson(TestCase):
+    # Method serialize_to_json
+
+    def test_json_string(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -74,7 +84,7 @@ class TestSerializerMixin(TestCase):
             (json.dumps(data), {'Content-Type': 'application/json'})
         )
 
-    def test_serializer_to_json_datetime(self):
+    def test_json_datetime(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -85,7 +95,7 @@ class TestSerializerMixin(TestCase):
             (json.dumps(data, cls=DateTimeAwareJSONEncoder),  {'Content-Type': 'application/json'})
         )
 
-    def test_serializer_to_json_dict(self):
+    def test_dict(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -96,7 +106,7 @@ class TestSerializerMixin(TestCase):
             (json.dumps(data, indent=4), {'Content-Type': 'application/json'})
         )
 
-    def test_serializer_to_json_list(self):
+    def test_json_list(self):
         request = RequestFactory().get('/')
         s = serializers.SerializerMixin()
         s.request = request
@@ -107,20 +117,16 @@ class TestSerializerMixin(TestCase):
             (json.dumps(data, indent=4),  {'Content-Type': 'application/json'})
         )
         
+
+class TestSerializerMixinSerializeToExcel(TestCase):       
+    # Method serialize_to_excel
+
     def test_serialize_to_excel(self):
         pass
 
-    def test_get_response(self):
-        request = RequestFactory().get('/')
-        s = serializers.SerializerMixin()
-        s.request = request
 
-        data = [1, 2, 3, 'a', 'b']
-        headers = {'Content-Type': 'application/json'}
-        self.assertItemsEqual(
-            s.get_response(data),
-            HttpResponse(json.dumps(data, indent=4), content_type='application/json')
-        )
+class TestSerializerMixinSerialize(TestCase):
+    # Method serialize
 
     def test_serialize(self):
         request = RequestFactory().get('/')
@@ -146,6 +152,22 @@ class TestSerializerMixin(TestCase):
             s.serialize(data, 'application/json'),
             (json.dumps(data, indent=4), {'Content-Type': 'application/json'})
         )
+
+class TestSerializerMixinGetResponse(TestCase):
+    # Method get_response
+
+    def test_get_response(self):
+        request = RequestFactory().get('/')
+        s = serializers.SerializerMixin()
+        s.request = request
+
+        data = [1, 2, 3, 'a', 'b']
+        headers = {'Content-Type': 'application/json'}
+        self.assertItemsEqual(
+            s.get_response(data),
+            HttpResponse(json.dumps(data, indent=4), content_type='application/json')
+        )
+
 
 
     
