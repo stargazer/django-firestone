@@ -247,7 +247,7 @@ class TestSerializerMixinSerializeToExcel(TestCase):
             }
         )
 
-    def nest_nested_lists(self):        
+    def test_nest_nested_lists(self):        
         # data['data'] has values with nested lists
         data = {
             'data': {
@@ -267,9 +267,19 @@ class TestSerializerMixinSerializeToExcel(TestCase):
     def test_unicode_chars(self):
         data = {
             'data': {
-                'name': 'Χαράλαμπος',
+                'name': u'Χαράλαμπος',
              }                
         }                
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
 
     def test_filename_is_callable(self):
         self.s.excel_filename = lambda: 'file.xls'
