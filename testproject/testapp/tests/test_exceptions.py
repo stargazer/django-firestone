@@ -12,33 +12,37 @@ import json
 class TestAPIExceptionInstantiation(TestCase):
 
     def test_method_api_exception(self):
+        request = RequestFactory().get('/')
         e = exceptions.APIException()
 
         self.assertRaises(
             NotImplementedError,
-            e.get_response
+            e.get_response,
+            request
         )
 
     def test_method_not_allowed(self):
+        request = RequestFactory().get('/')
         e = exceptions.MethodNotAllowed([])
         self.assertEqual(e.status, 405)
 
-
-        response= e.get_response()
+        response= e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseNotAllowed)
 
     def test_bad_request(self):
+        request = RequestFactory().get('/')
         e = exceptions.BadRequest()
         self.assertEqual(e.status, 400)
 
-        response = e.get_response()
+        response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseBadRequest)
 
     def test_gone(self):
+        request = RequestFactory().get('/')
         e = exceptions.Gone()
         self.assertEqual(e.status, 410)
         
-        response = e.get_response()
+        response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseGone)
 
     def test_unprocessable(self):
@@ -62,7 +66,7 @@ class TestAPIExceptionInstantiation(TestCase):
             exp = exceptions.OtherException(request)
         self.assertEqual(exp.status, 500)
         
-        response = exp.get_response()
+        response = exp.get_response(request)
         self.assertIsInstance(response, http.HttpResponseServerError)
 
     def test_other_exception_email_crashes(self):
@@ -77,7 +81,7 @@ class TestAPIExceptionInstantiation(TestCase):
             exp = exceptions.OtherException(request)
         self.assertEqual(exp.status, 500)
 
-        response = exp.get_response()
+        response = exp.get_response(request)
         self.assertIsInstance(response, http.HttpResponseServerError)
 
 

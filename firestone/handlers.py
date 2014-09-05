@@ -173,10 +173,10 @@ class HandlerControlFlow(object):
             as headers on the HttpResponse object.
         """
         if isinstance(e, exceptions.APIException):
-            return e.get_response()
+            return e.get_response(self.request)
         else:
             exc = exceptions.OtherException(self.request)
-            return exc.get_response()
+            return exc.get_response(self.request)
 
 
 

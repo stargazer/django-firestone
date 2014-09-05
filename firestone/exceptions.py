@@ -10,7 +10,7 @@ Any exceptions other than the ones declared here (say, a python statement
 raises a TypeError) that the ``handle_exception`` will handle, will be turned
 into a Server error response.
 """
-from serializers import serialize 
+from firestone import serializers
 from django import http
 from django.conf import settings
 from django.views.debug import ExceptionReporter   
@@ -23,7 +23,7 @@ class APIException(Exception):
     def __init__(self):
         self.headers = {}
 
-    def get_response(self):
+    def get_response(self, request):
         raise NotImplementedError
 
 
@@ -33,7 +33,7 @@ class MethodNotAllowed(APIException):
         self.allowed_methods = allowed_methods
         self.headers = {}
 
-    def get_response(self):
+    def get_response(self, request):
         return http.HttpResponseNotAllowed(self.allowed_methods)
 
 
@@ -63,11 +63,14 @@ class BadRequest(APIException):
             errors = {NON_FIELD_ERRORS: (errors,)}
         self.errors = errors
 
-        self.body, self.headers = serialize(self.errors)
+    def get_response(self, request):
+        s = serializers.SerializerMixin()
+        s.request = request
 
-    def get_response(self):
-        res = http.HttpResponseBadRequest(self.body)
-        for key, value in self.headers.items():
+        body, headers = s.serialize(self.errors)
+
+        res = http.HttpResponseBadRequest(body)
+        for key, value in headers.items():
             res[key] = value
         return res
 
@@ -77,7 +80,7 @@ class Gone(APIException):
         self.status = 410
         self.headers = {}
 
-    def get_response(self): 
+    def get_response(self, request): 
         return http.HttpResponseGone()
 
 
@@ -85,11 +88,17 @@ class Unprocessable(APIException):
     def __init__(self, errors=None):
         self.status = 422
         self.errors = errors
-        self.body, self.headers = errors and serialize(errors) or ('', {})
 
-    def get_response(self):
-        res = http.HttpResponse(self.body, status=self.status)
-        for key, value in self.headers.items():
+    def get_response(self, request):
+        body, headers = ('', {})
+        if self.errors:
+            s = serializers.SerializerMixin()
+            s.request = request
+
+            body, headers = s.serialize(self.errors)
+
+        res = http.HttpResponse(body, status=self.status)
+        for key, value in headers.items():
             res[key] = value
         return res
 
@@ -99,7 +108,7 @@ class UnsupportedMediaType(APIException):
         self.status = 415
         self.headers = {}
 
-    def get_response(self):        
+    def get_response(self, request):        
         return http.HttpResponse(status=self.status)
 
 
@@ -108,7 +117,7 @@ class NotImplemented(APIException):
         self.status = 501
         self.headers = {}
     
-    def get_response(self):
+    def get_response(self, request):
         return http.HttpResponse(status=self.status)
 
 
@@ -123,12 +132,11 @@ class OtherException(Exception):
         administrator.
         """
         self.status = 500
-        self.request = request
 
-    def get_response(self):
+    def get_response(self, request):
         exc_type, exc_value, traceback = sys.exc_info()
         reporter = ExceptionReporter(
-            self.request, 
+            request, 
             exc_type, 
             exc_value,
             traceback.tb_next
