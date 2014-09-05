@@ -3,17 +3,11 @@ from django.core.serializers.json import DateTimeAwareJSONEncoder
 import json
 
 
-def serialize(data, ser_format=DEFAULT_SERIALIZATION_FORMAT):
-    """
-    Serializes ``data`` to ``ser_format``.
-    
-    Returns a tuple of (serialized_data, headers_dict)
-    """
-    s = _get_serializer(ser_format)
-    return s(data)
-
-
 class SerializerMixin(object):
+    """
+    Can be used as a standalone class to instansiate objects(as long as they
+    have a ``request`` attribute), or as a Mixin for handler classes.
+    """
     DEFAULT_SERIALIZATION_FORMAT = 'application/json'
     MAPPER = {
         'application/json': 'serialize_to_json',
@@ -43,9 +37,19 @@ class SerializerMixin(object):
         #return _serialize_to_json(data)
 
     def serialize_to_excel(self, data):
-        pass
-    
+        return '', {
+            'content-type': 'application/vnd.ms-excel',
+            'content-disposition': 'attachment'
+        } 
+        
     def serialize(self, data, ser_format=''):
+        """
+        Serializes ``data`` and returns  tuple of:
+            (``serialized data``, ``headers`` for the HttpResponse object)
+
+        if ``ser_format`` is not provided, the serialization format is set
+        according to the requests's Accept Header
+        """
         if not ser_format:
             ser_format = self.get_serialization_format()
 
@@ -54,6 +58,9 @@ class SerializerMixin(object):
         return data, headers
 
     def get_response(self, data):
+        """
+        Serializers ``data`` and returns the appropriate HttpResponse object
+        """
         data, headers = self.serialize(data)
         r = HttpResponse(data)
         for key, value in headers.items():
