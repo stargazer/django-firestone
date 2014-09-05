@@ -115,11 +115,11 @@ class TestSerializerMixin(TestCase):
         s = serializers.SerializerMixin()
         s.request = request
 
-        data = json.dumps([1, 2, 3, 'a', 'b'])
+        data = [1, 2, 3, 'a', 'b']
         headers = {'Content-Type': 'application/json'}
         self.assertItemsEqual(
-            s.get_response(data, headers),
-            HttpResponse(data, content_type='application/json')
+            s.get_response(data),
+            HttpResponse(json.dumps(data, indent=4), content_type='application/json')
         )
 
     def test_serialize(self):
@@ -130,7 +130,7 @@ class TestSerializerMixin(TestCase):
         data = [1, 2, 3, 'a', 'b']
         self.assertItemsEqual(
             s.serialize(data),
-            HttpResponse(json.dumps(data, indent=4), content_type='application/json')
+            (json.dumps(data, indent=4), {'Content-Type':'application/json'})
         )
         
 

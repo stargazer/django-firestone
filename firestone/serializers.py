@@ -71,21 +71,18 @@ class SerializerMixin(object):
     def serialize_to_excel(self, data):
         pass
     
-    def get_response(self, data, headers):
-        r = HttpResponse(data)
-        for key, value in headers.items():
-            r[key] = value
-        return r
-
     def serialize(self, data):
         ser_format = self.get_serialization_format()
         serializer = self.get_serializer(ser_format)
         data, headers = serializer(data)
+        return data, headers
 
-        return self.get_response(data, headers)
-
-        # TODO: Return HttpResponse object. If we want additional headers,
-        # override handler's serialize method.
+    def get_response(self, data):
+        data, headers = self.serialize(data)
+        r = HttpResponse(data)
+        for key, value in headers.items():
+            r[key] = value
+        return r
 
 
 # TODO: Upon handler class instantiation, set SerializerMixin as a superclass.

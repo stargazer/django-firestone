@@ -86,7 +86,7 @@ class HandlerControlFlow(object):
 
             # If you want to alter the response object, override handler's
             # ``get_response`` method
-            res = self.serialize(dic)
+            res = self.get_response(dic)
 
         except Exception, e:
             res = self.handle_exception(e)
