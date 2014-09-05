@@ -10,8 +10,7 @@ import json
 
 
 class TestAPIException(TestCase):
-
-    def test_method_api_exception(self):
+    def test_api_exception(self):
         request = RequestFactory().get('/')
         e = exceptions.APIException()
 
@@ -23,45 +22,53 @@ class TestAPIException(TestCase):
 
 
 class TestMethodNotAllowed(TestCase):        
-    def test_method_not_allowed(self):
+    def test_not_allowed(self):
         request = RequestFactory().get('/')
         e = exceptions.MethodNotAllowed([])
-        self.assertEqual(e.status, 405)
 
         response= e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseNotAllowed)
+        self.assertEqual(response.status_code, 405)
 
 
 class TestBadRequest(TestCase):
     def test_bad_request(self):
         request = RequestFactory().get('/')
         e = exceptions.BadRequest()
-        self.assertEqual(e.status, 400)
 
         response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseBadRequest)
+        self.assertEqual(response.status_code, 400)
 
 
 class TestGone(TestCase):
     def test_gone(self):
         request = RequestFactory().get('/')
         e = exceptions.Gone()
-        self.assertEqual(e.status, 410)
         
         response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseGone)
+        self.assertEqual(response.status_code, 410)
 
 
 class TestUnprocessable(TestCase):
     def test_unprocessable(self):
+        request = RequestFactory().get('/')
         e = exceptions.Unprocessable()
-        self.assertEqual(e.status, 422)
+
+        response = e.get_response(request)
+        self.assertIsInstance(response, http.HttpResponse)
+        self.assertEqual(response.status_code, 422)
 
 
 class TestUnsupportedMedia(TestCase):
     def test_unsupported_media_type(self):
+        request = RequestFactory().get('/')
         e = exceptions.UnsupportedMediaType()
-        self.assertEqual(e.status, 415)
+
+        response = e.get_response(request)
+        self.assertIsInstance(response, http.HttpResponse)
+        self.assertEqual(response.status_code, 415)
 
 
 class TestNotAcceptable(TestCase):
@@ -88,10 +95,10 @@ class TestOtherException(TestCase):
             raise TypeError()
         except Exception, e:
             exp = exceptions.OtherException(request)
-        self.assertEqual(exp.status, 500)
         
         response = exp.get_response(request)
         self.assertIsInstance(response, http.HttpResponseServerError)
+        self.assertEqual(response.status_code, 500)
 
     def test_other_exception_email_crashes(self):
         request = RequestFactory().get('/')
@@ -103,9 +110,9 @@ class TestOtherException(TestCase):
             raise TypeError()
         except Exception, e:
             exp = exceptions.OtherException(request)
-        self.assertEqual(exp.status, 500)
 
         response = exp.get_response(request)
         self.assertIsInstance(response, http.HttpResponseServerError)
+        self.assertEqual(response.status_code, 500)
 
 
