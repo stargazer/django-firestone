@@ -9,7 +9,7 @@ from django import http
 import json
 
 
-class TestAPIExceptionInstantiation(TestCase):
+class TestAPIException(TestCase):
 
     def test_method_api_exception(self):
         request = RequestFactory().get('/')
@@ -21,6 +21,8 @@ class TestAPIExceptionInstantiation(TestCase):
             request
         )
 
+
+class TestMethodNotAllowed(TestCase):        
     def test_method_not_allowed(self):
         request = RequestFactory().get('/')
         e = exceptions.MethodNotAllowed([])
@@ -29,6 +31,8 @@ class TestAPIExceptionInstantiation(TestCase):
         response= e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseNotAllowed)
 
+
+class TestBadRequest(TestCase):
     def test_bad_request(self):
         request = RequestFactory().get('/')
         e = exceptions.BadRequest()
@@ -37,6 +41,8 @@ class TestAPIExceptionInstantiation(TestCase):
         response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseBadRequest)
 
+
+class TestGone(TestCase):
     def test_gone(self):
         request = RequestFactory().get('/')
         e = exceptions.Gone()
@@ -45,14 +51,20 @@ class TestAPIExceptionInstantiation(TestCase):
         response = e.get_response(request)
         self.assertIsInstance(response, http.HttpResponseGone)
 
+
+class TestUnprocessable(TestCase):
     def test_unprocessable(self):
         e = exceptions.Unprocessable()
         self.assertEqual(e.status, 422)
 
+
+class TestUnsupportedMedia(TestCase):
     def test_unsupported_media_type(self):
         e = exceptions.UnsupportedMediaType()
         self.assertEqual(e.status, 415)
 
+
+class TestNotAcceptable(TestCase):
     def test_not_acceptable(self):
         request = RequestFactory().get('/')
         e = exceptions.NotAcceptable()
@@ -61,10 +73,14 @@ class TestAPIExceptionInstantiation(TestCase):
         self.assertIsInstance(response, http.HttpResponse)
         self.assertEqual(response.status_code, 406)
 
+
+class TestNotImplemented(TestCase):
     def test_not_implemented(self):
         e = exceptions.NotImplemented()
         self.assertEqual(e.status, 501)
 
+
+class TestOtherException(TestCase):
     def test_other_exception(self):
         request = RequestFactory().get('/')
 
