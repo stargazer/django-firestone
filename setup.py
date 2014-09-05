@@ -20,6 +20,7 @@ setup(
         'model-mommy',       # Required for the tests
         'coverage',          # Required for test coverage on Travis C.I.
         'sphinx_rtd_theme',  # Sphinx theme
+        'tablib',            # For excel serialization
     ),
     tests_require=(),       # Kept it empty and instead moved all dependencies on
                             # ``install_requires``, which makes for way better dependency

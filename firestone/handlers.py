@@ -220,6 +220,11 @@ class BaseHandler(HandlerControlFlow):
     # Defines whether metadata should be returned when pagination is used.
     # Generating metadata can, at times, perform costly queries.
     pagination_metadata = True
+
+    # Filename of Excel attachment in case a request needs the response data
+    # serialized to an excel file. Can be a string or a callable that returns a
+    # string
+    excel_filename = 'file.xls'
     
     def authentication_hook(self):
         """
