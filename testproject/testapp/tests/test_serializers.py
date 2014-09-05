@@ -1,7 +1,10 @@
+# coding: UTF-8
+
 """
 This module tests the functions in the ``firestone.serializers`` module
 """
 from firestone import serializers
+from firestone import exceptions
 from firestone.handlers import BaseHandler
 from firestone.handlers import ModelHandler
 from django.test import TestCase
@@ -121,8 +124,165 @@ class TestSerializerMixinSerializeToJson(TestCase):
 class TestSerializerMixinSerializeToExcel(TestCase):       
     # Method serialize_to_excel
 
-    def test_serialize_to_excel(self):
-        pass
+    def setUp(self):
+        request = RequestFactory().get('')
+        s = serializers.SerializerMixin()
+        s.request = request
+        s.template = {'fields': ['name', 'surname']}
+        s.excel_filename = 'file.xls'
+        self.s = s
+
+    def test_data_incorrect_format_1(self):
+        # ``data`` is not in the format {'data': <data>}
+        
+        data = {'key': 'value'}
+        
+        self.assertRaises(
+            exceptions.Unprocessable,
+            self.s.serialize_to_excel,
+            data,
+        )
+
+    def test_data_incorrect_format_2(self):
+        # ``data`` is not in the format {'data': <data>}
+         
+        data = [1, 2, 3]
+
+        self.assertRaises(
+            exceptions.Unprocessable,
+            self.s.serialize_to_excel,
+            data,
+        )
+
+    def test_data_incorrect_format_3(self):        
+        # ``data`` is not in the format {'data': <data>}
+         
+        data = 'string'
+
+        self.assertRaises(
+            exceptions.Unprocessable,
+            self.s.serialize_to_excel,
+            data,
+        )
+
+    def test_data_data_incorrect_format(self):        
+        # data['data'] is not a dict or list
+        data = {'data': 'string'}
+
+        self.assertRaises(
+            exceptions.NotAcceptable,
+            self.s.serialize_to_excel,
+            data,
+        )
+
+    def test_dict(self):
+        # data['data'] is a dictionary
+
+        data = {'data': {'name': '<name>', 'surname': '<surname>'}}
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
+    def test_list_of_dicts(self):
+        # data['data'] is a list of dictionaries
+        data = {
+            'data': [
+                {'name': '<name1>', 'surname': '<surname1>'},
+                {'name': '<name2>', 'surname': '<surname2>'},
+                {'name': '<name3>', 'surname': '<surname3>'},
+        ]}
+
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
+    def test_list_of_dicts_with_random_keys(self):
+        # data['data'] is a list of dicts, whose keys have 
+        # nothing to do with ``self.s.template['fields']``
+
+        data = {
+            'data': [
+                {'key1': '<value1>', 'key2': '<value4>'},
+                {'key1': '<value2>', 'key2': '<value5>'},
+                {'key1': '<value3>', 'key2': '<value6>'},
+        ]}
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
+    def test_nested_dicts(self):
+        # data['data'] has values with nested dicts
+        data = {
+            'data': {
+                'name': {'first_name': '<firstname>',
+                         'nickname'  : '<nickname>',
+                         }         
+            }
+        }
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
+    def nest_nested_lists(self):        
+        # data['data'] has values with nested lists
+        data = {
+            'data': {
+                'name': ['this', 'is', 'a', 'list', {'key': 'value'}],
+            }
+        }
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
+
+    def test_unicode_chars(self):
+        data = {
+            'data': {
+                'name': 'Χαράλαμπος',
+             }                
+        }                
+
+    def test_filename_is_callable(self):
+        self.s.excel_filename = lambda: 'file.xls'
+        data = {'data': {'name': '<name>', 'surname': '<surname>'}}
+        
+        file, headers = self.s.serialize_to_excel(data)
+        self.assertItemsEqual(
+            headers,
+            {
+                'Content-Type': 'application/vnd.ms-excel',
+                'Content-Disposition': 'attachment; filename=%s;' % self.s.excel_filename
+            }
+        )
 
 
 class TestSerializerMixinSerialize(TestCase):
