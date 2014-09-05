@@ -84,7 +84,7 @@ class TestSerializerMixinSerializeToJson(TestCase):
         data = 'some string'
         self.assertEqual(
             s.serialize_to_json(data),
-            (json.dumps(data), {'Content-Type': 'application/json'})
+            (json.dumps(data), {'Content-Type': 'application/json; charset=utf-8'})
         )
 
     def test_json_datetime(self):
@@ -95,7 +95,7 @@ class TestSerializerMixinSerializeToJson(TestCase):
         data = datetime.now()
         self.assertEqual(
             s.serialize_to_json(data),
-            (json.dumps(data, cls=DateTimeAwareJSONEncoder),  {'Content-Type': 'application/json'})
+            (json.dumps(data, cls=DateTimeAwareJSONEncoder),  {'Content-Type': 'application/json; charset=utf-8'})
         )
 
     def test_dict(self):
@@ -106,7 +106,7 @@ class TestSerializerMixinSerializeToJson(TestCase):
         data = {'key': 'value'}
         self.assertEqual(
             s.serialize_to_json(data),
-            (json.dumps(data, indent=4), {'Content-Type': 'application/json'})
+            (json.dumps(data, indent=4), {'Content-Type': 'application/json; charset=utf-8'})
         )
 
     def test_json_list(self):
@@ -117,7 +117,7 @@ class TestSerializerMixinSerializeToJson(TestCase):
         data = [1, 2, 3, 'a', 'b']
         self.assertEqual(
             s.serialize_to_json(data),
-            (json.dumps(data, indent=4),  {'Content-Type': 'application/json'})
+            (json.dumps(data, indent=4),  {'Content-Type': 'application/json; charset=utf-8'})
         )
         
 
@@ -296,7 +296,7 @@ class TestSerializerMixinSerialize(TestCase):
         data = [1, 2, 3, 'a', 'b']
         self.assertItemsEqual(
             s.serialize(data),
-            (json.dumps(data, indent=4), {'Content-Type':'application/json'})
+            (json.dumps(data, indent=4), {'Content-Type':'application/json; charset=utf-8'})
         )
         
     def test_serialize_with_ser_format(self):
@@ -310,7 +310,7 @@ class TestSerializerMixinSerialize(TestCase):
         data = [1, 2, 3, 'a', 'b']
         self.assertItemsEqual(
             s.serialize(data, 'application/json'),
-            (json.dumps(data, indent=4), {'Content-Type': 'application/json'})
+            (json.dumps(data, indent=4), {'Content-Type': 'application/json; charset=utf-8'})
         )
 
 class TestSerializerMixinGetResponse(TestCase):
@@ -322,10 +322,10 @@ class TestSerializerMixinGetResponse(TestCase):
         s.request = request
 
         data = [1, 2, 3, 'a', 'b']
-        headers = {'Content-Type': 'application/json'}
+        headers = {'Content-Type': 'application/json; charset=utf-8'}
         self.assertItemsEqual(
             s.get_response(data),
-            HttpResponse(json.dumps(data, indent=4), content_type='application/json')
+            HttpResponse(json.dumps(data, indent=4), content_type='application/json; charset=utf-8')
         )
 
 

@@ -35,8 +35,10 @@ class SerializerMixin(object):
         return getattr(self, self.MAPPER[ser_format]) 
 
     def serialize_to_json(self, data):
-        return json.dumps(data, cls=DateTimeAwareJSONEncoder, indent=4), {'Content-Type': 'application/json'}
-        #return _serialize_to_json(data)
+        return (
+            json.dumps(data, cls=DateTimeAwareJSONEncoder, ensure_ascii=False, indent=4),
+            {'Content-Type': 'application/json; charset=utf-8'}
+        )
 
     def serialize_to_excel(self, data):
         from firestone.exceptions import NotAcceptable
