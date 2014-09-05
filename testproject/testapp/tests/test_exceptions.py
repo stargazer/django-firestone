@@ -53,6 +53,14 @@ class TestAPIExceptionInstantiation(TestCase):
         e = exceptions.UnsupportedMediaType()
         self.assertEqual(e.status, 415)
 
+    def test_not_acceptable(self):
+        request = RequestFactory().get('/')
+        e = exceptions.NotAcceptable()
+
+        response = e.get_response(request)
+        self.assertIsInstance(response, http.HttpResponse)
+        self.assertEqual(response.status_code, 406)
+
     def test_not_implemented(self):
         e = exceptions.NotImplemented()
         self.assertEqual(e.status, 501)

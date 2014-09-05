@@ -21,7 +21,7 @@ import sys
 
 class APIException(Exception):
     def __init__(self):
-        self.headers = {}
+        pass
 
     def get_response(self, request):
         raise NotImplementedError
@@ -31,7 +31,6 @@ class MethodNotAllowed(APIException):
     def __init__(self, allowed_methods=()):
         self.status=405
         self.allowed_methods = allowed_methods
-        self.headers = {}
 
     def get_response(self, request):
         return http.HttpResponseNotAllowed(self.allowed_methods)
@@ -78,7 +77,6 @@ class BadRequest(APIException):
 class Gone(APIException):
     def __init__(self):
         self.status = 410
-        self.headers = {}
 
     def get_response(self, request): 
         return http.HttpResponseGone()
@@ -106,16 +104,26 @@ class Unprocessable(APIException):
 class UnsupportedMediaType(APIException):
     def __init__(self):
         self.status = 415
-        self.headers = {}
 
     def get_response(self, request):        
+        return http.HttpResponse(status=self.status)
+
+
+class NotAcceptable(APIException):
+    """
+    When the response's data cannot be serialized into the requested
+    serialization format, as set in the request's Accept Header
+    """
+    def __init__(self):
+        self.status=406
+
+    def get_response(self, request):
         return http.HttpResponse(status=self.status)
 
 
 class NotImplemented(APIException):
     def __init__(self):
         self.status = 501
-        self.headers = {}
     
     def get_response(self, request):
         return http.HttpResponse(status=self.status)
