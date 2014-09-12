@@ -1,6 +1,7 @@
 from testproject.testapp.models import Contact
 from firestone.handlers import ModelHandler, BaseHandler
 from firestone.authentication import SessionAuthentication
+from firestone import exceptions
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 
@@ -26,6 +27,7 @@ class DataHandler(BaseHandler):
     }
 
     def get(self):
+        raise exceptions.Unprocessable()
         return "aaa"
 
 

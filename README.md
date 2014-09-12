@@ -134,7 +134,7 @@ The API handler only allows requests that carry a valid signature
 The API handler only allows requests that carry a valid ``Authentication: JWT
 <token>`` header.
 
-A Token can be issued using the ``pyJWT`` libraryJWT, upon correct user
+A Token can be issued using the ``itsdangerous`` library, upon correct user
 login. You can directly use the
 ``firestone.example_handlers.ObtainJWTHandler``, or even modify/extend it.
 

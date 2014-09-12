@@ -11,10 +11,8 @@ from django.test import RequestFactory
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
-from datetime import timedelta
 from model_mommy import mommy
-import jwt
-import datetime
+from itsdangerous import TimedJSONWebSignatureSerializer
 import urllib
 
 
@@ -227,16 +225,11 @@ class TestJWTAuthentication(TestCase):
     def setUp(self):
         mommy.make(User, 10)
 
-        # Generate a valid token
-        payload = {
-            'iss': 1,
-            'iat': timezone.now(),
-            'exp': timezone.now() + timedelta(days=1),
-        }    
-        self.token = jwt.encode(
-            payload=payload, 
-            key=settings.SECRET_KEY,
+        s = TimedJSONWebSignatureSerializer(
+            settings.SECRET_KEY, 
+            expires_in=3600*24
         )
+        self.token = s.dumps({'iss': 1})
 
     def test_valid_authorization_header(self):
         request = RequestFactory().get(
@@ -298,11 +291,11 @@ class TestJWTAuthentication(TestCase):
 
     def test_no_user(self):
         # ``iss`` parameter does not exist
-        payload = {'iat': timezone.now(), 'exp': timezone.now() + timedelta(days=1)}
-        token = jwt.encode(
-            payload=payload, 
-            key=settings.SECRET_KEY,
+        s = TimedJSONWebSignatureSerializer(
+            settings.SECRET_KEY, 
+            expires_in=3600*24
         )
+        token = s.dumps({})
 
         request = RequestFactory().get(
             '/',
@@ -315,11 +308,11 @@ class TestJWTAuthentication(TestCase):
     def test_invalid_user(self):
         # Payload will refer to non-existing user
         # Generate a valid token
-        payload = {'iss': 100, 'iat': timezone.now(), 'exp': timezone.now() + timedelta(days=1)}
-        token = jwt.encode(
-            payload=payload, 
-            key=settings.SECRET_KEY,
+        s = TimedJSONWebSignatureSerializer(
+            settings.SECRET_KEY, 
+            expires_in=3600*24
         )
+        token = s.dumps({'iss': 100})
 
         request = RequestFactory().get(
             '/',
@@ -330,12 +323,12 @@ class TestJWTAuthentication(TestCase):
         self.assertFalse(handler.is_authenticated())
 
     def test_expired_token(self):
-        payload = {'iss': 1, 'iat': timezone.now(), 'exp': timezone.now() - timedelta(days=10)}
-
-        token = jwt.encode(
-            payload=payload, 
-            key=settings.SECRET_KEY,
+        s = TimedJSONWebSignatureSerializer(
+            settings.SECRET_KEY, 
+            expires_in=-1
         )
+        token = s.dumps({'iss': 1})
+        
         request = RequestFactory().get(
             '/',
             HTTP_AUTHORIZATION='JWT %s' % token,

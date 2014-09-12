@@ -15,8 +15,8 @@ from model_mommy import mommy
 from random import randint
 from datetime import timedelta
 import json
-import jwt
-
+from itsdangerous import TimedJSONWebSignatureSerializer
+               
 
 class BaseHandlerExample(BaseHandler):
     authentication = SessionAuthentication
@@ -160,22 +160,11 @@ class TestModelHandler(TestCase):
     def setUp(self):
         mommy.make(User, 10)
 
-        # Generate valid JWT token for User with id=1
-        headers = {
-            'typ': 'JWT', 
-            'alg': 'HS512', 
-        }
-        payload = {
-            'iss': 1,                                     # issuer: The user making the request       
-            'iat': timezone.now(),                        # issued at
-            'exp': timezone.now() +  timedelta(days=1),   # expires at
-        }            
-        self.token = jwt.encode(
-             headers=headers,
-             payload=payload, 
-             key=settings.SECRET_KEY,
-             algorithm=headers['alg'],
-         )
+        s = TimedJSONWebSignatureSerializer(
+            settings.SECRET_KEY, 
+            expires_in=3600*24
+        )
+        self.token = s.dumps({'iss':1})
 
     def test_not_authenticated(self):
         # request is not authenticated

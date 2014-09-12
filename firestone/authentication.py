@@ -9,8 +9,7 @@ is authenticated and who the authenticated user is.
 In other cases, we implement the whole logic in the authentication mixin.
 """
 from django.contrib.auth.models import AnonymousUser
-from django.core.signing import BadSignature
-from django.core.signing import SignatureExpired
+from django.core import signing
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -18,7 +17,7 @@ User = get_user_model()
 from django.contrib.auth.models import AnonymousUser
 from collections import OrderedDict
 from datetime import datetime
-import jwt
+import itsdangerous
 import urllib
 import time
 
@@ -100,7 +99,7 @@ class SignatureAuthentication(Authentication):
         # Check if indeed this string generated the signature we got
         try:
             self.signer.unsign('%s:%s' % (string, signature), max_age=max_age)
-        except BadSignature, SignatureExpires:
+        except signing.BadSignature, signing.SignatureExpires:
             return False
 
         self.request.user = self.verify_request_user() 
@@ -191,17 +190,12 @@ class JWTAuthentication(Authentication):
         if not token:
             return False
 
-        # Decode and verify
+        s = itsdangerous.TimedJSONWebSignatureSerializer(settings.SECRET_KEY)
         try:
-            payload = jwt.decode(
-                jwt=token, 
-                key=settings.SECRET_KEY, 
-                verify=True, 
-                verify_expiration=True,
-            )
-        except (jwt.DecodeError, jwt.ExpiredSignature):
+            payload = s.loads(token)
+        except itsdangerous.BadSignature:
             return False
-        
+
         # Get the user that the JWT authenticates
         self.request.user = self.verify_request_user(payload)
         if not self.request.user.id:
