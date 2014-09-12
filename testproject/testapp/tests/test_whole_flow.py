@@ -112,6 +112,10 @@ class TestBaseHandler(TestCase):
 
 class ModelHandlerExample(ModelHandler):
     authentication = JWTAuthentication
+    jwt_signer = TimedJSONWebSignatureSerializer(
+        settings.SECRET_KEY, 
+        expires_in=3600*24
+    )
     model = User
     http_methods = ['GET', 'POST', 'DELETE']
     post_body_fields = ['first_name', 'last_name', 'username', 'password']
@@ -160,10 +164,7 @@ class TestModelHandler(TestCase):
     def setUp(self):
         mommy.make(User, 10)
 
-        s = TimedJSONWebSignatureSerializer(
-            settings.SECRET_KEY, 
-            expires_in=3600*24
-        )
+        s = ModelHandlerExample.jwt_signer
         self.token = s.dumps({'iss':1})
 
     def test_not_authenticated(self):

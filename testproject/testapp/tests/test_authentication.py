@@ -225,10 +225,7 @@ class TestJWTAuthentication(TestCase):
     def setUp(self):
         mommy.make(User, 10)
 
-        s = TimedJSONWebSignatureSerializer(
-            settings.SECRET_KEY, 
-            expires_in=3600*24
-        )
+        s = HandlerJWTAuth.jwt_signer
         self.token = s.dumps({'iss': 1})
 
     def test_valid_authorization_header(self):
@@ -291,10 +288,7 @@ class TestJWTAuthentication(TestCase):
 
     def test_no_user(self):
         # ``iss`` parameter does not exist
-        s = TimedJSONWebSignatureSerializer(
-            settings.SECRET_KEY, 
-            expires_in=3600*24
-        )
+        s = HandlerJWTAuth.jwt_signer
         token = s.dumps({})
 
         request = RequestFactory().get(
@@ -308,10 +302,7 @@ class TestJWTAuthentication(TestCase):
     def test_invalid_user(self):
         # Payload will refer to non-existing user
         # Generate a valid token
-        s = TimedJSONWebSignatureSerializer(
-            settings.SECRET_KEY, 
-            expires_in=3600*24
-        )
+        s = HandlerJWTAuth.jwt_signer
         token = s.dumps({'iss': 100})
 
         request = RequestFactory().get(

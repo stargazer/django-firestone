@@ -29,11 +29,7 @@ class ObtainJWTHandler(BaseHandler):
         self.request.data = user
 
     def post(self):
-        s = TimedJSONWebSignatureSerializer(
-            settings.SECRET_KEY, 
-            expires_in=3600*24
-        )
-        token = s.dumps({'iss': self.request.data.id} # ``iss`` symbolizes the issuer(user)
-        
+        s = self.jwt_signer
+        token = s.dumps({'iss': self.request.data.id}) # ``iss`` symbolizes the issuer(user)
         return {'token': token}
 

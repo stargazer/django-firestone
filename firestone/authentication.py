@@ -190,7 +190,7 @@ class JWTAuthentication(Authentication):
         if not token:
             return False
 
-        s = itsdangerous.TimedJSONWebSignatureSerializer(settings.SECRET_KEY)
+        s = self.jwt_signer
         try:
             payload = s.loads(token)
         except itsdangerous.BadSignature:

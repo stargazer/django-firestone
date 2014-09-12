@@ -15,6 +15,7 @@ from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.signing import TimestampSigner
 from endless_pagination.paginators import LazyPaginator
+from itsdangerous import TimedJSONWebSignatureSerializer
 
 
 class HandlerMetaClass(type):
@@ -203,6 +204,9 @@ class BaseHandler(HandlerControlFlow):
     signer = TimestampSigner()  # Signing class
     sig_param = 's'             # Signature querysting parameter
     max_age_param = 'm'         # Max-age querystring parameter
+
+    # Parameter applicatible for ``JWTAuthentication`` mixin
+    jwt_signer = TimedJSONWebSignatureSerializer(settings.SECRET_KEY)   # Signing class
 
     # Allowed request body fields for POST and PUT requests
     post_body_fields = put_body_fields = []    
