@@ -30,7 +30,7 @@ Features and Design
         :maxdepth: 2
 
         features_and_design/features
-        features_and_design/design_decisions
+        features_and_design/design
 
 Usage Documentation
 ----------------------
