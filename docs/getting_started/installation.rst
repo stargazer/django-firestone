@@ -3,6 +3,11 @@ Installation
 
 .. _label-install-for-development-testing:
 
+Requirements
+--------------------------
+* Python 2.7
+* Django > 1.5
+
 For Development / Testing
 --------------------------------------
 
