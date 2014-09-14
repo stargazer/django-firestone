@@ -21,21 +21,21 @@ We need to create an API handler, to expose this model through a REST API::
         from firestone.authentication import SessionAuthentication
         from models import Contact
 
-
         class ContactHandler(ModelHandler):
             model = Contact
-            http_methods = ['GET',]
+            http_methods = ['GET']
             authentication = SessionAuthentication
 
             user_template = {
-                'fields': ['id', username',]
+                'fields': ['id', 'username', ]
             }
             template = {
-            'fields': ['owner', 'name', 'surname'],
-            'related': {
-                'owner': user_template
+                'fields': ['owner', 'name', 'surname', ],
+                'related': {
+                    'owner': user_template
+                },
             }
-
+ 
 Let's adjust the url mapper and tie the handler to some URL endpoint::
 
         # urls.py
@@ -50,4 +50,8 @@ Let's adjust the url mapper and tie the handler to some URL endpoint::
             url(r'^contacts/$', contacthandler_proxy),
         )
 
-Now if you run the application, any session-authenticated GET request to the url ``/contacts/`` will return all Contact instances.        
+Now if you run the application, any session-authenticated GET request to the url ``/contacts/`` will return all Contact instances.         
+
+
+
+
