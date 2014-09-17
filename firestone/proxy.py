@@ -2,14 +2,16 @@
 This module defines the ``Proxy`` class, which is the main view,
 where all the requests are sent to by the url mapper.
 
-Every ``Proxy`` instance can map to lots of handlers, with each handler responsible
-for a separate authentication method. For every incoming request, the ``Proxy``
-instance will run throuh all handlers, one-by-one, and the first one for whom
-the request is authenticated, will serve it. If the request can't
-authenticate for any of the handlers, the proxy returns a 403 status code.
+Every ``Proxy`` instance can map to lots of handlers, with each handler
+responsible for a separate authentication method. For every incoming
+request, the ``Proxy`` instance will run throuh all handlers, one-by-one,
+and the first one for whom the request is authenticated, will serve it.
+If the request can't authenticate for any of the handlers, the proxy
+returns a 403 status code.
 The proxy expects that all handlers return an ``HttpResponse`` object.
 """
 from django import http
+
 
 class Proxy(object):
     def __init__(self, *args):
@@ -27,8 +29,8 @@ class Proxy(object):
 
             if h.is_authenticated():
                 # Mimicking what Django's class based views ``as_view`` method
-                # does. The benefit is that I don't have to pass them as input args
-                # to any handler methods.
+                # does. The benefit is that I don't have to pass them as input
+                # args to any handler methods.
                 return h
 
         return None
@@ -40,4 +42,3 @@ class Proxy(object):
 
         # This is the only HttpResponse returned outside of the handler.
         return http.HttpResponseForbidden()
-

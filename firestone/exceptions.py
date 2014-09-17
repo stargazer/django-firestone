@@ -13,7 +13,7 @@ into a Server error response.
 from firestone import serializers
 from django import http
 from django.conf import settings
-from django.views.debug import ExceptionReporter   
+from django.views.debug import ExceptionReporter
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.mail import EmailMessage
 import sys
@@ -29,7 +29,7 @@ class APIException(Exception):
 
 class MethodNotAllowed(APIException):
     def __init__(self, allowed_methods=()):
-        self.status=405
+        self.status = 405
         self.allowed_methods = allowed_methods
 
     def get_response(self, request):
@@ -49,7 +49,7 @@ class BadRequest(APIException):
             }
             or String:
                     '<error>'
-        
+
         We process it and make sure it's always a dictionary. So the latter
         case would become:
             {
@@ -66,7 +66,10 @@ class BadRequest(APIException):
         s = serializers.SerializerMixin()
         s.request = request
 
-        body, headers = s.serialize(self.errors, s.DEFAULT_SERIALIZATION_FORMAT)
+        body, headers = s.serialize(
+            self.errors,
+            s.DEFAULT_SERIALIZATION_FORMAT
+        )
 
         res = http.HttpResponseBadRequest(body)
         for key, value in headers.items():
@@ -78,7 +81,7 @@ class Gone(APIException):
     def __init__(self):
         self.status = 410
 
-    def get_response(self, request): 
+    def get_response(self, request):
         return http.HttpResponseGone()
 
 
@@ -93,7 +96,10 @@ class Unprocessable(APIException):
             s = serializers.SerializerMixin()
             s.request = request
 
-            body, headers = s.serialize(self.errors, s.DEFAULT_SERIALIZATION_FORMAT)
+            body, headers = s.serialize(
+                self.errors,
+                s.DEFAULT_SERIALIZATION_FORMAT
+            )
 
         res = http.HttpResponse(body, status=self.status)
         for key, value in headers.items():
@@ -105,7 +111,7 @@ class UnsupportedMediaType(APIException):
     def __init__(self):
         self.status = 415
 
-    def get_response(self, request):        
+    def get_response(self, request):
         return http.HttpResponse(status=self.status)
 
 
@@ -115,7 +121,7 @@ class NotAcceptable(APIException):
     serialization format, as set in the request's Accept Header
     """
     def __init__(self):
-        self.status=406
+        self.status = 406
 
     def get_response(self, request):
         return http.HttpResponse(status=self.status)
@@ -124,7 +130,7 @@ class NotAcceptable(APIException):
 class NotImplemented(APIException):
     def __init__(self):
         self.status = 501
-    
+
     def get_response(self, request):
         return http.HttpResponse(status=self.status)
 
@@ -144,8 +150,8 @@ class OtherException(Exception):
     def get_response(self, request):
         exc_type, exc_value, traceback = sys.exc_info()
         reporter = ExceptionReporter(
-            request, 
-            exc_type, 
+            request,
+            exc_type,
             exc_value,
             traceback.tb_next
         )
@@ -153,7 +159,10 @@ class OtherException(Exception):
         http_response = http.HttpResponseServerError()
 
         if settings.DEBUG:
-            http_response = http.HttpResponseServerError(html, content_type='text/html; charset=utf-8')
+            http_response = http.HttpResponseServerError(
+                html,
+                content_type='text/html; charset=utf-8'
+            )
         elif getattr(settings, 'EMAIL_CRASHES', False):
             # Send Email Crash Report
             subject = 'django-firestone crash report'
@@ -163,8 +172,7 @@ class OtherException(Exception):
                 from_email=settings.SERVER_EMAIL,
                 to=[admin[1] for admin in settings.ADMINS]
             )
-            message.content_subtype='html'
+            message.content_subtype = 'html'
             message.send(fail_silently=True)
 
         return http_response
-

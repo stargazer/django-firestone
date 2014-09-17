@@ -1,17 +1,13 @@
 from authentication import Authentication
 from authentication import NoAuthentication
-from authentication import SessionAuthentication
 from serializers import SerializerMixin
 from preserialize import serialize as preserializer
-import serializers 
 import deserializers
 import exceptions
-from django import http
 from django.conf import settings
 from django.db import connection
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError
-from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.signing import TimestampSigner
 from endless_pagination.paginators import LazyPaginator
@@ -40,7 +36,7 @@ class HandlerMetaClass(type):
         # Extend handler class with ``SerializerMixin`` class, so that it
         # inherits its methods
         bases += (SerializerMixin,)
-        
+
         cls = type.__new__(meta, name, bases, attrs)
 
         # Uppercase all HTTP methods
@@ -54,25 +50,28 @@ class HandlerMetaClass(type):
         # class
         for f in cls.filters:
             if not hasattr(cls, f):
-                raise ImproperlyConfigured('%s.filters is improperly configured' % name)
-    
+                raise ImproperlyConfigured(
+                    '%s.filters is improperly configured' % name
+                )
+
         return cls
 
 
 class HandlerControlFlow(object):
     """
-    This class describes the basic control flow and outer shell operations of any handler. 
+    This class describes the basic control flow and outer shell operations of
+    any handler.
     Basically the very generic high-level behavior layout is defined here. Its
     more fine-grained parts are defined in classes ``BaseHandler`` and
     ``ModelHandler``.
-    
+
     Don't subclass directly in a concrete handler class.
     """
 
     def dispatch(self):
         """
-        Handler's entry point. Coordinates pre and post processing actions, as well as
-        selects and calls the main action method.
+        Handler's entry point. Coordinates pre and post processing actions, as
+        well as selects and calls the main action method.
         I would advice against overriding this method.
 
         Returns:
@@ -91,7 +90,7 @@ class HandlerControlFlow(object):
 
         except Exception, e:
             res = self.handle_exception(e)
-        
+
         return res
 
     def preprocess(self):
@@ -104,7 +103,8 @@ class HandlerControlFlow(object):
         Raises:
             exceptions.MethodNotAllowed: if request method is not allowed
             exceptions.UnsupportedMediaType: if content-type is not supported
-            exceptions.BadRequest: if request body is not valid according to content-type
+            exceptions.BadRequest: if request body is not valid according to
+            content-type
         """
         self.authentication_hook()
 
@@ -112,7 +112,7 @@ class HandlerControlFlow(object):
             self.is_method_allowed()
         except exceptions.MethodNotAllowed:
             raise
-        
+
         if self.request.method.upper() not in ('POST', 'PUT'):
             return
 
@@ -135,7 +135,7 @@ class HandlerControlFlow(object):
 
         Returns:
             (data, pagination): ``data`` is the result of the operation
-            and ``pagination`` is a dictionary with some pagination data. 
+            and ``pagination`` is a dictionary with some pagination data.
             If no pagination was performed, ``pagination`` is {}.
         """
         data = getattr(self, self.request.method.lower())()
@@ -155,7 +155,7 @@ class HandlerControlFlow(object):
         """
         self.inject_data_hook(data)
         # Serialize ``data`` to python data structures
-        python_data = self.serialize_to_python(data)   
+        python_data = self.serialize_to_python(data)
         # finalize any pending data processing
         self.finalize_pending(data)
         # Package the python_data to a dictionary
@@ -180,7 +180,6 @@ class HandlerControlFlow(object):
             return exc.get_response(self.request)
 
 
-
 class BaseHandler(HandlerControlFlow):
     """
     This class describes a Base handler's operation.
@@ -190,7 +189,7 @@ class BaseHandler(HandlerControlFlow):
     # Override to define the handler's output representation. It should follow
     # the syntax of ``django-preserialize`` templates.
     # See <https://github.com/bruth/django-preserialize#conventions>
-    template = {}     
+    template = {}
 
     # List of allowed HTTP methods.
     # GET, POST, PUT, PLURAL_PUT, DELETE, PLURAL_DELETE
@@ -205,14 +204,15 @@ class BaseHandler(HandlerControlFlow):
     sig_param = 's'             # Signature querysting parameter
     max_age_param = 'm'         # Max-age querystring parameter
 
-    # Parameter applicatible for ``JWTAuthentication`` mixin
-    jwt_signer = TimedJSONWebSignatureSerializer(settings.SECRET_KEY)   # Signing class
+    # Parameter applicatible for ``JWTAuthentication`` mixin. It defines the
+    # signing class
+    jwt_signer = TimedJSONWebSignatureSerializer(settings.SECRET_KEY)
 
     # Allowed request body fields for POST and PUT requests
-    post_body_fields = put_body_fields = []    
+    post_body_fields = put_body_fields = []
 
     # Filters, declared as strings. Each string indicates the method name of
-    # each filter. Every method's signature is ``(self, data, request, *args, **kwargs)``
+    # each filter. Every method's signature is ``(self, data)``
     # The method should define all its logic, and return a subset of ``data``.
     # This generic scheme, requires that we write some code for every filter
     # method, but is very flexible and powerful.
@@ -229,7 +229,7 @@ class BaseHandler(HandlerControlFlow):
     # serialized to an excel file. Can be a string or a callable that returns a
     # string
     excel_filename = 'file.xls'
-    
+
     def authentication_hook(self):
         """
         Invoked by ``preprocess``
@@ -245,10 +245,10 @@ class BaseHandler(HandlerControlFlow):
 
     def is_method_allowed(self):
         """
-        Invoked by ``preprocess``. 
+        Invoked by ``preprocess``.
         Checks whether the handler allowed the request's HTTP method.
 
-        Returns: 
+        Returns:
             True
         Raises:
             exceptions.MethodNotAllowed: if request method is not allowed
@@ -268,10 +268,15 @@ class BaseHandler(HandlerControlFlow):
             None
         Raises:
             exceptions.UnsupportedMediaType: if content-type is not supported
-            exceptions.BadRequest: If request body is not valid according to content-type
+            exceptions.BadRequest: If request body is not valid according to
+            content-type
         """
         try:
-            self.request.data = deserializers.deserialize_request_body(self.request, *self.args, **self.kwargs)
+            self.request.data = deserializers.deserialize_request_body(
+                self.request,
+                *self.args,
+                **self.kwargs
+            )
         except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
             raise
 
@@ -306,7 +311,7 @@ class BaseHandler(HandlerControlFlow):
         Invoked by ``postprocess``
         Hook that adds extra fields or data to ``data``. Override to add
         functionality.
-        
+
         Args:
             data: Result of operation
         Returns:
@@ -333,13 +338,15 @@ class BaseHandler(HandlerControlFlow):
         # It only works when the ``fields`` are defined one by one in a list.
         field_selection = set(self.request.GET.getlist('field'))
         if field_selection:
-            intersection = field_selection.intersection(set(self.template['fields']))
+            intersection = field_selection.intersection(
+                set(self.template['fields'])
+            )
             template = {key: value for key, value in self.template.items()}
             template['fields'] = intersection
             return preserializer.serialize(data, **template)
 
         return preserializer.serialize(data, **self.template)
- 
+
     def finalize_pending(self, data):
         """
         Invoked by ``postprocess``
@@ -357,7 +364,7 @@ class BaseHandler(HandlerControlFlow):
     def package(self, data, pagination):
         """
         Invoked by ``postprocess``.
-        Wraps the ``data`` and ``pagiantion`` data a dictionary. 
+        Wraps the ``data`` and ``pagiantion`` data a dictionary.
 
         Args:
             data: Data result of the handler's operation, serialized in python
@@ -377,25 +384,28 @@ class BaseHandler(HandlerControlFlow):
         if settings.DEBUG:
             ret['debug'] = self.debug_data()
         return ret
-    
+
     def debug_data(self):
         """
         Invoked by ``package``.
-        
+
         Returns:
             Dictionary of debugging data about this request.
         """
-        time_per_query = [float(dic['time']) for dic in connection.queries if 'time' in dic]
-        
+        time_per_query = [
+            float(dic['time']) for dic in connection.queries if 'time' in dic
+        ]
+
         # Tweaking ``connection.queries`` to increase query readability
-        connection.queries = [{
-                'time': item['time'], 
+        connection.queries = [
+            {
+                'time': item['time'],
                 'sql': item['sql'].replace('"', '')
-            } 
+            }
             for item in connection.queries
         ]
-        
-        return {               
+
+        return {
             'total_query_time': sum(time_per_query),
             'query_count': len(connection.queries),
             'query_log': connection.queries,
@@ -423,7 +433,7 @@ class BaseHandler(HandlerControlFlow):
         Action method for GET requests. Override to add functionality.
         """
         raise exceptions.NotImplemented
-    
+
     def post(self):
         """
         Invoked by ``dispatch``.
@@ -448,10 +458,10 @@ class BaseHandler(HandlerControlFlow):
     def get_data(self):
         """
         (Should be) Invoked by ``get``, ``delete``, and ``validate``
-        
+
         Returns:
             Dataset of the current operation. To do so, it uses methods
-            ``get_data_item`` and ``get_data_set``. 
+            ``get_data_item`` and ``get_data_set``.
         Raises:
             exceptions.Gone
             exceptions.MethodNotAllowed
@@ -468,7 +478,7 @@ class BaseHandler(HandlerControlFlow):
             # And then retrieve the actual data.
             data = self.get_data_set()
 
-        return data           
+        return data
 
     def is_catastrophic(self):
         """
@@ -480,16 +490,21 @@ class BaseHandler(HandlerControlFlow):
             True if method is catastrophic and not allowed
             False if allowed.
         """
-        if (self.request.method.upper() == 'PUT' and 'PLURAL_PUT' not in self.http_methods) or\
-           (self.request.method.upper() == 'DELETE' and 'PLURAL_DELETE' not in self.http_methods):
-               return True
+        if (self.request.method.upper() == 'PUT' and
+            'PLURAL_PUT' not in self.http_methods
+           ) or\
+           (self.request.method.upper() == 'DELETE' and
+            'PLURAL_DELETE' not in self.http_methods
+           ):
+                return True
         return False
-                                          
+
     def get_data_item(self):
         """
         Invoked by ``get_data``.
-        
-        It should return the data item for the operation if such exists, None otherwise.
+
+        It should return the data item for the operation if such exists,
+        None otherwise.
         Override to add functionality.
         """
         raise exceptions.NotImplemented
@@ -497,7 +512,7 @@ class BaseHandler(HandlerControlFlow):
     def get_data_set(self):
         """
         Invoked by ``get_data``.
-        
+
         It should return returns the data set for operation.
         Override to add functionality.
         """
@@ -507,7 +522,7 @@ class BaseHandler(HandlerControlFlow):
         """
         Invoked by ``preprocess``.
         Simple hook for extra request body validations.
-        
+
         Returns:
             None.
         """
@@ -515,11 +530,12 @@ class BaseHandler(HandlerControlFlow):
 
     def filter_data(self, data):
         """
-        Invoked by  ``get_data_set``, which only exists for the ``ModelHandler``
-        class. On a ``BaseHandler`` it should be called explicitly. 
+        Invoked by  ``get_data_set``, which only exists for the
+        ``ModelHandler`` class. On a ``BaseHandler`` it should be called
+        explicitly.
         It is defined it here, since it's generic enough to be used by any type
-        of handler. Applies all the filters declared in ``self.filters``, and returns the
-        result.
+        of handler. Applies all the filters declared in ``self.filters``, and
+        returns the result.
 
         Args:
             data: Initial working set of the handler
@@ -529,14 +545,14 @@ class BaseHandler(HandlerControlFlow):
         """
         for f in self.filters:
             data = getattr(self, f)(data)
-        return data            
+        return data
 
     def order(self, data):
         """
         Invoked by ``get_data_set``, which only exists for the ``ModelHandler``
         class. On a ``BaseHandler`` it should be called explicitly.
         Typically ordering is indicated by the ``order`` querystring parameter.
-        
+
         Args:
             data: Filtered working set of the handler
         Returns:
@@ -565,15 +581,16 @@ class BaseHandler(HandlerControlFlow):
         Invoked by ``process``.
         Typically pagination is indicated by the ``page`` and ``ipp``
         querystring parameters. ``page`` indicates the requested page, and
-        ``ipp`` indicates the items per page (default is ``self.items_per_page``).
-        
+        ``ipp`` indicates the items per page (default is
+        ``self.items_per_page``).
+
         Args:
             data: Result of the handler's data operation
         Returns:
             (data_page, metadata), where ``data_page`` is the page returned
-            and ``metadata`` is a dictionary containing extra pagination data. 
-            If data is not paginable, or invalid pagination data has been given,
-            it returns (data, {})
+            and ``metadata`` is a dictionary containing extra pagination data.
+            If data is not paginable, or invalid pagination data has been
+            given, it returns (data, {})
         """
         page = self.request.GET.get('page', None)
         if page:
@@ -607,7 +624,7 @@ class ModelHandler(BaseHandler):
         """
         Invoked by ``dispatch``.
         Action method for GET requests.
-        
+
         Returns:
             Model instance or queryset
         Raises:
@@ -618,17 +635,18 @@ class ModelHandler(BaseHandler):
     def post(self):
         """
         Invoked by ``dispatch``
-        Action method for POST requests. 
+        Action method for POST requests.
 
         Returns:
             Model instance or list of model instances
         Raises:
             TODO
         """
-        # For Bulk POST requests, I could have used ``bulk_create``. 
+        # For Bulk POST requests, I could have used ``bulk_create``.
         # This has many drawbacks though
         # (https://docs.djangoproject.com/en/dev/ref/models/querysets/#bulk-create),
-        # so I've gone for the more conservative approach of one query per item.
+        # so I've gone for the more conservative approach of one query per
+        # item.
         # TODO: What kind of errors do I contemplate for here? How do I handle
         # them?
         if isinstance(self.request.data, self.model):
@@ -636,7 +654,7 @@ class ModelHandler(BaseHandler):
         else:
             for instance in self.request.data:
                 instance.save(force_insert=True)
-        return self.request.data            
+        return self.request.data
 
     def put(self):
         """
@@ -689,10 +707,10 @@ class ModelHandler(BaseHandler):
 
         return None
 
-    def get_data_set(self):        
+    def get_data_set(self):
         """
         Invoked by ``get_data``.
-        
+
         Returns:
             Dataset for plural operations. To do so, it uses methods
             ``get_working_set``, ``filter_data`` and ``order``.
@@ -706,10 +724,10 @@ class ModelHandler(BaseHandler):
     def get_working_set(self):
         """
         Invoked by ``get_data_set``.
-        
+
         Returns:
-            Default queryset for the ModelHandler, on top of which other filters
-            should be chained, in order to limit the data view.
+            Default queryset for the ModelHandler, on top of which other
+            filters should be chained, in order to limit the data view.
         """
         return self.model.objects.all()
 
@@ -719,7 +737,7 @@ class ModelHandler(BaseHandler):
         Extra request body validation step. It should map the contents of
         ``request.data``(which at this point are python data structures) to
         ``self.model`` instances, and validate them.
-        
+
         Returns:
             None
         Raises:
@@ -730,10 +748,12 @@ class ModelHandler(BaseHandler):
                 self.request.data = self.model(**self.request.data)
 
             elif isinstance(self.request.data, list):
-                self.request.data = map(lambda item: self.model(**item), self.request.data)                    
+                self.request.data = map(
+                    lambda item: self.model(**item), self.request.data
+                )
         elif self.request.method.upper() == 'PUT':
             # Find the relevant dataset on which the ``update`` will be applied
-            dataset = self.get_data()            
+            dataset = self.get_data()
 
             # Now update it/them
             if isinstance(dataset, self.model):
@@ -745,19 +765,19 @@ class ModelHandler(BaseHandler):
                         setattr(instance, key, value)
 
                 [update(instance) for instance in dataset]
-            
+
             self.request.data = dataset
 
         try:
-            self.clean_models()        
+            self.clean_models()
         except exceptions.BadRequest:
             raise
 
     def clean_models(self):
         """
         Invoked by ``validate``
-        Calls ``full_clean()`` on all model instances in ``request.data``. 
-        
+        Calls ``full_clean()`` on all model instances in ``request.data``.
+
         Returns:
             None
         Raises:
@@ -771,10 +791,11 @@ class ModelHandler(BaseHandler):
         for element in isinstance(self.request.data, self.model) and [self.request.data] or self.request.data:
             try:
                 element.full_clean()
-            except ValidationError, e:  
-                # When a ValidationError exception e is raised by model.clean_fields, it has
-                # the parameter:
-                # e.message_dict = {'field1': 'error string', 'field2':  'error string, ...}
+            except ValidationError, e:
+                # When a ValidationError exception e is raised by
+                # ``model.clean_fields``, it has the parameter:
+                # e.message_dict = {'field1': 'error string',
+                #                   'field2':  'error string, ...}
                 # When it's raised by ``clean`` e has the parameter:
                 # e.message_dict = {NON_FIELD_ERRORS: [<error string>]}
                 raise exceptions.BadRequest(e.message_dict)
@@ -786,7 +807,8 @@ class ModelHandler(BaseHandler):
         Args:
             page: Value of querystring parameter ``page``
         Returns:
-            (data_page, {'total_pages': <total pages>, 'total_items': <total items>})
+            (data_page, {'total_pages': <total pages>,
+                         'total_items': <total items>})
             If for some reason we can't paginate data, or
             ``pagination_metadata`` is ``False``, returns (data, {})
         """
@@ -806,62 +828,13 @@ class ModelHandler(BaseHandler):
         except (EmptyPage, PageNotAnInteger, TypeError):
             # TypeError: in case ``data`` is a single model instance
             return data, {}
-        
+
         try:
-            metadata = {'total_pages': paginator.num_pages, 'total_items': paginator.count}
+            metadata = {
+                'total_pages': paginator.num_pages,
+                'total_items': paginator.count
+            }
         except NotImplementedError:
             metadata = {}
 
         return data_page, metadata
-
-
-"""
-# Example of BaseHandler
-# handlers.py
-class RandomHandler(BaseHandler):
-    user_template = {
-        'fields': ['id', 'domain', 'email'],
-    }
-    push_template = {
-        'fields': ['id', 'creator'],
-        'related': {
-            'creator': user_template
-        },
-    }
-    nouncy_template = {
-        'fields': ['id', 'title', 'pushes', 'user'],
-        'related': {
-            'pushes': push_template,
-            'user'  : user_template,
-        },
-    }
-    # Say this handler outputs a dictionary like 
-    # {'a': <value>, 'b': <value>, 'c': <Nouncy>}
-    template = {
-        'fields': ['a', 'b', 'nouncy'],
-        'related': {
-            'nouncy': nouncy_template,
-        }
-    }            
-
-# urls.py
-
-    
-# Example of ModelHandler
-# handpers.py
-class ContactHandler(ModelHandler):
-    model = Contact
-
-    media_template = {
-        'exclude': ['user',],
-    }
-    template = {
-        'exclude': ['user',],
-        'related': {
-            'media': media_template,
-        },
-    }
-
-# urls.py
-
-"""

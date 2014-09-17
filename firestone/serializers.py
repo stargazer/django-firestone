@@ -18,9 +18,9 @@ class SerializerMixin(object):
 
     def get_serialization_format(self):
         """
-        Returns the serialization format that the ``request``'s ``Accept`` header
-        wants. Returns ``DEFAULT_SERIALIZATION_FORMAT`` if header doesn't match any
-        of the provided serializaion formats.
+        Returns the serialization format that the ``request``'s ``Accept``
+        header wants. Returns ``DEFAULT_SERIALIZATION_FORMAT`` if header
+        doesn't match any of the provided serializaion formats.
         """
         accept_header = self.request.META.get('HTTP_ACCEPT', '')
         if accept_header:
@@ -32,11 +32,12 @@ class SerializerMixin(object):
         return self.DEFAULT_SERIALIZATION_FORMAT
 
     def get_serializer(self, ser_format):
-        return getattr(self, self.MAPPER[ser_format]) 
+        return getattr(self, self.MAPPER[ser_format])
 
     def serialize_to_json(self, data):
         return (
-            json.dumps(data, cls=DateTimeAwareJSONEncoder, ensure_ascii=False, indent=4),
+            json.dumps(data, cls=DateTimeAwareJSONEncoder,
+                       ensure_ascii=False, indent=4),
             {'Content-Type': 'application/json; charset=utf-8'}
         )
 
@@ -44,7 +45,7 @@ class SerializerMixin(object):
         from firestone.exceptions import NotAcceptable
         from firestone.exceptions import Unprocessable
 
-        # At this point, ``data`` should have the form of 
+        # At this point, ``data`` should have the form of
         # {'data': <data>, 'debug': <debug>, ...}.
         # We are only interested in the data['data']
         if not isinstance(data, dict) or not 'data' in data:
@@ -52,25 +53,25 @@ class SerializerMixin(object):
             raise Unprocessable('Fatal Error. Cannot process')
 
         data = data['data']
-        # data should only be a dictionary or list(of dictionaries), otherwise we can't
-        # serialize to excel
+        # data should only be a dictionary or list(of dictionaries),
+        # otherwise we can't serialize to excel
         if not isinstance(data, list) and not isinstance(data, dict):
             raise NotAcceptable()
 
         # if ``data`` is a dictionary, we make it into a list
         if isinstance(data, dict):
-            data = [data,]
+            data = [data, ]
 
         def process(value):
             # Returns a clean representation of ``value``
             if isinstance(value, dict):
                 return ', '.join(
                     ['%s: %s' % (process(k), process(v)) for k, v in value.items()]
-                 )
+                )
             elif isinstance(value, list) or isinstance(value, tuple) or isinstance(value, set):
                 return ', '.join(
                     [process(element) for element in value]
-                )                        
+                )
 
             try:
                 return str(value)
@@ -102,7 +103,7 @@ class SerializerMixin(object):
         return stream.getvalue(), {
             'Content-Type': 'application/vnd.ms-excel',
             'Content-Disposition': 'attachment; filename=%s;' % filename
-        }                          
+        }
 
     def serialize(self, data, ser_format=''):
         """

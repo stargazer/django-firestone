@@ -1,9 +1,6 @@
 from firestone.handlers import BaseHandler
 from firestone import exceptions
 from django.contrib.auth import authenticate
-from django.conf import settings
-from django.utils import timezone
-from itsdangerous import TimedJSONWebSignatureSerializer
 
 
 class ObtainJWTHandler(BaseHandler):
@@ -13,9 +10,9 @@ class ObtainJWTHandler(BaseHandler):
     """
     http_methods = ('POST',)
     post_body_fields = ('username', 'password',)
-    
+
     template = {
-        'fields': ('token',) 
+        'fields': ('token',)
     }
 
     def validate(self):
@@ -30,6 +27,6 @@ class ObtainJWTHandler(BaseHandler):
 
     def post(self):
         s = self.jwt_signer
-        token = s.dumps({'iss': self.request.data.id}) # ``iss`` symbolizes the issuer(user)
+        # ``iss`` symbolizes the issuer(user)
+        token = s.dumps({'iss': self.request.data.id})
         return {'token': token}
-
