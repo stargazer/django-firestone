@@ -334,7 +334,8 @@ class BaseHandler(HandlerControlFlow):
         # NOTE: The request level field selection doesn not work if the
         # handler's ``template`` attribute uses ``django-preserialize``'s
         # pseudo selectors
-        # See <https://github.com/bruth/django-preserialize#my-model-has-a-ton-of-fields-and-i-dont-want-to-type-them-all-out-what-do-i-do>
+        # See
+        # <https://github.com/bruth/django-preserialize#my-model-has-a-ton-of-fields-and-i-dont-want-to-type-them-all-out-what-do-i-do>
         # It only works when the ``fields`` are defined one by one in a list.
         field_selection = set(self.request.GET.getlist('field'))
         if field_selection:
@@ -490,13 +491,11 @@ class BaseHandler(HandlerControlFlow):
             True if method is catastrophic and not allowed
             False if allowed.
         """
-        if (self.request.method.upper() == 'PUT' and
-            'PLURAL_PUT' not in self.http_methods
-           ) or\
-           (self.request.method.upper() == 'DELETE' and
-            'PLURAL_DELETE' not in self.http_methods
-           ):
-                return True
+        if (self.request.method.upper() == 'PUT'
+            and 'PLURAL_PUT' not in self.http_methods) \
+            or (self.request.method.upper() == 'DELETE'
+                and 'PLURAL_DELETE' not in self.http_methods):
+            return True
         return False
 
     def get_data_item(self):
@@ -788,7 +787,8 @@ class ModelHandler(BaseHandler):
         # TODO: Add the exclude parameter in the signature of the method.
         # Call full_clean with ``exclude``, so that we can exclude any models
         # fields we want from the validation.
-        for element in isinstance(self.request.data, self.model) and [self.request.data] or self.request.data:
+        for element in isinstance(self.request.data, self.model) \
+                and [self.request.data] or self.request.data:
             try:
                 element.full_clean()
             except ValidationError, e:

@@ -68,9 +68,7 @@ def deserialize_request_body(request, *args, **kwargs):
     Deserializes the request body, according to its Content-Type header
     """
     try:
-        return deserialize(
-            request.body,
-            request.META.get('CONTENT_TYPE', None)
-        )
+        return deserialize(request.body,
+                           request.META.get('CONTENT_TYPE', None))
     except (exceptions.UnsupportedMediaType, exceptions.BadRequest):
         raise

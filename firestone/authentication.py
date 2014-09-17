@@ -10,16 +10,11 @@ In other cases, we implement the whole logic in the authentication mixin.
 """
 from django.contrib.auth.models import AnonymousUser
 from django.core import signing
-from django.utils import timezone
-from django.conf import settings
 from django.contrib.auth import get_user_model
 User = get_user_model()
-from django.contrib.auth.models import AnonymousUser
 from collections import OrderedDict
-from datetime import datetime
 import itsdangerous
 import urllib
-import time
 
 
 class Authentication(object):
@@ -40,7 +35,7 @@ class NoAuthentication(Authentication):
         return True
 
 
-class SessionAuthentication(Authentication):    
+class SessionAuthentication(Authentication):
     """
     Requires that the following Django middlewares are enabled:
     * ``django.contrib.sessions.middleware.SessionMiddleWare``
@@ -53,30 +48,32 @@ class SessionAuthentication(Authentication):
     assings the User instance corresponding to ``request.session``, to
     ``request.user``.
 
-    So, all we have to do here is check whether the ``request.user`` is authenticated.
+    So, all we have to do here is check whether the ``request.user``
+    is authenticated.
     """
     def is_authenticated(self):
         if hasattr(self.request, 'user'):
-            return self.request.user.is_authenticated()        
+            return self.request.user.is_authenticated()
         return False
+
 
 class SignatureAuthentication(Authentication):
     """
     Signature included in querystring of the incoming HttpRequest object. The
     signature is produced from a string, comprised of:
         * HTTP Method
-        * URL with querystring parameters (including a parameter indicating the max_age
-          of the signature)
+        * URL with querystring parameters (including a parameter indicating
+          the max_age of the signature)
 
     Makes use of the handler class parameters ``signer``, ``sig_param``, and
-    ``max_age_param``        
+    ``max_age_param``
     """
     def is_authenticated(self):
         """
         Strictly speaking, this is not an authentication check, since we don't
         really check whether the request is from who it claims to be. We check
         whether it's valid and can go through.
-        
+
         Returns True if request signature is valid, else False
         """
         # url, without querystring
@@ -91,7 +88,8 @@ class SignatureAuthentication(Authentication):
 
         # Building the string that generated the signature, by constructing the
         # request url without the signature parameter
-        query_params = {key: value for key, value in self.request.GET.items() if key != self.sig_param}
+        query_params = {key: value for key, value in self.request.GET.items()
+                        if key != self.sig_param}
         qs = self._dict_to_ordered_qs(query_params)
         full_url = '%s?%s' % (url, qs)
         string = self._get_string(method, full_url)
@@ -102,15 +100,15 @@ class SignatureAuthentication(Authentication):
         except signing.BadSignature, signing.SignatureExpires:
             return False
 
-        self.request.user = self.verify_request_user() 
-        return True      
+        self.request.user = self.verify_request_user()
+        return True
 
     def get_signed_url(self, url, method, params, max_age):
         """
         This method should be used by API handlers.
 
         It signs the request, and returns the url with the signature and
-        max_age parameters in the querystring.        
+        max_age parameters in the querystring.
         """
         self._update_params(url, method, params, max_age)
         return '%s?%s' % (url, urllib.urlencode(params))
@@ -135,7 +133,12 @@ class SignatureAuthentication(Authentication):
         appended on the url.
         """
         params[self.max_age_param] = max_age
-        params[self.sig_param] = self._get_signature(url, method, params, max_age)
+        params[self.sig_param] = self._get_signature(
+            url,
+            method,
+            params,
+            max_age
+        )
         return params
 
     def _get_signature(self, url, method, params, max_age):
@@ -147,9 +150,9 @@ class SignatureAuthentication(Authentication):
         full_url = '%s?%s' % (url, qs)
         # generate string to sign
         string = self._get_string(method, full_url)
-        
+
         return self._sign_string(string)
-    
+
     def _dict_to_ordered_qs(self, params):
         """
         Turns the ``params`` dict to a sorted querystring and returns it
@@ -157,7 +160,9 @@ class SignatureAuthentication(Authentication):
         # make params a sorted dictionary
         params = OrderedDict(sorted(params.items(), key=lambda t: t[0]))
         # turn params into a querystring
-        return '&'.join('%s=%s' % (key, value) for key, value in params.items())
+        return '&'.join(
+            '%s=%s' % (key, value) for key, value in params.items()
+        )
 
     def _get_string(self, method, url):
         """
@@ -170,9 +175,9 @@ class SignatureAuthentication(Authentication):
         @param string: String to sign. It has the form:
             ``<HTTP method>-<url with querystring parameters>``
         """
-        # Signature is of form <string>:<sig1>:<sig2>. 
+        # Signature is of form <string>:<sig1>:<sig2>.
         sig = self.signer.sign(string)
-        
+
         # I want to return the part ``<sig1>:<sig2>``
         parts = sig.rsplit(':', 2)
         return '%s:%s' % (parts[1], parts[2])
@@ -214,7 +219,8 @@ class JWTAuthentication(Authentication):
         This method assumes that the ``iss`` payload parameter contains the
         User id, and sets the ``self.request.user`` to that corresponding User
         instance.
-        Override in the handler class if the ``payload`` contains different data.
+        Override in the handler class if the ``payload`` contains different
+        data.
         """
         user = AnonymousUser()
 
@@ -224,8 +230,8 @@ class JWTAuthentication(Authentication):
                 user = User.objects.get(id=user_id)
             except User.DoesNotExist:
                 pass
-            
-        return user            
+
+        return user
 
     def _get_token(self):
         """
@@ -246,15 +252,7 @@ class JWTAuthentication(Authentication):
         return token
 
 
-
-
-                    
-
-
-
-
 # TODO
 # class ApiKeyAuthentication?
 # Or something similar that actually signs requests. Study the Amazon AWS
 # authentication scheme.
-

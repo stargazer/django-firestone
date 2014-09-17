@@ -48,7 +48,7 @@ class SerializerMixin(object):
         # At this point, ``data`` should have the form of
         # {'data': <data>, 'debug': <debug>, ...}.
         # We are only interested in the data['data']
-        if not isinstance(data, dict) or not 'data' in data:
+        if not isinstance(data, dict) or 'data' not in data:
             # This should never happen
             raise Unprocessable('Fatal Error. Cannot process')
 
@@ -65,13 +65,14 @@ class SerializerMixin(object):
         def process(value):
             # Returns a clean representation of ``value``
             if isinstance(value, dict):
-                return ', '.join(
-                    ['%s: %s' % (process(k), process(v)) for k, v in value.items()]
-                )
-            elif isinstance(value, list) or isinstance(value, tuple) or isinstance(value, set):
-                return ', '.join(
-                    [process(element) for element in value]
-                )
+                return ', '.join([
+                    '%s: %s' % (process(k), process(v))
+                    for k, v in value.items()
+                ])
+            elif isinstance(value, list) \
+                or isinstance(value, tuple) \
+                    or isinstance(value, set):
+                return ', '.join([process(element) for element in value])
 
             try:
                 return str(value)
@@ -80,7 +81,9 @@ class SerializerMixin(object):
 
         # Excel Sheet headers. We lay them out, in the order they are defined
         # in the handler's ``template['fields']`` attribute
-        headers = [field for field in self.template['fields'] if field in data[0]]
+        headers = [
+            field for field in self.template['fields'] if field in data[0]
+        ]
 
         # We layout the values into a list of tuples, with each tuple element
         # corresponding to a header
