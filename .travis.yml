@@ -5,11 +5,10 @@ env:
  - TOXENV=py27-1.6.x 
 
 install:
- # Installing the package explicitly with ``python setup.py install`` is not required.
- # Tox itself creates virtual environments and installs it automatically.
- # So all we need is install tox(to run the tests) and coverage(to generate coverage reports)
- - pip install tox
- - pip install coverage
+ - pip install tox flake8
+
+before_script:
+ - flake8 firestone
 
 script:
  - tox
