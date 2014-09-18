@@ -4,6 +4,7 @@ language: python
 env:
  - TOXENV=py27-1.5.x 
  - TOXENV=py27-1.6.x 
+ - TOXENV=py27-1.7.x 
 
 install:
  - pip install tox flake8
