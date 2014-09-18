@@ -1,5 +1,6 @@
 language: python
 
+# Test environments (taken from tox)
 env:
  - TOXENV=py27-1.5.x 
  - TOXENV=py27-1.6.x 
@@ -7,12 +8,14 @@ env:
 install:
  - pip install tox flake8
 
+# flake8 - tests PEP8 conformance
 before_script:
  - flake8 firestone
 
 script:
  - tox
 
+# Coverage report
 after_success:
  - pip install coveralls
  - coveralls
