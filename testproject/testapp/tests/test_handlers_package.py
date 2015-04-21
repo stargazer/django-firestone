@@ -126,6 +126,7 @@ class TestPackage(TestCase):
 
         data = 'datastring'
         pagination = {}
+        import pdb; pdb.set_trace()
         res = handler.package(data, pagination)
         self.assertItemsEqual(res.keys(), ('data', 'count', 'debug'))
         self.assertEqual(res['data'], data)

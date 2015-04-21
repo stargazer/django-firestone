@@ -393,15 +393,11 @@ class BaseHandler(HandlerControlFlow):
         Returns:
             Dictionary of debugging data about this request.
         """
-        time_per_query = [
-            float(dic['time']) for dic in connection.queries if 'time' in dic
-        ]
-
         # Tweaking ``connection.queries`` to increase query readability
         connection.queries = [
             {
-                'time': item['time'],
-                'sql': item['sql'].replace('"', '')
+                'time': float(item.get('time', 0)),
+                'sql': item.get('sql', '').replace('"', '')
             }
             for item in connection.queries
         ]

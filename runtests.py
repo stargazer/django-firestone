@@ -3,14 +3,13 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'testproject.settings'
 test_dir = os.path.dirname(__file__)
 sys.path.insert(0, test_dir)
 
-# Necessary for Django 1.7. See https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-changes
+# Necessary for Django >= 1.7. See https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-changes
 import django
-if django.get_version().startswith('1.7'):
+if float(django.get_version()) >= 1.7:
     django.setup()
 
 from django.test.utils import get_runner
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 
 def run():
     TestRunner = get_runner(settings)
@@ -19,7 +18,8 @@ def run():
         # Django 1.5
         failures = test_runner.run_tests(['testapp',])
     except ImportError:
-        # Django 1.6
+        # Django >= 1.6
         failures = test_runner.run_tests(['testproject.testapp',])
+
     sys.exit(failures)
 
