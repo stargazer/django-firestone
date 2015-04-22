@@ -12,7 +12,7 @@ django-firestone offers the following features:
   * Signatures
   * JSON Web Tokens
 
-* Mapping multiple handlers per resource, with each handler having a different authentication method
+* Mapping multiple handlers per resource, with each handler having a different authentication method, and its own response representation for the resource
 * Flexible output representation, and the ability to provide detailed
   representation of all nested data structures, no matter how deep they appear
 * Request-level field selection

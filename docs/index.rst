@@ -6,21 +6,21 @@
 Welcome to django-firestone's documentation!
 ============================================
 
+*django-firestone* is a flexible REST API framework that makes building APIs
+a pleasure. It carries the heavyweight logic and provides functionality out of
+the box.
 
 .. toctree::
    :maxdepth: 2
 
 Getting Started
 ------------------
-*django-firestone* is a flexible REST API framework that makes building APIs
-a pleasure. It carries the heavyweight logic and provides functionality out of
-the box.
-
 .. toctree::
         :maxdepth: 2
 
         getting_started/documentation
         getting_started/installation
+        getting_started/testing
         getting_started/configuration
 
 

@@ -8,7 +8,7 @@ Requirements
 * Python 2.7
 * Django > 1.5
 
-For Development / Testing
+For Development
 --------------------------------------
 
 Install
@@ -27,20 +27,6 @@ Check out the latest version of django-firestone from github and build it::
         cd django-firestone
         python setup.py install
 
-
-Test
-^^^^^^
-Run the complete test suite::
-
-        tox
-
-This runs the testing suite of django-firestone against multiple Python and Django versions and creates a coverage report, which you can access by opening file::
-
-        htmlcov/index.html
-
-To run the test suite quickly against the currently installed Python and Django versions in the virtual environment, run::
-
-        python setup.py test
 
 As a library
 -----------------------------------
