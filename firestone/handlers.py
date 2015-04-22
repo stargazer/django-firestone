@@ -393,19 +393,21 @@ class BaseHandler(HandlerControlFlow):
         Returns:
             Dictionary of debugging data about this request.
         """
-        # Tweaking ``connection.queries`` to increase query readability
-        connection.queries = [
+        # Readable version of ``connection.queries``
+        readable_connection_queries = [
             {
-                'time': float(item.get('time', 0)),
-                'sql': item.get('sql', '').replace('"', '')
+                'time': item['time'],
+                'sql': item['sql'].replace('"', '')
             }
             for item in connection.queries
         ]
 
         return {
-            'total_query_time': sum(time_per_query),
+            'total_query_time': sum(
+                [float(dic['time']) for dic in connection.queries]
+            ),
             'query_count': len(connection.queries),
-            'query_log': connection.queries,
+            'query_log': readable_connection_queries,
         }
 
     def patch_response(self, response, headers={}):
