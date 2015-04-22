@@ -5,7 +5,8 @@ sys.path.insert(0, test_dir)
 
 # Necessary for Django >= 1.7. See https://docs.djangoproject.com/en/dev/releases/1.7/#app-loading-changes
 import django
-if float(django.get_version()) >= 1.7:
+from distutils.version import LooseVersion
+if LooseVersion(django.get_version()) >= LooseVersion('1.7'):
     django.setup()
 
 from django.test.utils import get_runner
