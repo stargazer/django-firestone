@@ -1,3 +1,3 @@
-from test_deserialization_mixins import *
+from .test_deserialization_mixins import *
 
 

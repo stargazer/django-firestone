@@ -23,7 +23,7 @@ def _form_encoded_data_deserializer(data):
 
     # I transform ``dic`` in the form ``key: value``, by taking only the first
     # vaule of each key
-    return {key: value[0] for key, value in dic.iteritems()}
+    return {key: value[0] for key, value in dic.items()}
 
 MAPPER = {
     'application/json': _json_deserializer,
