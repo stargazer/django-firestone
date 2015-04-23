@@ -1,5 +1,5 @@
 """
-This module implements the functionality for request authentication. 
+This module implements the functionality for request authentication.
 API handler classes can inherit the functionality of any of these mixins.
 
 Where possible, like in the case of ``SessionAuthentication``, we make use of
@@ -7,6 +7,8 @@ Django's middlewares(which have already ran), to identify whether the request
 is authenticated and who the authenticated user is.
 In other cases, we implement the whole logic in the authentication mixin.
 """
+
+
 class AuthenticationMixin(object):
     """
     Any API handler that inherits from this Mixin or any of its children
@@ -45,5 +47,3 @@ class SessionAuthentication(AuthenticationMixin):
         if hasattr(self.request, 'user'):
             return self.request.user.is_authenticated()
         return False
-
-

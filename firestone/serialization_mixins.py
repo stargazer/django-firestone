@@ -13,7 +13,7 @@ class SerializationMixin(object):
     def serialize(self):
         raise NotImplemented
 
+
 class JSONSerializationMixin(SerializationMixin):
     def serialize(self):
         pass
-    

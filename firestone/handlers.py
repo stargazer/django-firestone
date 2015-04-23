@@ -1,3 +1,5 @@
+from firestone.authentication_mixins import NoAuthenticationMixin
+from firestone.deserialization_mixing import GenericDeserializationMixin
 from django.views.generic import base
 
 
@@ -29,18 +31,15 @@ class BaseHandler(base.View):
         raise NotImplemented
 
     def option(self):
-        return super(APIView, self).\
-               options(self.request, self.args, self.kwargs)
+        return super(BaseHandler, self).\
+            options(self.request, self.args, self.kwargs)
 
 
-
-class ExampleHandler(BaseHandler, 
-                     NoAuthenticationMixin, 
-                     JSONSerializer):
+class ExampleHandler(BaseHandler,
+                     NoAuthenticationMixin,
+                     GenericDeserializationMixin):
     def get(self):
         pass
 
     def post(self):
         pass
-
-
