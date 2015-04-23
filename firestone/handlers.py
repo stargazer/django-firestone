@@ -34,7 +34,6 @@ class BaseHandler(base.View):
 
 
 
-
 class ExampleHandler(BaseHandler, 
                      NoAuthenticationMixin, 
                      JSONSerializer):

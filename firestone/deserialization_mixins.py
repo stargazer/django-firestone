@@ -2,7 +2,7 @@
 This module implements the functionality for request body deserialization.
 API handler classes can inherit the functionality of any of these mixins.
 """ 
-from django.utils.six.moves.urllib.parse import urlparse
+from django.utils.six.moves.urllib_parse import parse_qs
 import json
 
 
@@ -16,7 +16,7 @@ def _form_encoded_data_deserializer(data):
     # param ``data`` is a string (querystring format)
     try:
         # dic is in the form ``key: [value]``
-        dic = urlparse.parse_qs(data, strict_parsing=True)
+        dic = parse_qs(data, strict_parsing=True)
     except ValueError:
         raise
 
@@ -24,26 +24,26 @@ def _form_encoded_data_deserializer(data):
     # vaule of each key
     return {key: value[0] for key, value in dic.iteritems()}
 
+MAPPER = {
+    'application/json': _json_deserializer,
+    'application/x-www-form-urlencoded': _form_encoded_data_deserializer,
+}
 
-class DeserializationMixin(DeserializationMixin):
+def _get_deserializer(content_type):
+    content_type = content_type.lower()
+
+    for key, value in MAPPER.items():
+        if content_type.startswith(key):
+            return value
+    
+    return None            
+
+
+class DeserializationMixin(object):
     """
     Provides functionality for deserializing the request body, according to the
-    ``Content-type`` header
+    request's ``Content-type`` header
     """
-    MAPPER = {
-        'application/json': _json_deserializer,
-        'application/x-www-form-urlencoded': _form_encoded_data_deserializer,
-    }
-
-    def _get_deserializer(self, content_type):
-        deserializer = content_type.lower()
-
-        for key, value in self.MAPPER.items():
-            if content_type.startswith(key):
-                return value
-        
-        return None            
-
     def deserialize(self):
         """
         Deserializes the request body, according to the request's Content-type.
@@ -55,7 +55,7 @@ class DeserializationMixin(DeserializationMixin):
         if not content_type:
             raise TypeError
         
-        deserializer = self._get_deserializer(content_type)
+        deserializer = _get_deserializer(content_type)
 
         try:
             return deserializer(request.body)
