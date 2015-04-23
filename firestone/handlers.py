@@ -1,11 +1,10 @@
 from django.views.generic import base
 
 
-class Handler(base.View):
+class BaseHandler(base.View):
     output_template = {}
     post_body_fields = []
     put_body_fields = []
-
 
     # Every HTTP verb method, should return an ``HTTPResponse`` object.
     def get(self):
@@ -33,19 +32,10 @@ class Handler(base.View):
         return super(APIView, self).\
                options(self.request, self.args, self.kwargs)
 
-    def deserialize(self):
-        pass
-
-    def debug_data(self):
-        pass
-
-    def exception_handler(self):
-        pass
 
 
 
-
-class ExampleHandler(Handler, 
+class ExampleHandler(BaseHandler, 
                      NoAuthenticationMixin, 
                      JSONSerializer):
     def get(self):

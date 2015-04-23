@@ -4,7 +4,7 @@ API handler classes can inherit the functionality of any of these mixins.
 """
 
 
-class SerializerMixin(object):
+class SerializationMixin(object):
     """
     Any API handler that inherits from this Mixin or any of its children
     classes, inherits the ``serialize`` method, which returns the serialized
@@ -13,7 +13,7 @@ class SerializerMixin(object):
     def serialize(self):
         raise NotImplemented
 
-class JSONSerializerMixin(SerializerMixin):
+class JSONSerializationMixin(SerializationMixin):
     def serialize(self):
         pass
     
