@@ -13,13 +13,6 @@ setup(
     keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
         'Django',
-        'django-preserialize',
-        'django-endless-pagination',
-        'itsdangerous',
-        'django-extensions', # Required to interact easily with the testproject
-        'model-mommy',       # Required for the tests
-        'coverage',          # Required for test coverage on Travis C.I.
-        'tablib',            # For excel serialization
     ),
     tests_require=(),       # Kept it empty and instead moved all dependencies on
                             # ``install_requires``, which makes for way better dependency

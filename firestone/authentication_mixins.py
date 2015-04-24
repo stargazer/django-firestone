@@ -20,12 +20,12 @@ class AuthenticationMixin(object):
         raise NotImplemented
 
 
-class NoAuthentication(AuthenticationMixin):
+class NoAuthenticationMixin(AuthenticationMixin):
     def is_authenticated(self):
         return True
 
 
-class SessionAuthentication(AuthenticationMixin):
+class SessionAuthenticationMixin(AuthenticationMixin):
     """
     Requires that the following Django middlewares are enabled:
     * ``django.contrib.sessions.middleware.SessionMiddleWare``

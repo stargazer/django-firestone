@@ -16,7 +16,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.admin',
     'django.contrib.staticfiles', 
-    'django_extensions',
 
     'testproject.testapp',
 )

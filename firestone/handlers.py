@@ -1,45 +1,34 @@
-from firestone.authentication_mixins import NoAuthenticationMixin
-from firestone.deserialization_mixing import GenericDeserializationMixin
+from firestone.deserialization_mixins import DeserializationMixin
 from django.views.generic import base
 
 
-class BaseHandler(base.View):
+class BaseHandler(base.View, DeserializationMixin):
     output_template = {}
     post_body_fields = []
     put_body_fields = []
 
     # Every HTTP verb method, should return an ``HTTPResponse`` object.
-    def get(self):
+    def get(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def post(self):
+    def post(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def put(self):
+    def put(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def delete(self):
+    def delete(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def head(self):
+    def head(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def patch(self):
+    def patch(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def trace(self):
+    def trace(self, request, *args, **kwargs):
         raise NotImplemented
 
-    def option(self):
-        return super(BaseHandler, self).\
-            options(self.request, self.args, self.kwargs)
-
-
-class ExampleHandler(BaseHandler,
-                     NoAuthenticationMixin,
-                     GenericDeserializationMixin):
-    def get(self):
-        pass
-
-    def post(self):
-        pass
+    def option(self, request, *args, **kwargs):
+        return super(BaseHandler, self, request, *args, **kwargs).\
+            options(request, *args, **kwargs)
