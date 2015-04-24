@@ -164,58 +164,86 @@ class TestDeserializationMixin(TestCase):
             expected_deserialized_data,
         )
 
-        def test_valid_content_type_form_urlencoded(self):
-            dic = {
-                'keyA': 'valueA',
-                'keyB': ['valueA', 'valueB'],
-                'keyC': 1,
-                'keyD': [1, 2],
-            }
+    def test_invalid_content_type_json(self):
+        payload = 'invalid json payload'
+        request = RequestFactory().post(
+            '',
+            data=payload,
+            content_type='application/json',
+        )
+        self.dm.request = request
 
-            payload = urlencode(dic, doseq=True)
-            expected_deserialized_data = {
-                'keyA': 'valueA',
-                'keyB': ['valueA', 'valueB'],
-                'keyC': '1',
-                'keyD': ['1', '2'],
-            }
+        self.assertRaises(
+            ValueError,
+            self.dm.deserialize,
+        )
 
-            request = RequestFactory().post(
-                '', 
-                data=payload,
-                content_type='application/x-www-form-urlencoded',
-            )
-            self.dm.request = request
-            
-            self.assertEqual(
-                self.dm.deserialize(),
-                expected_deserialized_data,
-            )
+    def test_valid_content_type_form_urlencoded(self):
+        dic = {
+            'keyA': 'valueA',
+            'keyB': ['valueA', 'valueB'],
+            'keyC': 1,
+            'keyD': [1, 2],
+        }
 
-        def test_no_content_type(self):
-            payload = 'whatever'
-            request = RequestFactory().post(
-                '',
-                data=payload,
-                content_type='',
-            )
-            self.dm.request = request
+        payload = urlencode(dic, doseq=True)
+        expected_deserialized_data = {
+            'keyA': 'valueA',
+            'keyB': ['valueA', 'valueB'],
+            'keyC': '1',
+            'keyD': ['1', '2'],
+        }
 
-            self.assertRaises(
-                TypeError,
-                self.dm.deserialize,
-            )
+        request = RequestFactory().post(
+            '', 
+            data=payload,
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.dm.request = request
+        
+        self.assertEqual(
+            self.dm.deserialize(),
+            expected_deserialized_data,
+        )
 
-        def test_unknown_content_type(self):
-            payload = 'whatever'
-            request = RequestFactory().post(
-                '',
-                data=payload,
-                content_type='unknown',
-            )
-            self.dm.request = request
+    def test_invalid_content_type_form_urlencoded(self):
+        payload = 'invalid form urlencoded data'
+        request = RequestFactory().post(
+            '',
+            data=payload,
+            content_type='application/x-www-form-urlencoded',
+        )
+        self.dm.request = request
 
-            self.assertRaises(
-                ValueError,
-                self.dm.deserialize,
-            )
+        self.assertRaises(
+            ValueError,
+            self.dm.deserialize,
+        )
+
+    def test_no_content_type(self):
+        payload = 'whatever'
+        request = RequestFactory().post(
+            '',
+            data=payload,
+            content_type='',
+        )
+        self.dm.request = request
+
+        self.assertRaises(
+            TypeError,
+            self.dm.deserialize,
+        )
+
+    def test_unknown_content_type(self):
+        payload = 'whatever'
+        request = RequestFactory().post(
+            '',
+            data=payload,
+            content_type='unknown',
+        )
+        self.dm.request = request
+
+        self.assertRaises(
+            TypeError,
+            self.dm.deserialize,
+        )
