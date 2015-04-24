@@ -2,8 +2,8 @@ from deserializer.mixins import DeserializationMixin
 from django.views.generic import base
 
 
-class BaseHandler(base.View,
-                  DeserializationMixin):
+class APIView(base.View,
+              DeserializationMixin):
     output_template = {}
     post_body_fields = []
     put_body_fields = []

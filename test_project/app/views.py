@@ -1,10 +1,10 @@
-from firestone.handlers import BaseHandler
+from firestone.views import APIView
 from firestone.authentication_mixins import NoAuthenticationMixin
 from deserializer.mixins import DeserializationMixin
 from django.http import HttpResponse
 
 
-class TestHandler(BaseHandler):
+class TestAPIView(APIView):
     def get(self, request, *args, **kwargs):
         return HttpResponse('GET')
 

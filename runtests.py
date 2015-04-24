@@ -1,5 +1,5 @@
 import os, sys
-os.environ['DJANGO_SETTINGS_MODULE'] = 'testproject.settings'
+os.environ['DJANGO_SETTINGS_MODULE'] = 'test_project.settings'
 test_dir = os.path.dirname(__file__)
 sys.path.insert(0, test_dir)
 
@@ -17,10 +17,10 @@ def run():
     test_runner = TestRunner(verbosity=1, interactive=True, failfast=True)
     try:
         # Django 1.5
-        failures = test_runner.run_tests(['testapp',])
+        failures = test_runner.run_tests(['app',])
     except ImportError:
         # Django >= 1.6
-        failures = test_runner.run_tests(['testproject.testapp',])
+        failures = test_runner.run_tests(['test_project.app',])
 
     sys.exit(failures)
 

@@ -17,7 +17,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.staticfiles', 
 
-    'testproject.testapp',
+    'test_project.app',
 )
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -26,7 +26,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 STATIC_URL = '/static/'
-ROOT_URLCONF = 'testproject.urls'
+ROOT_URLCONF = 'test_project.urls'
 
 SECRET_KEY = 'asd6asdf7b1esdfasd0fasdfbf0690dsdfas0df9sdf2sd9f16254fgjdf47ed1741c'
 
