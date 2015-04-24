@@ -42,7 +42,7 @@ def _get_deserializer(content_type):
         if content_type.startswith(key):
             return value
 
-    return None
+    raise TypeError
 
 
 class DeserializationMixin(object):
@@ -60,8 +60,11 @@ class DeserializationMixin(object):
         content_type = self.request.META.get('CONTENT_TYPE')
         if not content_type:
             raise TypeError
-
-        deserializer = _get_deserializer(content_type)
+        
+        try:
+            deserializer = _get_deserializer(content_type)
+        except TypeError:
+            raise
 
         try:
             return deserializer(self.request.body)

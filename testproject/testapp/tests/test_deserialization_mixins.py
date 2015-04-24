@@ -90,10 +90,18 @@ class TestGetDeserializer(TestCase):
     Tests the ``_get_deserializer`` function
     """
     def test_empty(self):
-        self.assertIsNone(_get_deserializer(''))
+        self.assertRaises(
+            TypeError,
+            _get_deserializer,
+            '',
+        )
 
     def test_unsupported(self):        
-        self.assertIsNone(_get_deserializer('unsupported media type'))
+        self.assertRaises(
+            TypeError,
+            _get_deserializer,
+            'unsupported media type',
+        )
         
     def test_json(self):        
         self.assertEquals(
