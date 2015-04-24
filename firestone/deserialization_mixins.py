@@ -13,21 +13,25 @@ def _json_deserializer(data):
         raise
 
 
-def _form_encoded_data_deserializer(data):
-    # param ``data`` is a string (querystring format)
+def _form_urlencoded_data_deserializer(data):
+    # param ``data`` is a URL encoded string (identical to what appears on a
+    # querystring)
     try:
         # dic is in the form ``key: [value]``
         dic = parse_qs(data, strict_parsing=True)
     except ValueError:
         raise
 
-    # I transform ``dic`` in the form ``key: value``, by taking only the first
-    # vaule of each key
-    return {key: value[0] for key, value in dic.items()}
+    # For every ``key`` in ``dic``, that only has one item in the ``value``
+    # list, I flatted ``value``
+    return {
+        k: (v if len(v) > 1 else v[0]) for k, v in dic.items()
+    }
+
 
 MAPPER = {
     'application/json': _json_deserializer,
-    'application/x-www-form-urlencoded': _form_encoded_data_deserializer,
+    'application/x-www-form-urlencoded': _form_urlencoded_data_deserializer,
 }
 
 
