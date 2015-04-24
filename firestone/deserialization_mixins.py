@@ -3,12 +3,13 @@ This module implements the functionality for request body deserialization.
 API handler classes can inherit the functionality of any of these mixins.
 """
 from django.utils.six.moves.urllib_parse import parse_qs
+from django.utils.encoding import smart_text
 import json
 
 
 def _json_deserializer(data):
     try:
-        return json.loads(data)
+        return json.loads(smart_text(data))
     except ValueError:
         raise
 
@@ -18,7 +19,7 @@ def _form_urlencoded_data_deserializer(data):
     # querystring)
     try:
         # dic is in the form ``key: [value]``
-        dic = parse_qs(data, strict_parsing=True)
+        dic = parse_qs(smart_text(data), strict_parsing=True)
     except ValueError:
         raise
 
@@ -60,7 +61,7 @@ class DeserializationMixin(object):
         content_type = self.request.META.get('CONTENT_TYPE')
         if not content_type:
             raise TypeError
-        
+
         try:
             deserializer = _get_deserializer(content_type)
         except TypeError:
