@@ -1,8 +1,9 @@
-from firestone.deserialization_mixins import DeserializationMixin
+from deserializer.mixins import DeserializationMixin
 from django.views.generic import base
 
 
-class BaseHandler(base.View, DeserializationMixin):
+class BaseHandler(base.View,
+                  DeserializationMixin):
     output_template = {}
     post_body_fields = []
     put_body_fields = []

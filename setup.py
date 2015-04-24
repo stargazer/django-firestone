@@ -13,10 +13,9 @@ setup(
     keywords=('firestone', 'django-firestone', 'rest', 'restful', 'api', 'crud'),
     install_requires=(
         'Django',
+        'django-deserializer',
     ),
-    tests_require=(),       # Kept it empty and instead moved all dependencies on
-                            # ``install_requires``, which makes for way better dependency
-                            # resolution.    
+    tests_require=(),       
     test_suite='runtests.run',
     zip_safe=False,
     classifiers=(
