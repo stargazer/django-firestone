@@ -1,5 +1,4 @@
 from firestone.views import APIView
-from firestone.authentication_mixins import NoAuthenticationMixin
 from deserializer.mixins import DeserializationMixin
 from django.http import HttpResponse
 

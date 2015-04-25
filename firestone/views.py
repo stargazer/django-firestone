@@ -31,5 +31,5 @@ class APIView(base.View,
         raise NotImplemented
 
     def option(self, request, *args, **kwargs):
-        return super(BaseHandler, self, request, *args, **kwargs).\
+        return super(APIView, self, request, *args, **kwargs).\
             options(request, *args, **kwargs)
